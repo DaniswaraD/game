@@ -1111,6 +1111,7 @@ var shipFxTimer=0;
 var isMultiplayerRun=false;
 var mpRoomCode=null;
 var mpMyId=null;
+var mpHostId=null;
 var mpIsHost=false;
 var mpPlayersCache={};
 var mpRoomRef=null;
@@ -1168,9 +1169,11 @@ function mpCreateGroup(){
     data.players[myId]=me;
     ref.set(data,function(err){
       if(err){showToast('Gagal buat grup','error');return;}
+      mpHostId=myId;
       attachMpListeners(code,myId,true);
       showScreen('mpLobby');
       document.getElementById('mpRoomCode').textContent=code;
+      renderMpLobby();
       sfxMP();
     });
   });
@@ -1196,6 +1199,7 @@ function mpJoinGroup(){
     var myId=genPlayerId();
     mpMyId=myId;
     mpIsHost=false;
+    mpHostId=data.hostId||null;
     mpRoomCode=code;
     var me={
       id:myId,name:name,
@@ -1208,6 +1212,7 @@ function mpJoinGroup(){
       attachMpListeners(code,myId,false);
       showScreen('mpLobby');
       document.getElementById('mpRoomCode').textContent=code;
+      renderMpLobby();
       sfxMP();
     });
   });
@@ -1217,13 +1222,14 @@ function attachMpListeners(code,myId,isHost){
   if(mpRoomRef&&mpPollInterval){clearInterval(mpPollInterval);}
   mpRoomRef=db.ref('rooms/'+code);
   mpPlayerRef=db.ref('rooms/'+code+'/players/'+myId);
-  mpPlayerRef.child('lastSeen').onDisconnect().set(Date.now());
+  mpPlayerRef.child('lastSeen').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
   mpPlayerRef.onDisconnect().remove();
   mpRoomRef.on('value',function(snap){
     var data=snap.val();
     if(!data){showToast('Grup dibubarkan','error');leaveMp();return;}
     var players=data.players||{};
     mpPlayersCache=players;
+    mpHostId=data.hostId||null;
     if(!players[myId]){
       showToast('Kamu dikeluarkan','error');leaveMp();return;
     }
@@ -1245,15 +1251,7 @@ function renderMpLobby(){
   var players=[];
   for(var k in mpPlayersCache)players.push(mpPlayersCache[k]);
   players.sort(function(a,b){return (a.joinedAt||0)-(b.joinedAt||0);});
-  if(mpRoomRef){
-    mpRoomRef.once('value',function(snap){
-      var d=snap.val();
-      var hostId=d?d.hostId:null;
-      doRenderMpLobby(players,hostId);
-    });
-    return;
-  }
-  doRenderMpLobby(players,null);
+  doRenderMpLobby(players,mpHostId);
 }
 function drawShipCentered(g,ship,shape,boxW,boxH,opts){
   opts=opts||{};
@@ -1474,9 +1472,13 @@ function leaveMp(){
   }
   if(mpPollInterval){clearInterval(mpPollInterval);mpPollInterval=null;}
   if(mpRoomRef){try{mpRoomRef.off();}catch(e){}mpRoomRef=null;}
-  mpRoomCode=null;mpMyId=null;mpIsHost=false;mpPlayersCache={};
+  mpRoomCode=null;mpMyId=null;mpHostId=null;mpIsHost=false;mpPlayersCache={};
   mpStartRequested=false;mpFinalSent=false;isMultiplayerRun=false;mpDead=false;
   mpMiniTimers={};
+  var mr=document.getElementById('mpMiniRow');
+  if(mr){mr.innerHTML='';mr.removeAttribute('data-ids');}
+  var mpl=document.getElementById('mpPlayers');
+  if(mpl)mpl.innerHTML='';
 }
 function startMpGame(){
   if(!mpRoomRef)return;
