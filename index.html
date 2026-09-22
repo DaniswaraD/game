@@ -324,17 +324,22 @@ svg{display:block;}
 .mp-lobby{background:#ffffff;border:2px solid #242438;border-radius:16px;padding:16px;box-shadow:0 4px 0 #242438;position:relative;}
 .mp-lobby-code{font-size:11px;letter-spacing:2px;color:#4a4a63;text-align:center;font-weight:700;}
 .mp-lobby-code b{color:#ff6b4a;font-size:20px;letter-spacing:8px;display:block;margin-top:4px;}
-.mp-players{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-top:18px;min-height:140px;align-items:center;}
-.mp-player{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;background:#fffaf0;border:2px solid #242438;border-radius:14px;min-width:110px;max-width:130px;box-shadow:0 3px 0 rgba(36,36,56,.15);position:relative;transition:all .2s;}
+.mp-players{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-top:18px;min-height:150px;align-items:center;}
+.mp-player{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;background:#fffaf0;border:2px solid #242438;border-radius:14px;min-width:140px;max-width:150px;box-shadow:0 3px 0 rgba(36,36,56,.15);position:relative;transition:all .2s;}
 .mp-player.host{border-color:#ffc857;box-shadow:0 0 0 3px rgba(255,200,87,.4),0 3px 0 rgba(36,36,56,.15);}
 .mp-player.me{background:linear-gradient(180deg,#e8fbf1,#ffffff);}
 .mp-player.dead{opacity:.55;filter:grayscale(.6);}
-.mp-player canvas{width:60px;height:60px;display:block;}
-.mp-player .mp-name{font-size:12px;font-weight:700;color:#242438;letter-spacing:.5px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.mp-player .mp-tag{font-size:9px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:6px;background:#e0f2fe;color:#0c4a6e;}
-.mp-player .mp-tag.host{background:#ffc857;color:#4a3605;}
-.mp-player .mp-stats{font-size:9.5px;color:#4a4a63;font-weight:600;text-align:center;line-height:1.4;}
-.mp-player .mp-stats b{color:#ff6b4a;}
+.mp-player canvas{width:80px;height:80px;display:block;}
+.mp-player .mp-name{font-size:12px;font-weight:700;color:#242438;letter-spacing:.5px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mp-player .mp-role{font-size:9px;font-weight:700;letter-spacing:1.5px;padding:3px 9px;border-radius:6px;background:#e0f2fe;color:#0c4a6e;border:1.5px solid #242438;}
+.mp-player .mp-role.host{background:linear-gradient(180deg,#ffd977,#ffc857);color:#4a3605;}
+.mp-player .mp-kills{font-size:10px;font-weight:700;color:#242438;background:#fff;border:1.5px solid #242438;border-radius:6px;padding:3px 9px;letter-spacing:.4px;}
+.mp-player .mp-kills b{color:#ff6b4a;font-size:13px;}
+.mp-mini-row{display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap;padding:0 4px;}
+.mp-mini{width:74px;background:#111;border:2px solid #242438;border-radius:10px;overflow:hidden;position:relative;box-shadow:0 3px 0 #242438;}
+.mp-mini canvas{display:block;width:100%;height:auto;}
+.mp-mini-name{position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:8px;font-weight:700;background:rgba(255,255,255,.92);color:#242438;padding:2px 0;letter-spacing:.5px;}
+.mp-mini.dead{opacity:.5;filter:grayscale(.6);}
 .mp-waiting{text-align:center;color:#4a4a63;font-size:12px;font-weight:600;margin-top:10px;letter-spacing:1px;}
 .mp-actions{display:flex;gap:10px;margin-top:14px;}
 .mp-actions .mp-btn{flex:1;}
@@ -488,7 +493,7 @@ svg{display:block;}
   <div class="topbar"><button class="icon-btn" id="helpBack"><svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>Kembali</button></div>
   <div class="scroll-area"><div class="inner">
     <div class="help-block"><h3>Kontrol</h3><ul><li>Geser untuk gerakkan kapal</li><li>Tembakan otomatis</li><li>Tombol kanan bawah untuk aktifkan skill</li></ul></div>
-    <div class="help-block"><h3>Bab & Tingkat</h3><ul><li>Bab 1: Tutorial, Mudah, Sedang</li><li>Bab 2: Sulit, Ahli, Nightmare (buka setelah Bab 1 tuntas)</li><li>Bab 3: Impossible, Doom, 4RROR (buka setelah Bab 2 tuntas)</li><li>Final Boss: buka setelah semua bab tuntas</li></ul></div>
+    <div class="help-block"><h3>Bab & Tingkat</h3><ul><li>Bab 1: Tutorial, Mudah, Sedang</li><li>Bab 2: Sulit, Ahli, Nightmare</li><li>Bab 3: Impossible, Doom, 4RROR</li><li>Final Boss: semua boss bertumpuk</li></ul></div>
     <div class="help-block"><h3>Final Boss</h3><p>Semua boss muncul bertumpuk sekaligus. Bertahan sampai waktu habis untuk menang.</p></div>
     <div class="help-block"><h3>Multiplayer</h3><p>Bermain grup maks 5 pemain. Butuh minimal 2 pemain. Mode Impossible 75 detik.</p></div>
     <div class="help-block"><h3>Item di Layar</h3><ul><li>Gelembung hijau: tambah HP</li><li>Gelembung putih: tembakan ganda</li><li>Bintang kuning: damage 4x</li><li>Perisai biru: kurangi damage 90%</li><li>Bunga pink: tembak lebih cepat</li><li>Kristal ungu: tembus semua musuh</li><li>Bola emas x2: gandakan KP 3 detik</li><li>Bom gelap: kurangi 20 HP</li></ul></div>
@@ -523,7 +528,7 @@ svg{display:block;}
       <div class="mp-player" style="align-self:center;margin-top:8px;">
         <canvas id="mpSelfPreview" width="120" height="120"></canvas>
         <div class="mp-name" id="mpSelfName">-</div>
-        <div class="mp-tag" id="mpSelfTag">PEMAIN</div>
+        <div class="mp-role" id="mpSelfTag">PLAYER</div>
       </div>
     </div>
     <div class="section-title">Grup</div>
@@ -550,6 +555,7 @@ svg{display:block;}
         <button class="mp-btn leave" id="mpLeaveBtn2">KELUAR</button>
       </div>
     </div>
+    <div class="mp-mini-row" id="mpMiniRow"></div>
     <div id="mpEndStats" style="display:none;">
       <div class="section-title" style="padding:0 0 8px 0;">Hasil Akhir</div>
       <div id="mpEndBody"></div>
@@ -779,7 +785,6 @@ function sfxVoucherOk(){beep(660,0.1,'sine',0.06);setTimeout(function(){beep(880
 function sfxVoucherBad(){beep(200,0.15,'square',0.06,100);setTimeout(function(){beep(150,0.2,'square',0.06,80);},120);}
 function sfxSecret(){beep(500,0.05,'square',0.05);setTimeout(function(){beep(700,0.05,'square',0.05);},60);setTimeout(function(){beep(900,0.05,'square',0.05);},120);setTimeout(function(){beep(1200,0.15,'sine',0.06);},180);}
 function sfxMP(){beep(700,0.08,'sine',0.05);setTimeout(function(){beep(1100,0.12,'sine',0.05);},70);}
-
 var ICONS={
   skull:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.03 2 3 6.03 3 11c0 2.4 1 4.6 2.5 6.2V21c0 .55.45 1 1 1h11c.55 0 1-.45 1-1v-3.8C20 15.6 21 13.4 21 11c0-4.97-4.03-9-9-9zM8.5 13c-.83 0-1.5-.67-1.5-1.5S7.67 10 8.5 10 10 10.67 10 11.5 9.33 13 8.5 13zm7 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM12 14l-1.5 3h3L12 14z"/></svg>',
   heart:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>',
@@ -841,7 +846,6 @@ var ICONS={
   crystal:'<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12,2 20,9 16,22 8,22 4,9"/></svg>',
   shieldShape:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L3 6v6c0 5 4 8 9 10 5-2 9-5 9-10V6z"/></svg>'
 };
-
 var SKILLS=[
   {id:'health',name:'PEMULIHAN',desc:'Pulihkan 50 HP seketika',cost:120,cooldown:10,duration:0,icon:'heart',chapter:1},
   {id:'spikes',name:'DURI BALIK',desc:'Pantulkan 35% damage ke musuh',cost:180,cooldown:10,duration:5,icon:'spike',chapter:1},
@@ -858,7 +862,6 @@ var SKILLS=[
   {id:'chain',name:'PETIR RANTAI',desc:'Auto serang musuh terdekat tiap 0.4s',cost:4000,cooldown:16,duration:8,icon:'chain',chapter:3},
   {id:'voidbeam',name:'SINAR KOSONG',desc:'Tembakan beam cepat otomatis',cost:5000,cooldown:20,duration:5,icon:'voidbeam',chapter:4}
 ];
-
 var SHIPS=[
   {id:'default',name:'RANGER',cost:0,body:'#5cc27a',edge:'#2a5c3a',glowA:'rgba(92,194,122,0.5)',glowB:'rgba(92,194,122,0)',cockpit:'#d4f0ff',passiveDesc:'Seimbang (default)',passive:{},fx:'default',chapter:1},
   {id:'azure',name:'AZURE',cost:90,body:'#5aa6e8',edge:'#1e3a5c',glowA:'rgba(120,190,255,0.55)',glowB:'rgba(120,190,255,0)',cockpit:'#e0f2ff',passiveDesc:'+5% Damage',passive:{dmgMult:1.05},fx:'ripple',chapter:1},
@@ -878,7 +881,6 @@ var SHIPS=[
   {id:'galactic',name:'GALACTIC',cost:9000,body:'#2a4aa8',edge:'#0a1a5a',glowA:'rgba(120,180,255,0.75)',glowB:'rgba(80,120,255,0.3)',cockpit:'#d0e0ff',passiveDesc:'+30% Damage',passive:{dmgMult:1.30},fx:'galaxy',chapter:4},
   {id:'cosmic',name:'COSMIC',cost:12000,body:'#a83898',edge:'#4a0a4a',glowA:'rgba(255,140,255,0.75)',glowB:'rgba(180,80,255,0.35)',cockpit:'#ffe0ff',passiveDesc:'+35% DMG, +20% HP, +15% RoF, +25% Poin',passive:{dmgMult:1.35,hpMult:1.20,rofMult:1.15,goldMult:1.25},fx:'blackhole',chapter:4}
 ];
-
 var PLAYER_SHAPES=[
   {id:'square',name:'KOTAK',cost:0,desc:'Bentuk standar (default)',icon:'square',passiveDesc:'Seimbang',passive:{},chapter:1},
   {id:'triangle',name:'SEGITIGA',cost:500,desc:'Hitbox ringkas, mudah menghindar',icon:'triangle',passiveDesc:'+10% Dodge',passive:{dodgeChance:0.10},chapter:1},
@@ -895,7 +897,6 @@ var PLAYER_SHAPES=[
   {id:'complex',name:'KOMPLEKS',cost:6000,desc:'Struktur maju multi-lapis',icon:'complexShape',passiveDesc:'+20% DMG, +10% HP, +10% RoF',passive:{dmgMult:1.20,hpMult:1.10,rofMult:1.10},chapter:3},
   {id:'shieldShape',name:'PERISAI',cost:7500,desc:'Formasi pertahanan total',icon:'shieldShape',passiveDesc:'-25% dmg, +20% HP',passive:{armorMult:0.75,hpMult:1.20},chapter:4}
 ];
-
 var GUNS=[
   {id:'bullet',name:'PELURU',desc:'Tembakan standar (default)',cost:0,icon:'bullet',dmgMult:1,speedMult:1,size:5,count:1,spreadAng:0,homing:false,pierce:0,zigzag:false,explosive:false,rofMult:1,life:3,chapter:1},
   {id:'heavy',name:'PELURU BERAT',desc:'Damage dua kali, agak lambat',cost:150,icon:'heavy',dmgMult:2,speedMult:0.8,size:10,count:1,spreadAng:0,homing:false,pierce:0,zigzag:false,explosive:false,rofMult:1,life:3,chapter:1},
@@ -916,7 +917,6 @@ var GUNS=[
   {id:'lightning',name:'PETIR',desc:'Kejar musuh otomatis, cepat',cost:6200,icon:'lightning',dmgMult:2.2,speedMult:1.6,size:4,count:1,spreadAng:0,homing:true,pierce:0,zigzag:false,explosive:false,rofMult:1.5,life:3,chapter:4},
   {id:'deathray',name:'SINAR MAUT',desc:'Beam cepat, tembus semua',cost:7500,icon:'deathray',dmgMult:1.4,speedMult:2.2,size:5,count:1,spreadAng:0,homing:false,pierce:99,zigzag:false,explosive:false,rofMult:1.8,life:3,chapter:4}
 ];
-
 var STARTING_UPGRADES=[
   {id:'hull',name:'HULL PLUS',desc:'Max HP awal +50',cost:375,icon:'heart',chapter:1},
   {id:'power',name:'POWER PLUS',desc:'Damage semua +15%',cost:600,icon:'bullets',chapter:1},
@@ -932,7 +932,6 @@ var STARTING_UPGRADES=[
   {id:'greedy',name:'GREEDY',desc:'Poin dari kill +25%',cost:3500,icon:'greedy',chapter:4},
   {id:'precision',name:'PRECISION',desc:'Damage semua +10%',cost:4000,icon:'precision',chapter:4}
 ];
-
 var ACHIEVEMENTS=[
   {id:'kill_100',name:'PEMBURU',desc:'Kalahkan 100 musuh',icon:'skull',type:'kills',goal:100},
   {id:'kill_500',name:'VETERAN',desc:'Kalahkan 500 musuh',icon:'skull',type:'kills',goal:500},
@@ -975,7 +974,6 @@ var ACHIEVEMENTS=[
   {id:'mp_win',name:'KERJA SAMA',desc:'Menang 1x Multiplayer',icon:'star',type:'mp_wins',goal:1},
   {id:'mp_5',name:'TIM SOLID',desc:'Menang 5x Multiplayer',icon:'star',type:'mp_wins',goal:5}
 ];
-
 function findSkill(id){for(var i=0;i<SKILLS.length;i++)if(SKILLS[i].id===id)return SKILLS[i];return null;}
 function findShip(id){for(var i=0;i<SHIPS.length;i++)if(SHIPS[i].id===id)return SHIPS[i];return SHIPS[0];}
 function findShape(id){for(var i=0;i<PLAYER_SHAPES.length;i++)if(PLAYER_SHAPES[i].id===id)return PLAYER_SHAPES[i];return PLAYER_SHAPES[0];}
@@ -989,7 +987,6 @@ function ownedStart(id){return save.startingUpgrades.indexOf(id)>=0;}
 function totalUpgradesCount(){var t=0,k;for(k in save.gunUpgrades)t+=save.gunUpgrades[k]||0;for(k in save.shipUpgrades)t+=save.shipUpgrades[k]||0;for(k in save.skillUpgrades)t+=save.skillUpgrades[k]||0;return t;}
 function maxedItemsCount(){var t=0,k;for(k in save.gunUpgrades)if((save.gunUpgrades[k]||0)>=MAX_UPGRADE_LEVEL)t++;for(k in save.shipUpgrades)if((save.shipUpgrades[k]||0)>=MAX_UPGRADE_LEVEL)t++;for(k in save.skillUpgrades)if((save.skillUpgrades[k]||0)>=MAX_UPGRADE_LEVEL)t++;return t;}
 function vouchersUsedCount(){var t=0,k;for(k in save.usedVouchers)if(save.usedVouchers[k])t++;return t;}
-
 var THEME_MENU={bgTop:'#bae6fd',bgBottom:'#e0f2fe',edge:'#7dd3fc',particles:['rgba(255,255,255,ALPHA)','rgba(255,200,87,ALPHA)','rgba(255,107,74,ALPHA)']};
 var THEME_TUTORIAL={bgTop:'#e8f8ff',bgBottom:'#bde9fb',edge:'#67c7f0',particles:['rgba(255,255,255,ALPHA)','rgba(103,199,240,ALPHA)']};
 var THEME_EASY={bgTop:'#d4fce4',bgBottom:'#a8f0cd',edge:'#3ddc97',particles:['rgba(255,255,255,ALPHA)','rgba(61,220,151,ALPHA)']};
@@ -1001,7 +998,6 @@ var THEME_IMPOSSIBLE={bgTop:'#1a0a1a',bgBottom:'#2a1030',edge:'#442244',particle
 var THEME_DOOM={bgTop:'#000000',bgBottom:'#0a0000',edge:'#8a0000',particles:['rgba(60,0,0,ALPHA)','rgba(120,0,0,ALPHA)','rgba(180,20,20,ALPHA)']};
 var THEME_RRROR={bgTop:'#000000',bgBottom:'#1a0000',edge:'#ff0000',particles:['rgba(255,0,0,ALPHA)','rgba(150,0,0,ALPHA)','rgba(255,60,60,ALPHA)'],rising:true};
 var THEME_FINAL={bgTop:'#0a0000',bgBottom:'#1a001a',edge:'#ff0055',particles:['rgba(255,0,85,ALPHA)','rgba(255,200,0,ALPHA)','rgba(155,107,255,ALPHA)']};
-
 var ENEMY_TYPES={
 blueSmall:{size:0.8,hp:5,damage:3,shootType:'bullet',fireRate:1,color:'#a9c9f5',dark:'#5f8bd6',projSpeed:230,speed:85},
 blueNormal:{size:1.0,hp:10,damage:5,shootType:'bullet',fireRate:1,color:'#5f93e0',dark:'#2f5fa8',projSpeed:230,speed:75},
@@ -1073,7 +1069,6 @@ var LEVELS=[
   {id:8,name:'4RROR',chapter:3,unlockCost:100000,cardClass:'rrror',duration:250,theme:THEME_RRROR,stageLength:24,enemiesPerSecond:32,baseMaxActive:30,maxActiveGrowth:1.8,maxActiveCap:85,hpMult:3.6,dmgMult:10.0,healFreqMult:3.0,throttleRatio:13.0,bossInterval:6,isEndless:false,bossesCanStack:true,spawnRateMult:5},
   {id:9,name:'FINAL BOSS',chapter:4,unlockCost:0,cardClass:'final',duration:300,theme:THEME_FINAL,stageLength:30,enemiesPerSecond:0,baseMaxActive:0,maxActiveGrowth:0,maxActiveCap:0,hpMult:5.0,dmgMult:12.0,healFreqMult:4.0,throttleRatio:20.0,bossInterval:5,isEndless:false,bossesCanStack:true,spawnRateMult:0,isFinal:true}
 ];
-
 var appState='menu';
 var currentTheme=THEME_MENU;
 var currentLevel=null;
@@ -1112,7 +1107,6 @@ var bombSprite=null;
 var domCache={hpWidth:-1,hpLow:null,timer:null,lvlText:'',kills:-1,puHtml:'',comboLevel:-1,comboOn:null,bossW:-1};
 var shopPreviewCtx=null,shopPreviewCanvas=null,shopPreviewAnim=null,shopPreviewFiring=0,shopPreviewSkillFx=0;
 var shipFxTimer=0;
-
 var isMultiplayerRun=false;
 var mpRoomCode=null;
 var mpMyId=null;
@@ -1131,7 +1125,6 @@ var mpStartRequested=false;
 var mpReviveCountdown=0;
 var db=null;
 var mpPollInterval=null;
-
 function initFirebase(){
   try{
     if(typeof firebase==='undefined'){console.warn('Firebase SDK belum dimuat');return false;}
@@ -1142,7 +1135,6 @@ function initFirebase(){
     return true;
   }catch(e){console.warn('initFirebase error',e);return false;}
 }
-
 function genRoomCode(){
   var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   var s='';
@@ -1152,7 +1144,6 @@ function genRoomCode(){
 function genPlayerId(){
   return 'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
 }
-
 function mpCreateGroup(){
   var name=(document.getElementById('mpNameInput').value||'').trim().toUpperCase();
   if(name.length<3){showToast('Nama minimal 3 karakter','error');return;}
@@ -1170,7 +1161,7 @@ function mpCreateGroup(){
     var me={
       id:myId,name:name,
       ship:save.selectedShip,shape:save.selectedShape,gun:save.selectedGun,skill:save.selectedSkill||'',
-      ready:true,alive:true,damage:0,kills:0,joinedAt:Date.now(),lastSeen:Date.now()
+      ready:true,alive:true,kills:0,joinedAt:Date.now(),lastSeen:Date.now()
     };
     var data={
       code:code,hostId:myId,state:'lobby',createdAt:Date.now(),startAt:0,
@@ -1211,7 +1202,7 @@ function mpJoinGroup(){
     var me={
       id:myId,name:name,
       ship:save.selectedShip,shape:save.selectedShape,gun:save.selectedGun,skill:save.selectedSkill||'',
-      ready:true,alive:true,damage:0,kills:0,joinedAt:Date.now(),lastSeen:Date.now()
+      ready:true,alive:true,kills:0,joinedAt:Date.now(),lastSeen:Date.now()
     };
     ref.child('players/'+myId).set(me,function(err){
       if(err){showToast('Gagal masuk grup','error');return;}
@@ -1270,26 +1261,21 @@ function renderMpLobby(){
 function doRenderMpLobby(players,hostId){
   var html='';
   var host=null,members=[];
-  for(var i=0;i<players.length;i++){
-    if(players[i].id===hostId)host=players[i];else members.push(players[i]);
-  }
+  for(var i=0;i<players.length;i++){if(players[i].id===hostId)host=players[i];else members.push(players[i]);}
   var ordered=[];
-  if(host){ordered.push(host);}
-  for(var j=0;j<members.length;j++){
-    if(j%2===0)ordered.unshift(members[j]);
-    else ordered.push(members[j]);
-  }
+  if(host)ordered.push(host);
+  for(var j=0;j<members.length;j++){if(j%2===0)ordered.unshift(members[j]);else ordered.push(members[j]);}
   for(var p=0;p<ordered.length;p++){
     var pl=ordered[p];
     var cls='mp-player';
     if(pl.id===hostId)cls+=' host';
     if(pl.id===mpMyId)cls+=' me';
+    if(pl.alive===false)cls+=' dead';
     html+='<div class="'+cls+'">';
-    html+='<canvas width="60" height="60" data-pid="'+pl.id+'"></canvas>';
-    html+='<div class="mp-name">'+escapeHtml(pl.name||'-')+'</div>';
-    if(pl.id===hostId)html+='<div class="mp-tag host">HOST</div>';
-    else html+='<div class="mp-tag">ANGGOTA</div>';
-    html+='<div class="mp-stats">Kills: <b>'+(pl.kills||0)+'</b><br>DMG: <b>'+Math.round(pl.damage||0)+'</b></div>';
+    html+='<canvas width="80" height="80" data-pid="'+pl.id+'"></canvas>';
+    html+='<div class="mp-name">'+escapeHtml((pl.name||'-').toUpperCase())+'</div>';
+    html+='<div class="mp-role '+(pl.id===hostId?'host':'')+'">'+(pl.id===hostId?'HOST':'PLAYER')+'</div>';
+    html+='<div class="mp-kills">KILLS <b>'+(pl.kills||0)+'</b></div>';
     html+='</div>';
   }
   var el=document.getElementById('mpPlayers');
@@ -1300,12 +1286,12 @@ function doRenderMpLobby(players,hostId){
     var pl=mpPlayersCache[pid];
     if(pl){
       var cv=canvases[c];var g=cv.getContext('2d');
-      g.clearRect(0,0,60,60);
+      g.clearRect(0,0,80,80);
       var ship=findShip(pl.ship||'default');
       var shape=findShape(pl.shape||'square');
       var key=ship.id+'_'+shape.id;
       var set=playerSpriteCache[key]||playerSpriteCache[ship.id+'_square']||playerSpriteCache['default_square'];
-      if(set){g.drawImage(set.normal.canvas,0,0,60,60);}
+      if(set){g.drawImage(set.normal.canvas,0,0,80,80);}
     }
   }
   var wait=document.getElementById('mpWaiting');
@@ -1323,6 +1309,119 @@ function doRenderMpLobby(players,hostId){
 }
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});
+}
+var mpMiniTimers={};
+function drawMiniPreview(cv,pl){
+  var g=cv.getContext('2d');
+  var w=cv.width,h=cv.height;
+  var grad=g.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,'#1a3a5c');grad.addColorStop(1,'#050510');
+  g.fillStyle=grad;g.fillRect(0,0,w,h);
+  for(var s=0;s<6;s++){
+    var sx=(s*23+(performance.now()*0.03))%w;
+    var sy=(s*37+(performance.now()*0.08))%h;
+    g.fillStyle='rgba(255,255,255,0.18)';
+    g.fillRect(sx,sy,1.5,1.5);
+  }
+  var ship=findShip(pl.ship||'default');
+  var shape=findShape(pl.shape||'square');
+  var key=ship.id+'_'+shape.id;
+  var set=playerSpriteCache[key];
+  if(!set)return;
+  var cx=w/2,cy=h-32;
+  var size=48;
+  var t=mpMiniTimers[pl.id]||0;
+  t+=0.04;
+  if(t>1.4)t-=1.4;
+  mpMiniTimers[pl.id]=t;
+  var gun=findGun(pl.gun||'bullet');
+  var bulletColor=gun.id==='laser'?'#a0f0ff':gun.id==='plasma'?'#c080ff':gun.id==='poison'?'#a0ff60':gun.id==='rocket'?'#ff8050':gun.id==='deathray'?'#ff2060':'#ffc857';
+  for(var b=0;b<3;b++){
+    var bt=t+b*0.466;
+    if(bt>1.4)bt-=1.4;
+    var prog=bt/1.4;
+    var y=cy-(prog)*(cy-15);
+    var alpha=1-prog;
+    g.globalAlpha=alpha;
+    var bulletGrad=g.createRadialGradient(cx,y,0,cx,y,6);
+    bulletGrad.addColorStop(0,'#ffffff');
+    bulletGrad.addColorStop(0.5,bulletColor);
+    bulletGrad.addColorStop(1,'rgba(0,0,0,0)');
+    g.fillStyle=bulletGrad;
+    g.beginPath();g.arc(cx,y,6,0,Math.PI*2);g.fill();
+    g.globalAlpha=1;
+  }
+  g.save();
+  if(pl.alive===false)g.globalAlpha=0.4;
+  var glow=playerGlowCache[ship.id];
+  if(glow){g.globalAlpha=0.6;g.drawImage(glow.normal.canvas,cx-30,cy-30,60,60);g.globalAlpha=1;}
+  g.drawImage(set.normal.canvas,cx-size/2,cy-size/2,size,size);
+  g.restore();
+}
+function renderMpMiniRow(){
+  if(appState!=='mpLobbyMenu')return;
+  var el=document.getElementById('mpMiniRow');
+  if(!el)return;
+  var players=[];
+  for(var k in mpPlayersCache)players.push(mpPlayersCache[k]);
+  players.sort(function(a,b){return (a.joinedAt||0)-(b.joinedAt||0);});
+  var ids=[];for(var i=0;i<players.length;i++)ids.push(players[i].id);
+  var idsStr=ids.join(',');
+  if(el.getAttribute('data-ids')!==idsStr){
+    el.setAttribute('data-ids',idsStr);
+    var html='';
+    for(var i=0;i<players.length;i++){
+      var pl=players[i];
+      var deadCls=pl.alive===false?' dead':'';
+      html+='<div class="mp-mini'+deadCls+'"><canvas width="74" height="120" data-mpid="'+pl.id+'"></canvas><div class="mp-mini-name">'+escapeHtml((pl.name||'-').toUpperCase().substring(0,7))+'</div></div>';
+    }
+    el.innerHTML=html;
+  }
+  var canvases=el.querySelectorAll('canvas');
+  for(var c=0;c<canvases.length;c++){
+    var pid=canvases[c].getAttribute('data-mpid');
+    var pl=mpPlayersCache[pid];
+    if(pl)drawMiniPreview(canvases[c],pl);
+  }
+}
+function drawOtherPlayers(){
+  if(!isMultiplayerRun)return;
+  for(var k in mpPlayersCache){
+    if(k===mpMyId)continue;
+    var pl=mpPlayersCache[k];
+    if(pl.alive===false)continue;
+    if(pl.posX===undefined||pl.posHp===undefined)continue;
+    var ox=pl.posX*W;
+    var oy=H-BORDER-160;
+    var ship=findShip(pl.ship||'default');
+    var shape=findShape(pl.shape||'square');
+    var key=ship.id+'_'+shape.id;
+    var spr=playerSpriteCache[key];
+    if(!spr)continue;
+    var glow=playerGlowCache[ship.id];
+    var cx=ox+BASE_SIZE/2,cy=oy+BASE_SIZE/2;
+    if(glow){ctx.globalAlpha=0.5;ctx.drawImage(glow.normal.canvas,cx-glow.R,cy-glow.R);ctx.globalAlpha=1;}
+    var hpRatio=pl.posHp;
+    ctx.fillStyle='rgba(255,255,255,0.9)';
+    ctx.fillRect(ox-3,oy-24,BASE_SIZE+6,7);
+    ctx.fillStyle='rgba(36,36,56,0.35)';
+    ctx.fillRect(ox-2,oy-23,BASE_SIZE+4,5);
+    ctx.fillStyle=hpRatio<0.35?'#ff6b4a':'#3ddc97';
+    ctx.fillRect(ox,oy-22,BASE_SIZE*hpRatio,3);
+    ctx.save();
+    ctx.globalAlpha=0.85;
+    ctx.drawImage(spr.normal.canvas,ox-spr.pad,oy-spr.pad);
+    ctx.restore();
+    ctx.font='bold 11px Fredoka,sans-serif';
+    ctx.textAlign='center';
+    ctx.lineWidth=3.5;
+    ctx.strokeStyle='rgba(36,36,56,0.9)';
+    var label=(pl.name||'-').toUpperCase();
+    ctx.strokeText(label,cx,oy-30);
+    ctx.fillStyle='#ffffff';
+    ctx.fillText(label,cx,oy-30);
+    ctx.textAlign='start';
+  }
 }
 function leaveMp(){
   if(mpRoomRef&&mpMyId){
@@ -1406,18 +1505,18 @@ function mpTick(dt){
       mpDead=false;
       document.getElementById('mpReviveBox').classList.remove('on');
       if(mpPlayerRef)mpPlayerRef.child('alive').set(true);
-      if(player&&currentLevel){
-        player.hp=player.maxHp;
-      }
+      if(player&&currentLevel){player.hp=player.maxHp;}
     }
   }
   if(!isMultiplayerRun||!mpRoomRef)return;
   mpUpdateTimer-=dt;
   if(mpUpdateTimer<=0){
-    mpUpdateTimer=0.5;
-    if(mpPlayerRef){
+    mpUpdateTimer=0.12;
+    if(mpPlayerRef&&player){
       mpPlayerRef.update({
-        damage:Math.round(mpMyDamage),
+        posX:player.x/W,
+        posHp:Math.max(0,player.hp/player.maxHp),
+        alive:!mpDead,
         kills:mpMyKills,
         ship:save.selectedShip,
         shape:save.selectedShape,
@@ -1438,7 +1537,6 @@ function mpCheckAllDead(){
   }
   return false;
 }
-
 function lightenHex(hex,amt){
   var n=parseInt(hex.slice(1),16);
   var r=(n>>16)&255,g=(n>>8)&255,b=n&255;
@@ -1453,7 +1551,6 @@ function edgeLeft(){return BORDER+EDGE_PAD;}
 function edgeRight(){return W-BORDER-EDGE_PAD;}
 function edgeTop(){return BORDER+EDGE_PAD;}
 function edgeBottom(){return H-BORDER-EDGE_PAD;}
-
 function buildBackground(){
   bgCanvas.width=W;bgCanvas.height=H;
   var g=bgCtx;var pa=playArea();
@@ -2539,7 +2636,6 @@ function updateShipFx(dt){
   var ship=findShip(save.selectedShip);
   var cx=player.x+player.width/2,cy=player.y+player.height/2;
   var fx=ship.fx||'default';
-  var r,g,b;
   if(fx==='default'||fx==='leaf'){pushParticle(cx+(Math.random()-0.5)*30,cy+20,0,-40-Math.random()*20,0.7,'#5cc27a',1.5);}
   else if(fx==='ripple'){pushShockwave(cx,cy,20+Math.sin(elapsedTotal*3)*5,'rgba(120,190,255,0.6)',0.4);}
   else if(fx==='sparkle'){pushParticle(cx+(Math.random()-0.5)*36,cy+(Math.random()-0.5)*36,(Math.random()-0.5)*40,(Math.random()-0.5)*40-20,0.7,'#ffe480',1.8);}
@@ -3072,13 +3168,14 @@ function loop(ts){
     }
   }else{updateParticles(dt);updateShockwaves(dt);if(tierFlash>0)tierFlash-=dt;}
   if(appState==='shopMenu'&&shopPreviewCanvas){renderShopPreview(dt);}
+  if(appState==='mpLobbyMenu'){renderMpMiniRow();}
   ctx.save();
   if((appState==='playing'||appState==='playingMP')&&shakeTime>0){var m=shakeMag*(shakeTime/0.3);ctx.translate((Math.random()-0.5)*m,(Math.random()-0.5)*m);}
   ctx.drawImage(bgCanvas,0,0);
   drawAmbient();
   if(appState==='playing'||appState==='playingMP'||appState==='ended'){
     drawHealBubbles();drawBoostBubbles();drawBombBubbles();drawPowerups();
-    drawLasers();drawObstacleLasers();drawEnemies();drawBosses();drawProjectiles();drawPlayer();
+    drawLasers();drawObstacleLasers();drawEnemies();drawBosses();drawOtherPlayers();drawProjectiles();drawPlayer();
   }
   drawShockwaves();drawParticles();
   if(appState==='playing'||appState==='playingMP')drawFlash();
