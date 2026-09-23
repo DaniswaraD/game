@@ -12,8 +12,7 @@ var MAX_PARTICLES=220,MAX_ENEMY_PROJECTILES=250,MAX_PLAYER_PROJECTILES=140;
 var MAX_SHOCKWAVES=20,MAX_AMBIENT_FAR=18,MAX_AMBIENT_NEAR=12;
 var EDGE_PAD=4;
 var TIER_SECONDS=10;
-var BOSS_HP_MULT=25;
-var BOSS_HP_SCALE=25;
+var BOSS_HP_MULT=15;
 var MAX_UPGRADE_LEVEL=5;
 var SIDE_LASER_DAMAGE=35;
 var SIDE_LASER_START_TIME=30;
@@ -408,8 +407,6 @@ function ownedShip(id){return save.ships.indexOf(id)>=0;}
 function ownedShape(id){return save.shapes.indexOf(id)>=0;}
 function ownedGun(id){return save.guns.indexOf(id)>=0;}
 function ownedStart(id){return save.startingUpgrades.indexOf(id)>=0;}
-function totalUpgradesCount(){var t=0,k;for(k in save.gunUpgrades)t+=save.gunUpgrades[k]||0;for(k in save.shipUpgrades)t+=save.shipUpgrades[k]||0;for(k in save.skillUpgrades)t+=save.skillUpgrades[k]||0;return t;}
-function maxedItemsCount(){var t=0,k;for(k in save.gunUpgrades)if((save.gunUpgrades[k]||0)>=MAX_UPGRADE_LEVEL)t++;for(k in save.shipUpgrades)if((save.shipUpgrades[k]||0)>=MAX_UPGRADE_LEVEL)t++;for(k in save.skillUpgrades)if((save.skillUpgrades[k]||0)>=MAX_UPGRADE_LEVEL)t++;return t;}
 function vouchersUsedCount(){var t=0,k;for(k in save.usedVouchers)if(save.usedVouchers[k])t++;return t;}
 var THEME_MENU={bgTop:'#bae6fd',bgBottom:'#e0f2fe',edge:'#7dd3fc',particles:['rgba(255,255,255,ALPHA)','rgba(255,200,87,ALPHA)','rgba(255,107,74,ALPHA)']};
 var THEME_TUTORIAL={bgTop:'#e8f8ff',bgBottom:'#bde9fb',edge:'#67c7f0',particles:['rgba(255,255,255,ALPHA)','rgba(103,199,240,ALPHA)']};
@@ -485,13 +482,21 @@ var LEVELS=[
   {id:0,name:'TUTORIAL',chapter:1,unlockCost:0,cardClass:'easy',duration:30,theme:THEME_TUTORIAL,stageLength:10,enemiesPerSecond:1,baseMaxActive:3,maxActiveGrowth:0.5,maxActiveCap:6,hpMult:0.6,dmgMult:0.5,healFreqMult:1,throttleRatio:4,bossInterval:999,isEndless:false,bossesCanStack:false,spawnRateMult:1,isTutorial:true},
   {id:1,name:'MUDAH',chapter:1,unlockCost:10,cardClass:'easy',duration:45,theme:THEME_EASY,stageLength:10,enemiesPerSecond:2,baseMaxActive:6,maxActiveGrowth:1.2,maxActiveCap:14,hpMult:1,dmgMult:1,healFreqMult:1,throttleRatio:2.5,bossInterval:999,isEndless:false,bossesCanStack:false,spawnRateMult:1},
   {id:2,name:'SEDANG',chapter:1,unlockCost:50,cardClass:'medium',duration:60,theme:THEME_MEDIUM,stageLength:12,enemiesPerSecond:4,baseMaxActive:8,maxActiveGrowth:1.0,maxActiveCap:18,hpMult:1,dmgMult:1,healFreqMult:1.25,throttleRatio:3.0,bossInterval:35,isEndless:false,bossesCanStack:false,spawnRateMult:1},
-  {id:3,name:'SULIT',chapter:2,unlockCost:500,cardClass:'hard',duration:75,theme:THEME_HARD,stageLength:16,enemiesPerSecond:7,baseMaxActive:10,maxActiveGrowth:0.9,maxActiveCap:22,hpMult:1.3,dmgMult:1.4,healFreqMult:1.5,throttleRatio:4.2,bossInterval:25,isEndless:false,bossesCanStack:false,spawnRateMult:1.2},
-  {id:4,name:'AHLI',chapter:2,unlockCost:2500,cardClass:'expert',duration:100,theme:THEME_EXPERT,stageLength:18,enemiesPerSecond:10,baseMaxActive:14,maxActiveGrowth:1.0,maxActiveCap:36,hpMult:1.4,dmgMult:2.0,healFreqMult:1.8,throttleRatio:5.0,bossInterval:20,isEndless:false,bossesCanStack:false,spawnRateMult:1.5},
-  {id:5,name:'NIGHTMARE',chapter:2,unlockCost:7500,cardClass:'nightmare',duration:125,theme:THEME_NIGHTMARE,stageLength:14,enemiesPerSecond:14,baseMaxActive:16,maxActiveGrowth:1.1,maxActiveCap:42,hpMult:1.8,dmgMult:4.0,healFreqMult:2.2,throttleRatio:6.5,bossInterval:12,isEndless:false,bossesCanStack:false,spawnRateMult:2},
-  {id:6,name:'IMPOSSIBLE',chapter:3,unlockCost:20000,cardClass:'impossible',duration:150,theme:THEME_IMPOSSIBLE,stageLength:20,enemiesPerSecond:18,baseMaxActive:22,maxActiveGrowth:1.3,maxActiveCap:60,hpMult:2.4,dmgMult:6.0,healFreqMult:2.5,throttleRatio:9.0,bossInterval:10,isEndless:false,bossesCanStack:true,spawnRateMult:3},
-  {id:7,name:'DOOM',chapter:3,unlockCost:50000,cardClass:'doom',duration:200,theme:THEME_DOOM,stageLength:22,enemiesPerSecond:24,baseMaxActive:26,maxActiveGrowth:1.5,maxActiveCap:70,hpMult:3.0,dmgMult:8.0,healFreqMult:2.8,throttleRatio:11.0,bossInterval:8,isEndless:false,bossesCanStack:true,spawnRateMult:4},
-  {id:8,name:'4RROR',chapter:3,unlockCost:100000,cardClass:'rrror',duration:250,theme:THEME_RRROR,stageLength:24,enemiesPerSecond:32,baseMaxActive:30,maxActiveGrowth:1.8,maxActiveCap:85,hpMult:3.6,dmgMult:10.0,healFreqMult:3.0,throttleRatio:13.0,bossInterval:6,isEndless:false,bossesCanStack:true,spawnRateMult:5},
-  {id:9,name:'FINAL BOSS',chapter:4,unlockCost:0,cardClass:'final',duration:300,theme:THEME_FINAL,stageLength:30,enemiesPerSecond:0,baseMaxActive:0,maxActiveGrowth:0,maxActiveCap:0,hpMult:5.0,dmgMult:12.0,healFreqMult:4.0,throttleRatio:20.0,bossInterval:5,isEndless:false,bossesCanStack:true,spawnRateMult:0,isFinal:true}
+  {id:3,name:'SULIT',chapter:2,unlockCost:500,cardClass:'hard',duration:70,theme:THEME_HARD,stageLength:16,enemiesPerSecond:6,baseMaxActive:10,maxActiveGrowth:0.9,maxActiveCap:20,hpMult:1.2,dmgMult:1.3,healFreqMult:1.5,throttleRatio:4.0,bossInterval:28,isEndless:false,bossesCanStack:false,spawnRateMult:1.1},
+  {id:4,name:'AHLI',chapter:2,unlockCost:2500,cardClass:'expert',duration:85,theme:THEME_EXPERT,stageLength:18,enemiesPerSecond:8,baseMaxActive:12,maxActiveGrowth:1.0,maxActiveCap:28,hpMult:1.3,dmgMult:1.7,healFreqMult:1.8,throttleRatio:4.5,bossInterval:22,isEndless:false,bossesCanStack:false,spawnRateMult:1.3},
+  {id:5,name:'NIGHTMARE',chapter:2,unlockCost:7500,cardClass:'nightmare',duration:100,theme:THEME_NIGHTMARE,stageLength:14,enemiesPerSecond:10,baseMaxActive:14,maxActiveGrowth:1.1,maxActiveCap:32,hpMult:1.5,dmgMult:2.6,healFreqMult:2.2,throttleRatio:5.5,bossInterval:16,isEndless:false,bossesCanStack:false,spawnRateMult:1.6},
+  {id:6,name:'IMPOSSIBLE',chapter:3,unlockCost:20000,cardClass:'impossible',duration:120,theme:THEME_IMPOSSIBLE,stageLength:20,enemiesPerSecond:13,baseMaxActive:18,maxActiveGrowth:1.3,maxActiveCap:42,hpMult:1.8,dmgMult:3.6,healFreqMult:2.5,throttleRatio:7.0,bossInterval:13,isEndless:false,bossesCanStack:true,spawnRateMult:2.2},
+  {id:7,name:'DOOM',chapter:3,unlockCost:50000,cardClass:'doom',duration:150,theme:THEME_DOOM,stageLength:22,enemiesPerSecond:16,baseMaxActive:22,maxActiveGrowth:1.5,maxActiveCap:50,hpMult:2.2,dmgMult:4.8,healFreqMult:2.8,throttleRatio:8.5,bossInterval:11,isEndless:false,bossesCanStack:true,spawnRateMult:2.8},
+  {id:8,name:'4RROR',chapter:3,unlockCost:100000,cardClass:'rrror',duration:180,theme:THEME_RRROR,stageLength:24,enemiesPerSecond:20,baseMaxActive:26,maxActiveGrowth:1.8,maxActiveCap:60,hpMult:2.6,dmgMult:6.0,healFreqMult:3.0,throttleRatio:10.0,bossInterval:9,isEndless:false,bossesCanStack:true,spawnRateMult:3.5},
+  {id:9,name:'FINAL BOSS',chapter:4,unlockCost:0,cardClass:'final',duration:240,theme:THEME_FINAL,stageLength:30,enemiesPerSecond:0,baseMaxActive:0,maxActiveGrowth:0,maxActiveCap:0,hpMult:3.5,dmgMult:8.0,healFreqMult:4.0,throttleRatio:20.0,bossInterval:5,isEndless:false,bossesCanStack:true,spawnRateMult:0,isFinal:true}
+];
+var MP_MODES=[
+  {id:1,label:'MUDAH',level:1},
+  {id:2,label:'SEDANG',level:2},
+  {id:3,label:'SULIT',level:3},
+  {id:4,label:'AHLI',level:4},
+  {id:5,label:'NIGHTMARE',level:5},
+  {id:6,label:'IMPOSSIBLE',level:6}
 ];
 var appState='menu';
 var currentTheme=THEME_MENU;
@@ -546,6 +551,7 @@ var mpMyKills=0;
 var mpFinalSent=false;
 var mpStartRequested=false;
 var mpReviveCountdown=0;
+var mpSelectedMode=1;
 var db=null;
 var mpPollInterval=null;
 var mpMiniTimers={};
@@ -579,6 +585,7 @@ function mpCreateGroup(){
   mpMyId=myId;
   mpIsHost=true;
   mpRoomCode=code;
+  mpSelectedMode=1;
   var ref=db.ref('rooms/'+code);
   ref.once('value',function(snap){
     if(snap.exists()){mpCreateGroup();return;}
@@ -588,7 +595,7 @@ function mpCreateGroup(){
       ready:true,alive:true,kills:save.kills,joinedAt:Date.now(),lastSeen:Date.now(),
       posX:0.5,posHp:1
     };
-    var data={code:code,hostId:myId,state:'lobby',createdAt:Date.now(),startAt:0,players:{}};
+    var data={code:code,hostId:myId,state:'lobby',mode:1,createdAt:Date.now(),startAt:0,players:{}};
     data.players[myId]=me;
     ref.set(data,function(err){
       if(err){showToast('Gagal buat grup','error');return;}
@@ -624,6 +631,7 @@ function mpJoinGroup(){
     mpIsHost=false;
     mpHostId=data.hostId||null;
     mpRoomCode=code;
+    mpSelectedMode=data.mode||1;
     var me={
       id:myId,name:name,
       ship:save.selectedShip,shape:save.selectedShape,gun:save.selectedGun,skill:save.selectedSkill||'',
@@ -653,6 +661,7 @@ function attachMpListeners(code,myId,isHost){
     var players=data.players||{};
     mpPlayersCache=players;
     mpHostId=data.hostId||null;
+    if(data.mode!==undefined)mpSelectedMode=data.mode;
     if(!players[myId]){
       showToast('Kamu dikeluarkan','error');leaveMp();return;
     }
@@ -747,6 +756,19 @@ function doRenderMpLobby(players,hostId){
     var canStart=mpIsHost&&ordered.length>=2&&ordered.length<=5;
     startBtn.disabled=!canStart;
     startBtn.textContent=mpIsHost?'START':'MENUNGGU HOST';
+  }
+  var modeTitle=document.getElementById('mpModeTitle');
+  if(modeTitle)modeTitle.textContent=mpIsHost?'PILIH MODE (HOST)':'MODE DIPILIH HOST';
+  var modeGrid=document.getElementById('mpModeGrid');
+  if(modeGrid){
+    var modeHtml='';
+    for(var mi=0;mi<MP_MODES.length;mi++){
+      var m=MP_MODES[mi];
+      var on=m.id===mpSelectedMode?' on':'';
+      var lk=!mpIsHost?' locked':'';
+      modeHtml+='<button class="mp-mode-btn'+on+lk+'" data-mode="'+m.id+'"'+(mpIsHost?'':' disabled')+'>'+m.label+'</button>';
+    }
+    modeGrid.innerHTML=modeHtml;
   }
 }
 function formatKillsShort(n){
@@ -897,6 +919,7 @@ function leaveMp(){
   if(mpRoomRef){try{mpRoomRef.off();}catch(e){}mpRoomRef=null;}
   mpRoomCode=null;mpMyId=null;mpHostId=null;mpIsHost=false;mpPlayersCache={};
   mpStartRequested=false;mpFinalSent=false;isMultiplayerRun=false;mpDead=false;
+  mpSelectedMode=1;
   mpMiniTimers={};
   var mr=document.getElementById('mpMiniRow');
   if(mr){mr.innerHTML='';mr.removeAttribute('data-ids');}
@@ -906,6 +929,9 @@ function leaveMp(){
 function startMpGame(){
   if(!mpRoomRef)return;
   var level=LEVELS[6];
+  for(var mi=0;mi<MP_MODES.length;mi++){
+    if(MP_MODES[mi].id===mpSelectedMode){level=LEVELS[MP_MODES[mi].level];break;}
+  }
   isMultiplayerRun=true;
   mpMyDamage=0;mpMyKills=0;mpFinalSent=false;mpDead=false;
   mpStartRequested=true;
@@ -1373,7 +1399,7 @@ function spawnBossForFinal(idx){
   var def=BOSS_TYPES[idx%BOSS_TYPES.length];
   var w=BASE_SIZE*def.size;
   var baseX=edgeLeft()+40+Math.random()*(edgeRight()-edgeLeft()-w-80);
-  var hp=Math.round(def.hp*BOSS_HP_MULT*currentLevel.hpMult*30);
+  var hp=Math.round(def.hp*BOSS_HP_MULT*currentLevel.hpMult*10);
   var range=Math.min(def.moveRange,(edgeRight()-edgeLeft()-w)/2-8);
   bosses.push({idx:idx%BOSS_TYPES.length,name:def.name,x:baseX,y:edgeTop()+40+idx*90,width:w,height:w,hp:hp,maxHp:hp,baseX:baseX,moveRange:range,phase:Math.random()*6.283,speed:def.speed,attackCycle:def.cycle,attackIdx:idx,shootInterval:def.shootInterval,fireTimer:1+idx*0.3,gatling:0,gatlingTimer:0,spawnT:0.6+idx*0.2,hitFlash:0,color:def.color,dark:def.dark,spiralAngle:0,bossNumber:idx+1,poisonTime:0,poisonDPS:0});
   bossesSpawnedInRun++;
@@ -1388,7 +1414,7 @@ function getPhase(t,level){
 function timeHpScale(){
   if(!currentLevel)return 1;
   var d=currentLevel.duration;if(!isFinite(d))d=600;
-  return 1+(elapsed/d)*1.6;
+  return 1+(elapsed/d)*1.2;
 }
 function pickSpawnX(w){
   var minX=edgeLeft(),maxX=edgeRight()-w;if(maxX<minX)maxX=minX;
@@ -1434,14 +1460,14 @@ function spawnBoss(){
   if(baseX<edgeLeft())baseX=edgeLeft();
   if(baseX+w>edgeRight())baseX=edgeRight()-w;
   var range=Math.min(def.moveRange,(edgeRight()-edgeLeft()-w)/2-8);
-  var scaleFactor=Math.pow(BOSS_HP_SCALE,bossesSpawnedInRun);
+  var scaleFactor=1+bossesSpawnedInRun*1.0;
   var hp=Math.round(def.hp*BOSS_HP_MULT*currentLevel.hpMult*scaleFactor);
   var newBoss={idx:idx,name:def.name,x:baseX,y:edgeTop()-(bossesSpawnedInRun>0?60:0),width:w,height:w,hp:hp,maxHp:hp,baseX:baseX,moveRange:range,phase:Math.random()*6.283,speed:def.speed,attackCycle:def.cycle,attackIdx:0,shootInterval:def.shootInterval,fireTimer:1.4,gatling:0,gatlingTimer:0,spawnT:0.6,hitFlash:0,color:def.color,dark:def.dark,spiralAngle:0,bossNumber:bossesSpawnedInRun+1,poisonTime:0,poisonDPS:0};
   bossesSpawnedInRun++;
   bosses.push(newBoss);
   bossIndex++;
   bossWrap.classList.add('on');
-  bossName.textContent=def.name+(bossesSpawnedInRun>1?(' #'+bossesSpawnedInRun+' (HP x'+Math.round(scaleFactor)+')'):'');
+  bossName.textContent=def.name+(bossesSpawnedInRun>1?(' #'+bossesSpawnedInRun):'');
   sfxRoar();triggerShake(10,0.35);
   pushShockwave(cx,edgeTop()+w/2,110,'rgba(255,120,120,0.9)',0.7);
   showWaveBanner('BOSS: '+def.name,true);
@@ -2244,7 +2270,7 @@ function drawProjectiles(){
 function drawLasers(){
   var elBottom=edgeBottom();
   for(var i=0;i<lasers.length;i++){
-    var l=lasers[i];var flarePulse=3+Math.sin(elapsedTotal*10)*1.5;
+    var l=lasers[i];
     if(l.state==='warning'){
       ctx.save();ctx.setLineDash([9,7]);ctx.lineDashOffset=l.dashOffset;
       ctx.strokeStyle=l.fromBoss?'rgba(255,90,120,0.9)':(l.thick?'rgba(255,80,180,0.85)':'rgba(255,60,60,0.8)');
@@ -2382,8 +2408,7 @@ function spawnConfetti(colors,count){
 var achToastTimer=null;
 function showAchToast(a){achToastName.textContent=a.name;achToast.classList.add('on');if(achToastTimer)clearTimeout(achToastTimer);achToastTimer=setTimeout(function(){achToast.classList.remove('on');},2600);}
 function checkAchievements(){
-  var changed=false;var totalUpg=totalUpgradesCount();var maxed=maxedItemsCount();
-  var vUsed=vouchersUsedCount();
+  var changed=false;var vUsed=vouchersUsedCount();
   for(var i=0;i<ACHIEVEMENTS.length;i++){
     var a=ACHIEVEMENTS[i];if(save.achievements[a.id])continue;
     var unlock=false;
@@ -2741,7 +2766,8 @@ var dom={
   killsMPLobby:document.getElementById('killsMPLobby'),mpEndStats:document.getElementById('mpEndStats'),
   mpEndBody:document.getElementById('mpEndBody'),mpReviveBox:document.getElementById('mpReviveBox'),
   mpReviveCount:document.getElementById('mpReviveCount'),mpLeaveBtn:document.getElementById('mpLeaveBtn'),
-  mpTopStats:document.getElementById('mpTopStats'),mpStatsBody:document.getElementById('mpStatsBody')
+  mpTopStats:document.getElementById('mpTopStats'),mpStatsBody:document.getElementById('mpStatsBody'),
+  mpModeGrid:document.getElementById('mpModeGrid'),mpModeTitle:document.getElementById('mpModeTitle')
 };
 var hpFill=dom.hpFill,timerText=dom.timerText,lvlText=dom.lvlText,gameKills=dom.gameKills;
 var puHud=dom.puHud,comboHud=dom.comboHud,bossWrap=dom.bossWrap,bossName=dom.bossName,bossFill=dom.bossFill;
@@ -3286,6 +3312,20 @@ for(var ci=0;ci<chTabs.length;ci++)chTabs[ci].addEventListener('click',function(
 });
 var tabBtns=dom.shopTabs.querySelectorAll('.tab');
 for(var ti=0;ti<tabBtns.length;ti++)tabBtns[ti].addEventListener('click',function(){sfxClick();switchShopTab(this.getAttribute('data-tab'));});
+if(dom.mpModeGrid){
+  dom.mpModeGrid.addEventListener('click',function(ev){
+    var tgt=ev.target;
+    while(tgt&&tgt!==dom.mpModeGrid&&(!tgt.classList||!tgt.classList.contains('mp-mode-btn')))tgt=tgt.parentNode;
+    if(!tgt||tgt===dom.mpModeGrid)return;
+    if(!mpIsHost)return;
+    var newMode=Number(tgt.getAttribute('data-mode'));
+    if(!newMode||newMode===mpSelectedMode)return;
+    mpSelectedMode=newMode;
+    sfxClick();
+    if(mpRoomRef)mpRoomRef.child('mode').set(newMode);
+    renderMpLobby();
+  });
+}
 document.getElementById('restartBtn').addEventListener('click',function(){initAudio();sfxClick();startLevel(currentLevel,false);});
 document.getElementById('toLevelBtn').addEventListener('click',function(){initAudio();sfxClick();goScreen('level','levelSelect');});
 skillBtn.addEventListener('click',activateSkill);
@@ -3336,7 +3376,10 @@ dom.mpStartBtn.addEventListener('click',function(){
   if(count<2){showToast('Butuh minimal 2 pemain','error');return;}
   if(count>5){showToast('Maksimal 5 pemain','error');return;}
   initAudio();sfxClick();
-  if(mpRoomRef)mpRoomRef.child('state').set('playing');
+  if(mpRoomRef){
+    mpRoomRef.child('mode').set(mpSelectedMode);
+    mpRoomRef.child('state').set('playing');
+  }
 });
 dom.mpLeaveBtn2.addEventListener('click',function(){initAudio();sfxClick();
   showConfirm('Keluar dari grup?',function(){leaveMp();goScreen('menu','menu');});
@@ -3375,4 +3418,4 @@ showScreen('menu');
 refreshAll();
 buildMenuDeco();
 requestAnimationFrame(loop);
-})();  
+})();
