@@ -1,10 +1,8 @@
 (function(){
 'use strict';
-
 var canvas=document.getElementById('game');
 var ctx=canvas.getContext('2d',{alpha:false});
 var W=0,H=0,elapsedTotal=0;
-
 var BORDER=20,BASE_SIZE=46;
 var BASE_MAX_HP=100;
 var HEAL_BUBBLE_SPEED=120,BOOST_BUBBLE_SPEED=120,HEAL_RECOVER_RATIO=0.2;
@@ -19,7 +17,6 @@ var MAX_UPGRADE_LEVEL=5;
 var MAX_LEVEL=999;
 var SIDE_LASER_DAMAGE=35;
 var SIDE_LASER_START_TIME=30;
-
 var STREAK_LABELS=[
   {n:2,label:'DOUBLE KILL'},{n:3,label:'TRIPEL KILL'},{n:5,label:'ENEMY HUNTER'},
   {n:10,label:'ENEMY DESTROYER'},{n:15,label:'ENEMY EVAPORIZER'},{n:20,label:'LIVING MACHINE'},
