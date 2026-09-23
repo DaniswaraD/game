@@ -754,9 +754,7 @@ function startGame(){
   }
   updates['mode']=mp.selectedMode;
   updates['startAt']=startAt;
-  roomRef.update(updates,function(){
-    roomRef.child('state').set('playing');
-  });
+  roomRef.update(updates);
   var kf=document.getElementById('killFeed');
   if(kf){
     kf.innerHTML='';
@@ -1190,7 +1188,14 @@ function bindUI(){
     if(cnt<2){DS().showToast('Butuh minimal 2 pemain','error');return;}
     if(cnt>MAX_PLAYERS){DS().showToast('Maksimal '+MAX_PLAYERS+' pemain','error');return;}
     DS().initAudio();DS().sfxClick();
-    if(mp.roomRef)mp.roomRef.child('mode').set(mp.selectedMode);
+    if(mp.roomRef){
+      mp.roomRef.update({
+        mode: mp.selectedMode,
+        state: 'playing'
+      });
+      startBtn.disabled=true;
+      startBtn.textContent='MEMULAI...';
+    }
   });
   var mgrid=document.getElementById('mpModeGrid');
   if(mgrid){
