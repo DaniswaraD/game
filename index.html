@@ -115,52 +115,86 @@ svg{display:block;}
 .kill-chip svg{width:15px;height:15px;fill:#ff6b4a;}
 .scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:8px 14px calc(24px + env(safe-area-inset-bottom));touch-action:pan-y;}
 .inner{width:100%;max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
-.brand-title{font-size:clamp(38px,11vw,56px);font-weight:700;line-height:.9;color:#ffffff;letter-spacing:1px;position:relative;display:inline-block;text-shadow:0 4px 0 #ff6b4a,0 8px 0 #242438,0 14px 24px rgba(36,36,56,.25);}
+.section-title{font-size:11px;font-weight:700;letter-spacing:3px;color:#4a4a63;text-transform:uppercase;padding:6px 4px 2px;opacity:.9;}
+
+.menu-wrap{flex:1;overflow-y:auto;padding:calc(14px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));position:relative;display:flex;flex-direction:column;gap:16px;z-index:1;}
+.menu-deco{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.menu-deco-item{position:absolute;border-radius:50%;opacity:.35;filter:blur(.3px);}
+.menu-deco-item.a{width:140px;height:140px;top:-40px;left:-50px;background:radial-gradient(circle,#ffc857,transparent 70%);}
+.menu-deco-item.b{width:180px;height:180px;bottom:-70px;right:-60px;background:radial-gradient(circle,#9b6bff,transparent 70%);}
+.menu-deco-item.c{width:100px;height:100px;top:42%;right:-50px;background:radial-gradient(circle,#3ddc97,transparent 70%);}
+.menu-deco-item.d{width:120px;height:120px;bottom:18%;left:-55px;background:radial-gradient(circle,#ff6b4a,transparent 70%);}
+.menu-deco-shape{position:absolute;pointer-events:none;opacity:.55;animation:decoFloat 6s ease-in-out infinite;}
+
+.menu-header{display:flex;align-items:stretch;gap:10px;position:relative;z-index:1;}
+.user-chip{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:12px 14px;background:linear-gradient(160deg,#ffffff,#f0f9ff 55%,#fffaf0);border:2px solid #242438;border-radius:20px;box-shadow:0 5px 0 #242438,0 10px 24px rgba(36,36,56,.14);}
+.user-avatar{width:58px;height:58px;flex-shrink:0;background:linear-gradient(180deg,#bae6fd,#e0f2fe);border:2px solid #242438;border-radius:16px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+.user-avatar canvas{display:block;width:50px;height:50px;position:relative;}
+.user-meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;}
+.user-name{font-size:14px;font-weight:700;color:#242438;letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.user-badges{display:flex;gap:6px;flex-wrap:wrap;}
+.user-badge{font-size:9.5px;font-weight:700;letter-spacing:.8px;padding:3px 8px;border:1.5px solid #242438;border-radius:9px;display:inline-flex;align-items:center;gap:3px;}
+.user-badge.lvl{background:linear-gradient(180deg,#fff5d6,#ffe4a3);color:#4a3605;}
+.user-badge.tro{background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#4a3605;}
+.user-badge svg{width:11px;height:11px;fill:#4a3605;}
+.gear-btn{width:54px;flex-shrink:0;background:linear-gradient(180deg,#ffffff,#f0f9ff);border:2px solid #242438;border-radius:20px;box-shadow:0 5px 0 #242438,0 10px 24px rgba(36,36,56,.14);display:flex;align-items:center;justify-content:center;transition:transform .1s,box-shadow .1s;color:#242438;}
+.gear-btn svg{width:24px;height:24px;fill:#242438;}
+.gear-btn:active{transform:translateY(4px);box-shadow:0 1px 0 #242438;}
+
+.menu-xp{position:relative;z-index:1;display:flex;align-items:center;gap:10px;padding:10px 14px;background:#ffffff;border:2px solid #242438;border-radius:16px;box-shadow:0 3px 0 #242438;}
+.menu-xp-label{font-size:10px;font-weight:700;letter-spacing:2px;color:#8a8aa3;text-transform:uppercase;flex-shrink:0;}
+.menu-xp-track{flex:1;height:14px;background:#f0f0f4;border:2px solid #242438;border-radius:9px;overflow:hidden;position:relative;}
+.menu-xp-fill{height:100%;width:0%;background:linear-gradient(90deg,#ffc857,#ff6b4a);transition:width .3s ease;}
+.menu-xp-text{font-size:10.5px;font-weight:700;color:#4a4a63;min-width:64px;text-align:right;letter-spacing:.4px;flex-shrink:0;}
+
+.menu-brand{position:relative;z-index:1;text-align:center;padding:12px 0 4px;}
+.brand-title{font-size:clamp(38px,11vw,54px);font-weight:700;line-height:.9;color:#ffffff;letter-spacing:1px;position:relative;display:inline-block;text-shadow:0 4px 0 #ff6b4a,0 8px 0 #242438,0 14px 24px rgba(36,36,56,.25);}
 .brand-title .dot{color:#ffc857;}
 .brand-title .dot2{color:#3ddc97;}
-.section-title{font-size:11px;font-weight:700;letter-spacing:3px;color:#4a4a63;text-transform:uppercase;padding:6px 4px 2px;opacity:.9;}
-.menu-wrap{padding:8px 14px calc(20px + env(safe-area-inset-bottom));flex:1;overflow-y:auto;display:flex;flex-direction:column;}
-.menu-inner{width:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:14px;min-height:100%;justify-content:center;}
-.user-card{position:relative;display:flex;align-items:center;gap:12px;padding:12px;background:linear-gradient(160deg,#ffffff,#f0f9ff 60%,#fffaf0);border:2px solid #242438;border-radius:20px;box-shadow:0 5px 0 #242438,0 10px 24px rgba(36,36,56,.14);}
-.user-ship{width:76px;height:76px;flex-shrink:0;background:linear-gradient(180deg,#bae6fd,#e0f2fe);border:2px solid #242438;border-radius:16px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.user-ship canvas{display:block;width:70px;height:70px;position:relative;}
-.user-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;}
-.user-name{font-size:14px;font-weight:700;color:#242438;letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:36px;}
-.user-level-row{display:flex;align-items:center;gap:6px;}
-.user-level{font-size:10.5px;font-weight:700;color:#ff6b4a;letter-spacing:1px;background:#fff5d6;border:1.5px solid #242438;border-radius:8px;padding:1px 7px;}
-.user-trophy{font-size:10.5px;font-weight:700;color:#4a3605;letter-spacing:.5px;background:linear-gradient(180deg,#ffe4a3,#ffc857);border:1.5px solid #242438;border-radius:8px;padding:1px 7px;display:inline-flex;align-items:center;gap:3px;}
-.user-xp-track{position:relative;width:100%;height:16px;background:#f0f0f4;border:2px solid #242438;border-radius:9px;overflow:hidden;}
-.user-xp-fill{height:100%;background:linear-gradient(90deg,#ffc857,#ff6b4a);width:0%;transition:width .3s ease;}
-.user-xp-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:#242438;text-shadow:0 1px 2px rgba(255,255,255,.75);letter-spacing:.4px;}
-.user-gear{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:10px;background:#fff;border:2px solid #242438;box-shadow:0 3px 0 #242438;display:flex;align-items:center;justify-content:center;color:#242438;padding:0;font-size:16px;line-height:1;}
-.user-gear:active{transform:translateY(2px);box-shadow:0 1px 0 #242438;}
-.menu-title-wrap{text-align:center;padding:6px 0 4px;}
-.menu-title-sub{font-size:10px;letter-spacing:5px;color:#8a8aa3;font-weight:700;text-transform:uppercase;margin-top:6px;}
-.menu-main{width:100%;padding:20px 22px;background:linear-gradient(180deg,#ffe4a3,#ffc857);border:3px solid #242438;border-radius:20px;box-shadow:0 7px 0 #242438,0 14px 28px rgba(255,200,87,.45);font-size:19px;font-weight:700;letter-spacing:3px;color:#242438;display:flex;align-items:center;justify-content:center;gap:12px;position:relative;transition:transform .1s,box-shadow .1s;}
+.brand-sub{font-size:10px;letter-spacing:5px;color:#8a8aa3;font-weight:700;text-transform:uppercase;margin-top:10px;}
+
+.menu-cta-wrap{position:relative;z-index:1;display:flex;gap:10px;padding:0 2px;}
+.menu-main{flex:1;padding:18px 22px;background:linear-gradient(180deg,#ffe4a3,#ffc857);border:3px solid #242438;border-radius:20px;box-shadow:0 7px 0 #242438,0 14px 28px rgba(255,200,87,.45);font-size:19px;font-weight:700;letter-spacing:3px;color:#242438;display:flex;align-items:center;justify-content:center;gap:12px;position:relative;transition:transform .1s,box-shadow .1s;overflow:hidden;}
 .menu-main:active{transform:translateY(4px);box-shadow:0 3px 0 #242438,0 6px 12px rgba(255,200,87,.35);}
+.menu-main .mm-play{width:26px;height:26px;flex-shrink:0;fill:#242438;}
 .menu-main::after{content:'';position:absolute;inset:-5px;border:3px solid rgba(255,200,87,.75);border-radius:25px;pointer-events:none;animation:menuMainRing 2s ease-out infinite;}
 @keyframes menuMainRing{0%{transform:scale(1);opacity:.9;}70%{transform:scale(1.06);opacity:0;}100%{transform:scale(1.06);opacity:0;}}
-.menu-main .mm-play{font-size:22px;line-height:1;}
-.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-.menu-tile{position:relative;padding:12px 6px 10px;background:#fff;border:2px solid #242438;border-radius:14px;box-shadow:0 3px 0 #242438;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:84px;justify-content:center;transition:transform .1s,box-shadow .1s;overflow:hidden;}
-.menu-tile:active{transform:translateY(2px);box-shadow:0 1px 0 #242438;}
-.menu-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+
+.menu-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.menu-tile{position:relative;padding:14px 8px 12px;background:#ffffff;border:2px solid #242438;border-radius:16px;box-shadow:0 4px 0 #242438;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:96px;justify-content:center;transition:transform .1s,box-shadow .1s;overflow:hidden;}
+.menu-tile:active{transform:translateY(3px);box-shadow:0 1px 0 #242438;}
+.menu-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;border-radius:2px;}
 .menu-tile.t-spin::before{background:linear-gradient(90deg,#ffc857,#ff6b4a);}
 .menu-tile.t-shop::before{background:linear-gradient(90deg,#a8f0cd,#3ddc97);}
 .menu-tile.t-mp::before{background:linear-gradient(90deg,#ffb3d9,#ff77a9);}
 .menu-tile.t-ach::before{background:linear-gradient(90deg,#ffe4a3,#ffc857);}
 .menu-tile.t-stats::before{background:linear-gradient(90deg,#d4beff,#9b6bff);}
 .menu-tile.t-help::before{background:linear-gradient(90deg,#bde9fb,#67c7f0);}
-.tile-icon{font-size:22px;line-height:1;}
-.tile-title{font-size:11px;font-weight:700;letter-spacing:.5px;color:#242438;}
-.tile-sub{font-size:8.5px;font-weight:600;color:#8a8aa3;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;padding:0 2px;}
-.menu-footer{text-align:center;font-size:10px;letter-spacing:2px;color:#8a8aa3;font-weight:600;padding:6px 0 2px;text-transform:uppercase;}
+.menu-tile .tile-icon{width:30px;height:30px;padding:6px;border-radius:10px;background:#fffaf0;border:1.5px solid #242438;box-sizing:content-box;}
+.menu-tile.t-spin .tile-icon{background:linear-gradient(180deg,#fff5d6,#ffe4a3);}
+.menu-tile.t-shop .tile-icon{background:linear-gradient(180deg,#e8fbf1,#a8f0cd);}
+.menu-tile.t-mp .tile-icon{background:linear-gradient(180deg,#ffe4f0,#ffc8dc);}
+.menu-tile.t-ach .tile-icon{background:linear-gradient(180deg,#fff5d6,#ffe4a3);}
+.menu-tile.t-stats .tile-icon{background:linear-gradient(180deg,#ede4ff,#d4beff);}
+.menu-tile.t-help .tile-icon{background:linear-gradient(180deg,#e0f2ff,#bde9fb);}
+.menu-tile .tile-icon svg{width:100%;height:100%;fill:#242438;}
+.tile-title{font-size:11.5px;font-weight:700;letter-spacing:.6px;color:#242438;}
+.tile-sub{font-size:9px;font-weight:600;color:#8a8aa3;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;padding:0 2px;}
+.tile-badge{position:absolute;top:6px;right:6px;width:10px;height:10px;border-radius:50%;background:#ff6b4a;border:1.5px solid #242438;box-shadow:0 0 8px rgba(255,107,74,.9);animation:tileBadgePulse 1.4s ease-in-out infinite;}
+@keyframes tileBadgePulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.15);opacity:.85;}}
+
+.menu-footer{position:relative;z-index:1;text-align:center;font-size:10px;letter-spacing:2px;color:#8a8aa3;font-weight:600;padding:6px 0 2px;text-transform:uppercase;}
+
 @media (max-width:360px){
-  .user-ship{width:64px;height:64px;}
-  .user-ship canvas{width:58px;height:58px;}
-  .tile-icon{font-size:19px;}
-  .tile-title{font-size:10px;}
+  .user-avatar{width:48px;height:48px;}
+  .user-avatar canvas{width:42px;height:42px;}
+  .gear-btn{width:48px;}
+  .gear-btn svg{width:20px;height:20px;}
+  .menu-tile{min-height:86px;padding:12px 6px 10px;}
+  .menu-tile .tile-icon{width:24px;height:24px;padding:5px;}
+  .tile-title{font-size:10.5px;}
 }
+
 .profile-card{background:#ffffff;border:2px solid #242438;border-radius:16px;padding:12px 8px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;box-shadow:0 4px 10px rgba(36,36,56,.12);}
 .pstat{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;}
 .pstat svg{width:18px;height:18px;fill:#ff6b4a;}
@@ -433,33 +467,35 @@ svg{display:block;}
 .mlb-xp-fill{height:100%;background:linear-gradient(90deg,#ffc857,#ff6b4a);width:0%;transition:width .3s ease;}
 .mlb-xp-text{font-size:9px;font-weight:700;color:#4a4a63;text-align:right;margin-top:2px;letter-spacing:.4px;}
 #mpSelfPreview{display:block;width:80px;height:80px;position:relative;}
-#killFeed{position:fixed;top:130px;right:8px;width:200px;max-width:58vw;z-index:8;pointer-events:none;display:none;flex-direction:column;gap:4px;}
+#killFeed{position:fixed;bottom:170px;left:12px;width:200px;max-width:58vw;z-index:8;pointer-events:none;display:none;flex-direction:column;gap:4px;}
 #killFeed.on{display:flex;}
 .kf-item{background:rgba(255,255,255,.95);border:1.5px solid #242438;border-radius:9px;padding:5px 9px;font-size:10.5px;font-weight:700;color:#242438;box-shadow:0 2px 6px rgba(36,36,56,.2);animation:kfSlideIn .3s ease-out;display:flex;align-items:center;gap:4px;line-height:1.2;}
 .kf-item .kf-killer{color:#ff6b4a;}
 .kf-item .kf-target{color:#9b6bff;}
 .kf-item .kf-icon{color:#8a8aa3;font-weight:600;font-size:9px;}
-@keyframes kfSlideIn{from{opacity:0;transform:translateX(40px);}to{opacity:1;transform:translateX(0);}}
+@keyframes kfSlideIn{from{opacity:0;transform:translateX(-40px);}to{opacity:1;transform:translateX(0);}}
 #loadingOverlay{position:fixed;inset:0;background:linear-gradient(180deg,#bae6fd,#e0f2fe 45%,#fffaf0);z-index:500;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;transition:opacity .4s ease;}
 #loadingOverlay.hide{opacity:0;pointer-events:none;}
 .lo-spinner{width:60px;height:60px;border-radius:50%;border:5px solid #ffc857;border-top-color:#ff6b4a;border-right-color:#ff6b4a;animation:loSpin 1s linear infinite;}
 @keyframes loSpin{to{transform:rotate(360deg);}}
 .lo-text{font-size:12px;font-weight:700;color:#4a4a63;letter-spacing:4px;text-transform:uppercase;}
-#spinScreen .spin-wrap{flex:1;overflow-y:auto;padding:12px 14px calc(24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;}
-.spin-title-block{text-align:center;padding:6px 0 14px;}
+
+#spinScreen .spin-wrap{flex:1;overflow-y:auto;padding:12px 14px calc(24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:14px;}
+.spin-title-block{text-align:center;padding:6px 0 8px;}
 .spin-big-title{font-size:30px;font-weight:700;color:#ff6b4a;letter-spacing:5px;text-shadow:0 3px 0 #242438,0 6px 14px rgba(36,36,56,.2);}
 .spin-sub-title{font-size:10.5px;font-weight:600;color:#8a8aa3;letter-spacing:3px;margin-top:6px;text-transform:uppercase;}
-.spin-tier-list{display:flex;flex-direction:column;gap:12px;margin-top:10px;}
+.spin-tier-list{display:flex;flex-direction:column;gap:12px;}
 .spin-tier{position:relative;padding:16px;background:#fff;border:2px solid #242438;border-radius:18px;box-shadow:0 5px 0 #242438,0 10px 20px rgba(36,36,56,.12);overflow:hidden;animation:slideUpFade .5s cubic-bezier(.22,1.12,.36,1.06) backwards;}
 .spin-tier.tier-normal{animation-delay:.05s;}
 .spin-tier.tier-premium{animation-delay:.12s;}
 .spin-tier.tier-highend{animation-delay:.19s;}
-.spin-tier::before{content:'';position:absolute;inset:0;opacity:.14;pointer-events:none;}
+.spin-tier::before{content:'';position:absolute;inset:0;opacity:.12;pointer-events:none;}
 .spin-tier.tier-normal::before{background:linear-gradient(135deg,#3ddc97,#67c7f0);}
 .spin-tier.tier-premium::before{background:linear-gradient(135deg,#ffc857,#ff6b4a);}
 .spin-tier.tier-highend::before{background:linear-gradient(135deg,#9b6bff,#ff77a9);}
 .spin-tier-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;position:relative;}
-.spin-tier-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;background:#fffaf0;border:2px solid #242438;box-shadow:0 2px 0 #242438;line-height:1;}
+.spin-tier-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#fffaf0;border:2px solid #242438;box-shadow:0 2px 0 #242438;}
+.spin-tier-icon svg{width:28px;height:28px;fill:#242438;}
 .spin-tier.tier-normal .spin-tier-icon{background:linear-gradient(180deg,#e8fbf1,#a8f0cd);}
 .spin-tier.tier-premium .spin-tier-icon{background:linear-gradient(180deg,#fff5d6,#ffe4a3);}
 .spin-tier.tier-highend .spin-tier-icon{background:linear-gradient(180deg,#f4e8ff,#d4beff);}
@@ -473,6 +509,11 @@ svg{display:block;}
 .spin-tier.tier-highend .spin-tier-btn{background:linear-gradient(180deg,#d4beff,#9b6bff);color:#fff;}
 .spin-tier-btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #242438;}
 .spin-tier-btn:disabled{background:#e0e0e6;color:#8a8aa3;cursor:not-allowed;box-shadow:0 4px 0 #8a8aa3;border-color:#8a8aa3;}
+.spin-inventory{margin-top:4px;padding:12px;background:#fff;border:2px solid #242438;border-radius:14px;box-shadow:0 3px 0 #242438;}
+.spin-inventory-title{font-size:10px;letter-spacing:2px;font-weight:700;color:#4a4a63;text-transform:uppercase;text-align:center;margin-bottom:8px;}
+.spin-inventory-note{font-size:10.5px;color:#8a8aa3;text-align:center;font-weight:600;line-height:1.5;}
+.spin-inventory-note b{color:#ff6b4a;}
+
 #spinResultModal{position:fixed;inset:0;background:rgba(36,36,56,.75);display:none;align-items:center;justify-content:center;z-index:300;padding:20px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
 #spinResultModal.on{display:flex;animation:confirmFade .25s ease-out;}
 .spin-result-box{width:100%;max-width:380px;background:#fff;border:3px solid #242438;border-radius:22px;padding:24px 20px;box-shadow:0 20px 50px rgba(0,0,0,.5);text-align:center;position:relative;overflow:hidden;animation:spinResultPop .5s cubic-bezier(.22,1.12,.36,1.06);}
@@ -481,8 +522,8 @@ svg{display:block;}
 @keyframes spinGlow{to{transform:rotate(360deg);}}
 .spin-result-inner{position:relative;z-index:1;}
 .spin-result-label{font-size:10.5px;letter-spacing:4px;font-weight:700;color:#8a8aa3;text-transform:uppercase;margin-bottom:6px;}
-.spin-result-icon-wrap{width:120px;height:120px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(180deg,#fffaf0,#ffe4a3);border:3px solid #242438;box-shadow:0 6px 0 #242438,0 12px 30px rgba(255,200,87,.5);font-size:56px;line-height:1;animation:spinIconPulse 1.2s ease-in-out infinite alternate;}
-.spin-result-icon-wrap svg{width:70px;height:70px;}
+.spin-result-icon-wrap{width:120px;height:120px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(180deg,#fffaf0,#ffe4a3);border:3px solid #242438;box-shadow:0 6px 0 #242438,0 12px 30px rgba(255,200,87,.5);animation:spinIconPulse 1.2s ease-in-out infinite alternate;padding:16px;box-sizing:border-box;}
+.spin-result-icon-wrap svg{width:100%;height:100%;fill:#242438;max-width:80px;max-height:80px;}
 @keyframes spinIconPulse{0%{transform:scale(1);}100%{transform:scale(1.06);}}
 .spin-result-name{font-size:17px;font-weight:700;color:#242438;letter-spacing:.5px;margin-bottom:6px;}
 .spin-result-desc{font-size:12px;color:#4a4a63;font-weight:600;margin-bottom:10px;line-height:1.4;}
@@ -492,10 +533,7 @@ svg{display:block;}
 .spin-result-tag.kp{background:#ffe4a3;color:#4a3605;}
 .spin-result-btn{width:100%;padding:14px;border-radius:13px;border:2px solid #242438;font-weight:700;font-size:13.5px;letter-spacing:2px;background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#242438;box-shadow:0 4px 0 #242438;}
 .spin-result-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #242438;}
-.spin-inventory{margin-top:14px;padding:12px;background:#fff;border:2px solid #242438;border-radius:14px;box-shadow:0 3px 0 #242438;}
-.spin-inventory-title{font-size:10px;letter-spacing:2px;font-weight:700;color:#4a4a63;text-transform:uppercase;text-align:center;margin-bottom:8px;}
-.spin-inventory-note{font-size:10.5px;color:#8a8aa3;text-align:center;font-weight:600;line-height:1.5;}
-.spin-inventory-note b{color:#ff6b4a;}
+
 #mpSendPointsModal{position:fixed;inset:0;background:rgba(36,36,56,.65);display:none;align-items:center;justify-content:center;z-index:250;padding:20px;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
 #mpSendPointsModal.on{display:flex;animation:confirmFade .2s ease-out;}
 .mp-send-box{background:#ffffff;border:2px solid #242438;border-radius:18px;padding:20px;max-width:440px;width:100%;box-shadow:0 20px 50px rgba(36,36,56,.5);animation:confirmPop .3s cubic-bezier(.22,1.12,.36,1.06);}
@@ -512,15 +550,14 @@ svg{display:block;}
 .mp-send-actions{display:flex;justify-content:center;margin-top:6px;}
 #mpSendClose{padding:12px 26px;font-size:12px;font-weight:700;letter-spacing:1px;background:#ffffff;color:#242438;border:2px solid #242438;border-radius:12px;box-shadow:0 4px 0 #242438;transition:transform .1s,box-shadow .1s;}
 #mpSendClose:active{transform:translateY(3px);box-shadow:0 1px 0 #242438;}
-.gift-btn{padding:10px 14px;width:100%;margin-top:10px;background:linear-gradient(180deg,#bde9fb,#67c7f0);border:2px solid #242438;border-radius:12px;font-size:12px;font-weight:700;letter-spacing:1.5px;color:#0c4a6e;box-shadow:0 3px 0 #242438;transition:transform .1s,box-shadow .1s;}
+.gift-btn{padding:12px 14px;width:100%;margin-top:14px;background:linear-gradient(180deg,#bde9fb,#67c7f0);border:2px solid #242438;border-radius:12px;font-size:12px;font-weight:700;letter-spacing:1.5px;color:#0c4a6e;box-shadow:0 3px 0 #242438;transition:transform .1s,box-shadow .1s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.gift-btn svg{width:16px;height:16px;fill:#0c4a6e;}
 .gift-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #242438;}
 #mpCelebration{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,rgba(255,200,87,.65),rgba(255,107,74,.75) 45%,rgba(155,107,255,.85));z-index:300;pointer-events:none;padding:24px;text-align:center;}
 #mpCelebration.on{display:flex;animation:confirmFade .3s ease-out;}
 .mp-celeb-title{font-size:clamp(34px,10vw,58px);font-weight:700;letter-spacing:4px;color:#fff;text-shadow:0 4px 0 #242438,0 8px 20px rgba(0,0,0,.4),0 0 40px rgba(255,200,87,.9);margin-bottom:12px;animation:popIn .55s ease-out;}
 .mp-celeb-sub{font-size:14px;font-weight:700;letter-spacing:2px;color:#fff;background:rgba(36,36,56,.5);border:2px solid #fff;border-radius:14px;padding:10px 20px;max-width:340px;text-shadow:0 2px 4px rgba(0,0,0,.5);}
 .mp-celeb-confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
-.trophy-row{display:flex;align-items:center;gap:6px;justify-content:center;padding:8px;background:linear-gradient(180deg,#fff5d6,#ffe4a3);border:2px solid #242438;border-radius:12px;font-size:11px;font-weight:700;color:#4a3605;letter-spacing:1px;}
-.trophy-row .tr-icon{font-size:16px;line-height:1;}
 </style>
 </head>
 <body>
@@ -547,7 +584,7 @@ svg{display:block;}
 </div>
 <div id="mpLevelBadge">
   <div class="mlb-label">LEVEL</div>
-  <div class="mlb-level" id="mpLevelNum">1</div>
+  <div class="mlb-level" id="mpLevelNum">LV 1</div>
   <div class="mlb-xp-track"><div class="mlb-xp-fill" id="mpXpFill"></div></div>
   <div class="mlb-xp-text" id="mpXpText">0/10</div>
 </div>
@@ -586,68 +623,99 @@ svg{display:block;}
 
 <div class="screen on" id="menuScreen">
   <div class="deco-layer" id="menuDeco"></div>
-  <div class="menu-wrap"><div class="menu-inner">
-    <div class="user-card">
-      <button class="user-gear" id="menuGear" aria-label="Pengaturan">&#9881;</button>
-      <div class="user-ship"><canvas id="menuShipPreview" width="140" height="140"></canvas></div>
-      <div class="user-info">
-        <div class="user-name" id="menuPlayerName">PLAYER</div>
-        <div class="user-level-row">
-          <span class="user-level" id="menuPlayerLevel">LV 1</span>
-          <span class="user-trophy" id="menuTrophy"><span class="tr-icon">&#127942;</span><span id="menuTrophyCount">0</span></span>
-        </div>
-        <div class="user-xp-track">
-          <div class="user-xp-fill" id="menuXpFill"></div>
-          <span class="user-xp-text" id="menuXpText">0/10</span>
+  <div class="menu-wrap">
+    <div class="menu-deco">
+      <div class="menu-deco-item a"></div>
+      <div class="menu-deco-item b"></div>
+      <div class="menu-deco-item c"></div>
+      <div class="menu-deco-item d"></div>
+    </div>
+
+    <div class="menu-header">
+      <div class="user-chip">
+        <div class="user-avatar"><canvas id="menuShipPreview" width="120" height="120"></canvas></div>
+        <div class="user-meta">
+          <div class="user-name" id="menuPlayerName">PLAYER</div>
+          <div class="user-badges">
+            <span class="user-badge lvl" id="menuPlayerLevel">LV 1</span>
+            <span class="user-badge tro">
+              <svg viewBox="0 0 24 24"><path d="M5 3h14v3h3v3c0 3.3-2.7 6-6 6h-1c-.5 2.4-2.5 4.3-5 4.9V21h4v2H6v-2h4v-1.1C7.5 19.3 5.5 17.4 5 15H4c-3.3 0-6-2.7-6-6V6h3V3z"/></svg>
+              <span id="menuTrophyCount">0</span>
+            </span>
+          </div>
         </div>
       </div>
+      <button class="gear-btn" id="menuGear" aria-label="Pengaturan">
+        <svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9 4a9 9 0 01-.13 1.5l2.02 1.58-1.9 3.3-2.36-.95a8.86 8.86 0 01-2.6 1.5L15.7 21h-3.4l-.33-2.57a8.86 8.86 0 01-2.6-1.5l-2.36.95-1.9-3.3 2.02-1.58A9 9 0 017 12c0-.51.05-1.01.13-1.5L5.11 8.92l1.9-3.3 2.36.95a8.86 8.86 0 012.6-1.5L12.3 3h3.4l.33 2.57a8.86 8.86 0 012.6 1.5l2.36-.95 1.9 3.3-2.02 1.58c.08.49.13.99.13 1.5z"/></svg>
+      </button>
     </div>
 
-    <div class="menu-title-wrap">
+    <div class="menu-xp">
+      <div class="menu-xp-label">XP</div>
+      <div class="menu-xp-track"><div class="menu-xp-fill" id="menuXpFill"></div></div>
+      <div class="menu-xp-text" id="menuXpText">0/10</div>
+    </div>
+
+    <div class="menu-brand">
       <div class="brand-title">DANIS<span class="dot">.</span>SHOOTER</div>
-      <div class="menu-title-sub">Space Combat Arena</div>
+      <div class="brand-sub">Space Combat Arena</div>
     </div>
 
-    <button class="menu-main" id="playBtn">
-      <span class="mm-play">&#9654;</span>
-      <span>MULAI MISI</span>
-    </button>
+    <div class="menu-cta-wrap">
+      <button class="menu-main" id="playBtn">
+        <svg class="mm-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span>MULAI MISI</span>
+      </button>
+    </div>
 
     <div class="menu-grid">
       <button class="menu-tile t-spin" id="navSpin">
-        <span class="tile-icon">&#127920;</span>
+        <span class="tile-badge" id="spinTileBadge" style="display:none;"></span>
+        <span class="tile-icon">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 16.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9C6.67 7.5 6 6.83 6 6s.67-1.5 1.5-1.5S9 5.17 9 6s-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+        </span>
         <span class="tile-title">SPIN</span>
         <span class="tile-sub">Hadiah</span>
       </button>
       <button class="menu-tile t-shop" id="navShop">
-        <span class="tile-icon">&#128722;</span>
+        <span class="tile-icon">
+          <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+        </span>
         <span class="tile-title">TOKO</span>
         <span class="tile-sub" id="shopSub">Senjata</span>
       </button>
       <button class="menu-tile t-mp" id="navMP">
-        <span class="tile-icon">&#128101;</span>
+        <span class="tile-icon">
+          <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        </span>
         <span class="tile-title">GRUP</span>
         <span class="tile-sub">Bareng</span>
       </button>
       <button class="menu-tile t-ach" id="navAch">
-        <span class="tile-icon">&#127942;</span>
+        <span class="tile-icon">
+          <svg viewBox="0 0 24 24"><path d="M5 3h14v3h3v3c0 3.3-2.7 6-6 6h-1c-.5 2.4-2.5 4.3-5 4.9V21h4v2H6v-2h4v-1.1C7.5 19.3 5.5 17.4 5 15H4c-3.3 0-6-2.7-6-6V6h3V3z"/></svg>
+        </span>
         <span class="tile-title">LENCANA</span>
         <span class="tile-sub" id="achSub">0/0</span>
       </button>
       <button class="menu-tile t-stats" id="navStats">
-        <span class="tile-icon">&#128202;</span>
+        <span class="tile-icon">
+          <svg viewBox="0 0 24 24"><path d="M4 20V10h4v10zm6 0V4h4v16zm6 0v-7h4v7z"/></svg>
+        </span>
         <span class="tile-title">STATISTIK</span>
         <span class="tile-sub">Rekap</span>
       </button>
       <button class="menu-tile t-help" id="navHelp">
-        <span class="tile-icon">&#10068;</span>
+        <span class="tile-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2zm1.8-7.2l-.9.9c-.6.6-.9 1.1-.9 2.3h-2c0-1.6.6-2.4 1.4-3.3l1-1c.3-.3.5-.7.5-1.2 0-1-.8-1.8-1.9-1.8s-1.8.8-1.8 1.8H8c0-2.1 1.7-3.8 3.8-3.8s3.8 1.7 3.8 3.8c0 .9-.4 1.7-1 2.3z"/></svg>
+        </span>
         <span class="tile-title">CARA MAIN</span>
         <span class="tile-sub">Panduan</span>
       </button>
     </div>
 
     <div class="menu-footer">v3.0 &middot; Tap for glory</div>
-  </div></div>
+  </div>
 </div>
 
 <div class="screen" id="levelScreen">
@@ -766,7 +834,9 @@ svg{display:block;}
     <div class="spin-tier-list">
       <div class="spin-tier tier-normal">
         <div class="spin-tier-head">
-          <div class="spin-tier-icon">&#127922;</div>
+          <div class="spin-tier-icon">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 16.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9C6.67 7.5 6 6.83 6 6s.67-1.5 1.5-1.5S9 5.17 9 6s-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+          </div>
           <div class="spin-tier-info">
             <div class="spin-tier-name">NORMAL SPIN</div>
             <div class="spin-tier-desc">Hadiah ringan untuk harian</div>
@@ -777,7 +847,9 @@ svg{display:block;}
       </div>
       <div class="spin-tier tier-premium">
         <div class="spin-tier-head">
-          <div class="spin-tier-icon">&#11088;</div>
+          <div class="spin-tier-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.5l-6.3 4.3 2.3-7.2-6-4.4h7.6z"/></svg>
+          </div>
           <div class="spin-tier-info">
             <div class="spin-tier-name">PREMIUM SPIN</div>
             <div class="spin-tier-desc">Peluang item langka lebih besar</div>
@@ -788,7 +860,9 @@ svg{display:block;}
       </div>
       <div class="spin-tier tier-highend">
         <div class="spin-tier-head">
-          <div class="spin-tier-icon">&#128142;</div>
+          <div class="spin-tier-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2L4 9l8 13 8-13zM6.5 9l5.5-5.5L17.5 9z"/></svg>
+          </div>
           <div class="spin-tier-info">
             <div class="spin-tier-name">HIGH-END SPIN</div>
             <div class="spin-tier-desc">Hadiah terbaik, item eksklusif</div>
@@ -810,7 +884,7 @@ svg{display:block;}
     <div class="spin-result-glow"></div>
     <div class="spin-result-inner">
       <div class="spin-result-label" id="spinResultLabel">HADIAH</div>
-      <div class="spin-result-icon-wrap" id="spinResultIcon">&#11088;</div>
+      <div class="spin-result-icon-wrap" id="spinResultIcon"></div>
       <div class="spin-result-name" id="spinResultName">-</div>
       <div class="spin-result-desc" id="spinResultDesc">-</div>
       <div class="spin-result-tag kp" id="spinResultTag">BARU</div>
@@ -860,7 +934,6 @@ svg{display:block;}
         <div class="mp-mode-title" id="mpModeTitle">PILIH MODE (HOST)</div>
         <div class="mp-mode-grid" id="mpModeGrid"></div>
       </div>
-      <button class="gift-btn" id="mpLobbyGiftBtn">KIRIM KILL POINTS KE TEMAN</button>
       <div class="emoji-bar" id="emojiBar">
         <button class="emoji-btn" data-emoji="&#128077;">&#128077;</button>
         <button class="emoji-btn" data-emoji="&#128405;">&#128405;</button>
@@ -877,6 +950,10 @@ svg{display:block;}
           <button class="mp-chat-send" id="mpChatSend">KIRIM</button>
         </div>
       </div>
+      <button class="gift-btn" id="mpLobbyGiftBtn">
+        <svg viewBox="0 0 24 24"><path d="M20 7h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 00-5.5-1.65l-.5.67-.5-.68C10.96 4.54 10.05 4 9 4 7.34 4 6 5.34 6 7c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V9c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 5c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 14H4v-2h16v2zm0-5H4V9h5.08L7 11.83 8.62 13 12 7.76 15.38 13 17 11.83 14.92 9H20v5z"/></svg>
+        KIRIM KILL POINTS KE TEMAN
+      </button>
       <div class="mp-actions">
         <button class="mp-btn start" id="mpStartBtn" disabled>START</button>
         <button class="mp-btn leave" id="mpLeaveBtn2">KELUAR</button>
