@@ -28,6 +28,8 @@ var mp={
   pfCtx:null,
   pfCanvas:null,
   pfAnim:null,
+  pfLastW:0,
+  pfLastH:0,
   seenEmojis:{}
 };
 
@@ -389,8 +391,8 @@ function initPlayfield(){
   if(!cv)return;
   mp.pfCanvas=cv;
   mp.pfCtx=cv.getContext('2d');
-  resizePlayfield();
-  window.addEventListener('resize',resizePlayfield);
+  mp.pfLastW=0;
+  mp.pfLastH=0;
   cv.addEventListener('touchstart',pfTouchStart,{passive:false});
   cv.addEventListener('touchmove',pfTouchMove,{passive:false});
   cv.addEventListener('touchend',function(){mp.lobbyDragging=false;});
@@ -399,16 +401,6 @@ function initPlayfield(){
   window.addEventListener('mousemove',pfMouseMove);
   window.addEventListener('mouseup',function(){mp.lobbyDragging=false;});
   if(!mp.pfAnim)mp.pfAnim=requestAnimationFrame(pfLoop);
-}
-
-function resizePlayfield(){
-  var cv=mp.pfCanvas;
-  if(!cv)return;
-  var rect=cv.getBoundingClientRect();
-  var dpr=window.devicePixelRatio||1;
-  cv.width=Math.round(rect.width*dpr);
-  cv.height=Math.round(rect.height*dpr);
-  if(mp.pfCtx)mp.pfCtx.setTransform(dpr,0,0,dpr,0,0);
 }
 
 function pfTouchStart(ev){
@@ -437,6 +429,7 @@ function pfUpdateFromX(clientX){
   var cv=mp.pfCanvas;
   if(!cv)return;
   var rect=cv.getBoundingClientRect();
+  if(rect.width<=0)return;
   var rel=(clientX-rect.left)/rect.width;
   if(rel<0.05)rel=0.05;
   if(rel>0.95)rel=0.95;
@@ -449,22 +442,38 @@ function pfLoop(){
   var cv=mp.pfCanvas,ctx=mp.pfCtx;
   if(!cv||!ctx)return;
   if(DS().getAppState()!=='mpLobbyMenu')return;
-  var w=cv.clientWidth,h=cv.clientHeight;
-  if(w<=0||h<=0)return;
-  ctx.clearRect(0,0,w,h);
+
+  var dpr=window.devicePixelRatio||1;
+  var cw=cv.clientWidth;
+  var ch=cv.clientHeight;
+  if(cw<=0||ch<=0)return;
+
+  var targetW=Math.round(cw*dpr);
+  var targetH=Math.round(ch*dpr);
+  if(cv.width!==targetW||cv.height!==targetH||mp.pfLastW!==cw||mp.pfLastH!==ch){
+    cv.width=targetW;
+    cv.height=targetH;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    mp.pfLastW=cw;
+    mp.pfLastH=ch;
+  }
+
+  ctx.clearRect(0,0,cw,ch);
   var now=performance.now();
   var players=[];
   for(var k in PC())players.push(PC()[k]);
   players.sort(function(a,b){return (a.joinedAt||0)-(b.joinedAt||0);});
-  var sz=Math.min(w*0.18,h*0.55);
-  if(sz<30)sz=30;
-  if(sz>70)sz=70;
+  var sz=Math.min(cw*0.20,ch*0.55);
+  if(sz<34)sz=34;
+  if(sz>74)sz=74;
   for(var i=0;i<players.length;i++){
     var pl=players[i];
-    var x=pl.lobbyX!==undefined?pl.lobbyX:0.5;
+    var x=(pl.lobbyX!==undefined&&pl.lobbyX!==null)?pl.lobbyX:0.5;
     if(pl.id===mp.myId)x=mp.lobbyX;
-    var cx=x*w;
-    var cy=h*0.55;
+    var cx=x*cw;
+    if(cx<sz*0.55)cx=sz*0.55;
+    if(cx>cw-sz*0.55)cx=cw-sz*0.55;
+    var cy=ch*0.52;
     var bob=Math.sin(now*0.003+i*1.3)*4;
     var isMe=pl.id===mp.myId;
     var alpha=pl.alive===false?0.35:1;
@@ -473,7 +482,7 @@ function pfLoop(){
       ctx.strokeStyle='rgba(255,200,87,0.9)';
       ctx.lineWidth=2;
       ctx.beginPath();
-      ctx.arc(cx,cy+bob,sz*0.75,0,Math.PI*2);
+      ctx.arc(cx,cy+bob,sz*0.78,0,Math.PI*2);
       ctx.stroke();
       ctx.restore();
     }
@@ -481,7 +490,7 @@ function pfLoop(){
     var shape=DS().findShape(pl.shape||'square');
     var key=ship.id+'_'+shape.id;
     var cache=DS().playerSpriteCache();
-    var set=cache[key];
+    var set=cache[key]||cache[ship.id+'_square']||cache['default_square'];
     if(!set)continue;
     var spr=set.normal.canvas;
     var scale=sz/spr.width;
