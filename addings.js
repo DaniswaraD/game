@@ -1,6 +1,5 @@
 (function(){
 'use strict';
-
 var SPIN_TIERS={
   normal:{
     id:'normal',
