@@ -44,7 +44,7 @@ svg{display:block;}
 @keyframes hullPulse{0%,100%{opacity:1;}50%{opacity:.5;}}
 .timer-num{font-size:26px;font-weight:700;color:#242438;line-height:1;text-shadow:0 2px 0 #fff;}
 .stat-line{font-size:11px;color:#4a4a63;font-weight:600;letter-spacing:.3px;}
-.kill-line{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#242438;background:#ffffff;border:2px solid #242438;border-radius:20px;padding:3px 10px;box-shadow:0 2px 6px rgba(36,36,56,.12);pointer-events:auto;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;transition:transform .1s;}
+.kill-line{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#242438;background:#ffffff;border:2px solid #242438;border-radius:20px;padding:3px 10px;box-shadow:0 2px 6px rgba(36,36,56,.12);pointer-events:auto;cursor:pointer;user-select:none;-webkit-user-select:none;transition:transform .1s;}
 .kill-line svg{width:14px;height:14px;fill:#ff6b4a;pointer-events:none;}
 .kill-line span{pointer-events:none;}
 .pu-row{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
@@ -115,24 +115,52 @@ svg{display:block;}
 .kill-chip svg{width:15px;height:15px;fill:#ff6b4a;}
 .scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:8px 14px calc(24px + env(safe-area-inset-bottom));touch-action:pan-y;}
 .inner{width:100%;max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
-.menu-inner{display:flex;flex-direction:column;gap:16px;align-items:stretch;justify-content:center;min-height:100%;}
-.brand{text-align:center;padding:8px 0 4px;position:relative;}
-.brand-title{font-size:clamp(44px,13vw,68px);font-weight:700;line-height:.9;color:#ffffff;letter-spacing:1px;position:relative;display:inline-block;text-shadow:0 4px 0 #ff6b4a,0 8px 0 #242438,0 14px 24px rgba(36,36,56,.25);}
+.brand-title{font-size:clamp(38px,11vw,56px);font-weight:700;line-height:.9;color:#ffffff;letter-spacing:1px;position:relative;display:inline-block;text-shadow:0 4px 0 #ff6b4a,0 8px 0 #242438,0 14px 24px rgba(36,36,56,.25);}
 .brand-title .dot{color:#ffc857;}
 .brand-title .dot2{color:#3ddc97;}
-.hero-btn{display:block;width:100%;padding:20px 22px;text-align:center;background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#242438;font-weight:700;font-size:22px;letter-spacing:1px;border:3px solid #242438;border-radius:20px;box-shadow:0 6px 0 #242438,0 14px 28px rgba(255,200,87,.4);transition:transform .1s,box-shadow .1s;position:relative;}
-.hero-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #242438,0 4px 8px rgba(255,200,87,.3);}
-.grid-menu{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.nav-btn{display:flex;flex-direction:column;gap:6px;padding:14px;align-items:flex-start;background:#ffffff;border:2px solid #242438;border-radius:16px;box-shadow:0 2px 6px rgba(36,36,56,.12);transition:transform .1s;}
-.nav-btn:active{transform:translateY(2px);box-shadow:none;}
-.nav-btn .nb-icon{width:26px;height:26px;fill:#ff6b4a;}
-.nav-btn.green .nb-icon{fill:#3ddc97;}
-.nav-btn.purple .nb-icon{fill:#9b6bff;}
-.nav-btn.blue .nb-icon{fill:#67c7f0;}
-.nav-btn.pink .nb-icon{fill:#ff77a9;}
-.nav-btn .nb-title{font-size:14px;font-weight:700;letter-spacing:.5px;color:#242438;}
-.nav-btn .nb-sub{font-size:11px;color:#8a8aa3;font-weight:600;}
 .section-title{font-size:11px;font-weight:700;letter-spacing:3px;color:#4a4a63;text-transform:uppercase;padding:6px 4px 2px;opacity:.9;}
+.menu-wrap{padding:8px 14px calc(20px + env(safe-area-inset-bottom));flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.menu-inner{width:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:14px;min-height:100%;justify-content:center;}
+.user-card{position:relative;display:flex;align-items:center;gap:12px;padding:12px;background:linear-gradient(160deg,#ffffff,#f0f9ff 60%,#fffaf0);border:2px solid #242438;border-radius:20px;box-shadow:0 5px 0 #242438,0 10px 24px rgba(36,36,56,.14);}
+.user-ship{width:76px;height:76px;flex-shrink:0;background:linear-gradient(180deg,#bae6fd,#e0f2fe);border:2px solid #242438;border-radius:16px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.user-ship canvas{display:block;width:70px;height:70px;position:relative;}
+.user-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;}
+.user-name{font-size:14px;font-weight:700;color:#242438;letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:36px;}
+.user-level-row{display:flex;align-items:center;gap:6px;}
+.user-level{font-size:10.5px;font-weight:700;color:#ff6b4a;letter-spacing:1px;background:#fff5d6;border:1.5px solid #242438;border-radius:8px;padding:1px 7px;}
+.user-trophy{font-size:10.5px;font-weight:700;color:#4a3605;letter-spacing:.5px;background:linear-gradient(180deg,#ffe4a3,#ffc857);border:1.5px solid #242438;border-radius:8px;padding:1px 7px;display:inline-flex;align-items:center;gap:3px;}
+.user-xp-track{position:relative;width:100%;height:16px;background:#f0f0f4;border:2px solid #242438;border-radius:9px;overflow:hidden;}
+.user-xp-fill{height:100%;background:linear-gradient(90deg,#ffc857,#ff6b4a);width:0%;transition:width .3s ease;}
+.user-xp-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:#242438;text-shadow:0 1px 2px rgba(255,255,255,.75);letter-spacing:.4px;}
+.user-gear{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:10px;background:#fff;border:2px solid #242438;box-shadow:0 3px 0 #242438;display:flex;align-items:center;justify-content:center;color:#242438;padding:0;font-size:16px;line-height:1;}
+.user-gear:active{transform:translateY(2px);box-shadow:0 1px 0 #242438;}
+.menu-title-wrap{text-align:center;padding:6px 0 4px;}
+.menu-title-sub{font-size:10px;letter-spacing:5px;color:#8a8aa3;font-weight:700;text-transform:uppercase;margin-top:6px;}
+.menu-main{width:100%;padding:20px 22px;background:linear-gradient(180deg,#ffe4a3,#ffc857);border:3px solid #242438;border-radius:20px;box-shadow:0 7px 0 #242438,0 14px 28px rgba(255,200,87,.45);font-size:19px;font-weight:700;letter-spacing:3px;color:#242438;display:flex;align-items:center;justify-content:center;gap:12px;position:relative;transition:transform .1s,box-shadow .1s;}
+.menu-main:active{transform:translateY(4px);box-shadow:0 3px 0 #242438,0 6px 12px rgba(255,200,87,.35);}
+.menu-main::after{content:'';position:absolute;inset:-5px;border:3px solid rgba(255,200,87,.75);border-radius:25px;pointer-events:none;animation:menuMainRing 2s ease-out infinite;}
+@keyframes menuMainRing{0%{transform:scale(1);opacity:.9;}70%{transform:scale(1.06);opacity:0;}100%{transform:scale(1.06);opacity:0;}}
+.menu-main .mm-play{font-size:22px;line-height:1;}
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.menu-tile{position:relative;padding:12px 6px 10px;background:#fff;border:2px solid #242438;border-radius:14px;box-shadow:0 3px 0 #242438;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:84px;justify-content:center;transition:transform .1s,box-shadow .1s;overflow:hidden;}
+.menu-tile:active{transform:translateY(2px);box-shadow:0 1px 0 #242438;}
+.menu-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.menu-tile.t-spin::before{background:linear-gradient(90deg,#ffc857,#ff6b4a);}
+.menu-tile.t-shop::before{background:linear-gradient(90deg,#a8f0cd,#3ddc97);}
+.menu-tile.t-mp::before{background:linear-gradient(90deg,#ffb3d9,#ff77a9);}
+.menu-tile.t-ach::before{background:linear-gradient(90deg,#ffe4a3,#ffc857);}
+.menu-tile.t-stats::before{background:linear-gradient(90deg,#d4beff,#9b6bff);}
+.menu-tile.t-help::before{background:linear-gradient(90deg,#bde9fb,#67c7f0);}
+.tile-icon{font-size:22px;line-height:1;}
+.tile-title{font-size:11px;font-weight:700;letter-spacing:.5px;color:#242438;}
+.tile-sub{font-size:8.5px;font-weight:600;color:#8a8aa3;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;padding:0 2px;}
+.menu-footer{text-align:center;font-size:10px;letter-spacing:2px;color:#8a8aa3;font-weight:600;padding:6px 0 2px;text-transform:uppercase;}
+@media (max-width:360px){
+  .user-ship{width:64px;height:64px;}
+  .user-ship canvas{width:58px;height:58px;}
+  .tile-icon{font-size:19px;}
+  .tile-title{font-size:10px;}
+}
 .profile-card{background:#ffffff;border:2px solid #242438;border-radius:16px;padding:12px 8px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;box-shadow:0 4px 10px rgba(36,36,56,.12);}
 .pstat{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;}
 .pstat svg{width:18px;height:18px;fill:#ff6b4a;}
@@ -294,13 +322,15 @@ svg{display:block;}
 .brand-title .dot,.brand-title .dot2{display:inline-block;animation:dotSpin 3s linear infinite;}
 .brand-title .dot2{animation-direction:reverse;}
 @keyframes dotSpin{0%{transform:rotate(0deg) scale(1);}50%{transform:rotate(180deg) scale(1.4);}100%{transform:rotate(360deg) scale(1);}}
-.hero-btn::after{content:'';position:absolute;inset:-4px;border-radius:24px;pointer-events:none;border:3px solid rgba(255,200,87,.85);animation:heroRing 1.9s ease-out infinite;}
-@keyframes heroRing{0%{transform:scale(1);opacity:.85;}70%{transform:scale(1.13);opacity:0;}100%{transform:scale(1.13);opacity:0;}}
 @keyframes slideUpFade{from{opacity:0;transform:translateY(24px) scale(.95);}to{opacity:1;transform:translateY(0) scale(1);}}
-.screen.on .hero-btn{animation:slideUpFade .42s cubic-bezier(.22,1.12,.36,1.06) backwards;}
-.screen.on .nav-btn{animation:slideUpFade .5s cubic-bezier(.22,1.12,.36,1.06) backwards;}
-@keyframes iconBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-3px);}}
-.nav-btn .nb-icon{animation:iconBob 2.4s ease-in-out infinite;}
+.screen.on .menu-main{animation:slideUpFade .42s cubic-bezier(.22,1.12,.36,1.06) backwards;}
+.screen.on .menu-tile{animation:slideUpFade .5s cubic-bezier(.22,1.12,.36,1.06) backwards;}
+.screen.on .menu-tile:nth-child(1){animation-delay:.05s;}
+.screen.on .menu-tile:nth-child(2){animation-delay:.09s;}
+.screen.on .menu-tile:nth-child(3){animation-delay:.13s;}
+.screen.on .menu-tile:nth-child(4){animation-delay:.17s;}
+.screen.on .menu-tile:nth-child(5){animation-delay:.21s;}
+.screen.on .menu-tile:nth-child(6){animation-delay:.25s;}
 @keyframes profilePop{0%{transform:scale(.9);opacity:0;}100%{transform:scale(1);opacity:1;}}
 .profile-card{animation:profilePop .5s ease-out backwards;}
 @keyframes titleSlide{from{opacity:0;transform:translateX(-14px);}to{opacity:1;transform:translateX(0);}}
@@ -323,18 +353,18 @@ svg{display:block;}
 #mpPlayfieldCanvas{display:block;width:100%;height:130px;touch-action:none;}
 .mp-playfield-hint{position:absolute;bottom:5px;left:0;right:0;text-align:center;font-size:9.5px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.7);pointer-events:none;text-transform:uppercase;}
 .mp-playfield-stars{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(1px 1px at 20% 30%,rgba(255,255,255,.5),transparent),radial-gradient(1px 1px at 70% 60%,rgba(255,255,255,.4),transparent),radial-gradient(1px 1px at 45% 80%,rgba(255,255,255,.3),transparent),radial-gradient(1px 1px at 85% 20%,rgba(255,255,255,.5),transparent);}
-.mp-players{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-top:14px;min-height:130px;align-items:center;}
-.mp-player{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;background:#fffaf0;border:2px solid #242438;border-radius:14px;min-width:130px;max-width:150px;box-shadow:0 3px 0 rgba(36,36,56,.15);position:relative;transition:all .2s;}
+.mp-players{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:14px;min-height:130px;align-items:center;}
+.mp-player{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 8px;background:#fffaf0;border:2px solid #242438;border-radius:14px;min-width:110px;max-width:130px;box-shadow:0 3px 0 rgba(36,36,56,.15);position:relative;transition:all .2s;}
 .mp-player.host{border-color:#ffc857;box-shadow:0 0 0 3px rgba(255,200,87,.4),0 3px 0 rgba(36,36,56,.15);}
 .mp-player.me{background:linear-gradient(180deg,#e8fbf1,#ffffff);}
 .mp-player.dead{opacity:.55;filter:grayscale(.6);}
-.mp-player canvas{width:70px;height:70px;display:block;position:relative;}
-.mp-player .mp-name{font-size:12px;font-weight:700;color:#242438;letter-spacing:.5px;max-width:125px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.mp-player .mp-role{font-size:9px;font-weight:700;letter-spacing:1.5px;padding:3px 9px;border-radius:6px;background:#e0f2fe;color:#0c4a6e;border:1.5px solid #242438;}
+.mp-player canvas{width:64px;height:64px;display:block;position:relative;}
+.mp-player .mp-name{font-size:11.5px;font-weight:700;color:#242438;letter-spacing:.4px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mp-player .mp-role{font-size:8.5px;font-weight:700;letter-spacing:1.3px;padding:2px 8px;border-radius:6px;background:#e0f2fe;color:#0c4a6e;border:1.5px solid #242438;}
 .mp-player .mp-role.host{background:linear-gradient(180deg,#ffd977,#ffc857);color:#4a3605;}
-.mp-player .mp-kills{font-size:10px;font-weight:700;color:#242438;background:#fff;border:1.5px solid #242438;border-radius:6px;padding:3px 9px;letter-spacing:.4px;}
-.mp-player .mp-kills b{color:#ff6b4a;font-size:13px;}
-.mp-player .mp-kick-btn{position:absolute;top:-8px;right:-8px;width:26px;height:26px;border-radius:50%;background:linear-gradient(180deg,#ff8585,#c93a3a);color:#fff;font-weight:700;font-size:14px;border:2px solid #242438;box-shadow:0 2px 0 #242438;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;}
+.mp-player .mp-kills{font-size:9.5px;font-weight:700;color:#242438;background:#fff;border:1.5px solid #242438;border-radius:6px;padding:2px 8px;letter-spacing:.4px;}
+.mp-player .mp-kills b{color:#ff6b4a;font-size:12px;}
+.mp-player .mp-kick-btn{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;background:linear-gradient(180deg,#ff8585,#c93a3a);color:#fff;font-weight:700;font-size:13px;border:2px solid #242438;box-shadow:0 2px 0 #242438;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;}
 .mp-player .mp-kick-btn:active{transform:translateY(2px);box-shadow:0 0 0 #242438;}
 .mp-mini-row{display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap;padding:0 4px;}
 .mp-mini{width:74px;background:#111;border:2px solid #242438;border-radius:10px;overflow:hidden;position:relative;box-shadow:0 3px 0 #242438;}
@@ -352,17 +382,35 @@ svg{display:block;}
 .mp-mode-btn.on{background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#242438;box-shadow:0 2px 0 #242438,0 0 0 2px rgba(255,200,87,.45);}
 .mp-mode-btn.locked{opacity:.55;cursor:not-allowed;}
 .emoji-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:14px;padding:10px;background:#fffaf0;border:2px solid #242438;border-radius:14px;box-shadow:0 3px 0 rgba(36,36,56,.15);}
-.emoji-btn{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;font-size:24px;background:#ffffff;border:2px solid #242438;border-radius:10px;box-shadow:0 3px 0 #242438;transition:transform .1s,box-shadow .1s;padding:0;}
+.emoji-btn{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;font-size:22px;background:#ffffff;border:2px solid #242438;border-radius:10px;box-shadow:0 3px 0 #242438;transition:transform .1s,box-shadow .1s;padding:0;}
 .emoji-btn:active{transform:translateY(3px);box-shadow:0 0 0 #242438;background:linear-gradient(180deg,#fff5d6,#ffe4a3);}
 #mpEmojiLayer{position:fixed;inset:0;pointer-events:none;z-index:180;overflow:hidden;}
 .mp-fly-emoji{position:absolute;font-size:44px;font-weight:700;filter:drop-shadow(0 3px 6px rgba(36,36,56,.5));animation:emojiFloat 2.2s ease-out forwards;pointer-events:none;}
 @keyframes emojiFloat{0%{transform:translate(-50%,-50%) scale(.5);opacity:0;}15%{transform:translate(-50%,-50%) scale(1.3);opacity:1;}60%{transform:translate(-50%,-130%) scale(1.1);opacity:1;}100%{transform:translate(-50%,-280%) scale(.8);opacity:0;}}
+.mp-chat{margin-top:14px;background:#ffffff;border:2px solid #242438;border-radius:16px;padding:12px;box-shadow:0 4px 0 #242438;display:flex;flex-direction:column;gap:10px;}
+.mp-chat-header{display:flex;justify-content:space-between;align-items:center;font-size:10px;letter-spacing:2px;font-weight:700;color:#4a4a63;text-transform:uppercase;}
+.mp-chat-count{font-size:9px;background:#ffe4a3;color:#4a3605;padding:2px 7px;border-radius:6px;letter-spacing:1px;}
+.mp-chat-list{height:150px;overflow-y:auto;padding:6px;background:#fffaf0;border:2px solid #242438;border-radius:12px;display:flex;flex-direction:column;gap:6px;-webkit-overflow-scrolling:touch;}
+.mp-chat-list::-webkit-scrollbar{width:4px;}
+.mp-chat-list::-webkit-scrollbar-thumb{background:#242438;border-radius:2px;}
+.mp-chat-item{display:flex;flex-direction:column;gap:2px;padding:6px 9px;background:#fff;border-radius:10px;border:1.5px solid #e6e3d3;}
+.mp-chat-item.mine{background:linear-gradient(180deg,#e8fbf1,#ffffff);border-color:#3ddc97;}
+.mp-chat-name{font-size:10px;font-weight:700;color:#ff6b4a;letter-spacing:.5px;}
+.mp-chat-text{font-size:12px;font-weight:500;color:#242438;line-height:1.35;word-wrap:break-word;white-space:pre-wrap;}
+.mp-chat-empty{font-size:11px;color:#8a8aa3;text-align:center;padding:44px 8px;font-weight:600;}
+.mp-chat-input-row{display:flex;gap:6px;}
+.mp-chat-input{flex:1;height:44px;padding:0 12px;background:#fffaf0;border:2px solid #242438;border-radius:11px;font-size:13px;font-weight:600;color:#242438;outline:none;min-width:0;-webkit-user-select:text;user-select:text;}
+.mp-chat-input::placeholder{color:#8a8aa3;font-weight:500;}
+.mp-chat-input:focus{border-color:#ff6b4a;box-shadow:0 0 0 3px rgba(255,200,87,.3);}
+.mp-chat-send{height:44px;padding:0 16px;background:linear-gradient(180deg,#a8f0cd,#3ddc97);border:2px solid #242438;border-radius:11px;font-size:12px;font-weight:700;letter-spacing:1px;color:#053b26;box-shadow:0 3px 0 #242438;flex-shrink:0;}
+.mp-chat-send:active{transform:translateY(2px);box-shadow:0 1px 0 #242438;}
 #mpEndStats{background:#ffffff;border:2px solid #242438;border-radius:16px;padding:16px;box-shadow:0 4px 0 #242438;margin-top:12px;}
 .mp-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
 .mp-bar-name{font-size:11px;font-weight:700;min-width:80px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .mp-bar-track{flex:1;height:18px;background:#e0f2fe;border:2px solid #242438;border-radius:8px;overflow:hidden;position:relative;}
 .mp-bar-fill{height:100%;background:linear-gradient(90deg,#ffc857,#ff6b4a);transition:width .3s;}
 .mp-bar-info{font-size:10px;font-weight:700;color:#4a4a63;min-width:60px;text-align:right;}
+.mp-bar-place{font-size:11px;font-weight:700;min-width:32px;text-align:center;padding:2px 0;}
 #mpReviveBox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;z-index:200;padding:24px;text-align:center;}
 #mpReviveBox.on{display:flex;}
 #mpReviveBox .rb-title{color:#ff5c39;font-size:32px;font-weight:700;letter-spacing:4px;text-shadow:0 3px 0 #000,0 0 20px #ff0000;}
@@ -377,11 +425,77 @@ svg{display:block;}
 #mpTopStats .mts-bar{flex:1;height:10px;background:#e0f2fe;border:1.5px solid #242438;border-radius:5px;overflow:hidden;}
 #mpTopStats .mts-fill{height:100%;background:linear-gradient(90deg,#ffc857,#ff6b4a);transition:width .3s;}
 #mpTopStats .mts-kill{font-size:9px;font-weight:700;color:#3ddc97;min-width:40px;text-align:right;}
+#mpLevelBadge{position:fixed;top:64px;left:12px;background:#ffffff;border:2px solid #242438;border-radius:12px;padding:6px 10px;z-index:7;pointer-events:none;display:none;box-shadow:0 3px 0 rgba(36,36,56,.2);min-width:132px;}
+#mpLevelBadge.on{display:block;}
+.mlb-label{font-size:8.5px;letter-spacing:1.5px;color:#8a8aa3;font-weight:700;text-transform:uppercase;margin-bottom:2px;}
+.mlb-level{font-size:13px;font-weight:700;color:#ff6b4a;letter-spacing:.5px;margin-bottom:4px;}
+.mlb-xp-track{height:9px;background:#f0f0f4;border:1.5px solid #242438;border-radius:5px;overflow:hidden;}
+.mlb-xp-fill{height:100%;background:linear-gradient(90deg,#ffc857,#ff6b4a);width:0%;transition:width .3s ease;}
+.mlb-xp-text{font-size:9px;font-weight:700;color:#4a4a63;text-align:right;margin-top:2px;letter-spacing:.4px;}
 #mpSelfPreview{display:block;width:80px;height:80px;position:relative;}
-#mpSendPointsBtn{position:fixed;bottom:220px;right:22px;width:64px;height:64px;border-radius:50%;border:3px solid #242438;background:linear-gradient(180deg,#bde9fb,#67c7f0);display:none;z-index:6;padding:0;box-shadow:0 5px 0 #242438,0 10px 20px rgba(103,199,240,.4);color:#0c4a6e;font-weight:700;font-size:10px;letter-spacing:.5px;line-height:1.1;margin-bottom:env(safe-area-inset-bottom);}
-#mpSendPointsBtn.on{display:flex;flex-direction:column;align-items:center;justify-content:center;}
-#mpSendPointsBtn:active{transform:translateY(3px);box-shadow:0 2px 0 #242438,0 5px 10px rgba(103,199,240,.4);}
-#mpSendPointsBtn .spb-icon{font-size:22px;font-weight:700;line-height:1;margin-bottom:2px;}
+#killFeed{position:fixed;top:130px;right:8px;width:200px;max-width:58vw;z-index:8;pointer-events:none;display:none;flex-direction:column;gap:4px;}
+#killFeed.on{display:flex;}
+.kf-item{background:rgba(255,255,255,.95);border:1.5px solid #242438;border-radius:9px;padding:5px 9px;font-size:10.5px;font-weight:700;color:#242438;box-shadow:0 2px 6px rgba(36,36,56,.2);animation:kfSlideIn .3s ease-out;display:flex;align-items:center;gap:4px;line-height:1.2;}
+.kf-item .kf-killer{color:#ff6b4a;}
+.kf-item .kf-target{color:#9b6bff;}
+.kf-item .kf-icon{color:#8a8aa3;font-weight:600;font-size:9px;}
+@keyframes kfSlideIn{from{opacity:0;transform:translateX(40px);}to{opacity:1;transform:translateX(0);}}
+#loadingOverlay{position:fixed;inset:0;background:linear-gradient(180deg,#bae6fd,#e0f2fe 45%,#fffaf0);z-index:500;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;transition:opacity .4s ease;}
+#loadingOverlay.hide{opacity:0;pointer-events:none;}
+.lo-spinner{width:60px;height:60px;border-radius:50%;border:5px solid #ffc857;border-top-color:#ff6b4a;border-right-color:#ff6b4a;animation:loSpin 1s linear infinite;}
+@keyframes loSpin{to{transform:rotate(360deg);}}
+.lo-text{font-size:12px;font-weight:700;color:#4a4a63;letter-spacing:4px;text-transform:uppercase;}
+#spinScreen .spin-wrap{flex:1;overflow-y:auto;padding:12px 14px calc(24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;}
+.spin-title-block{text-align:center;padding:6px 0 14px;}
+.spin-big-title{font-size:30px;font-weight:700;color:#ff6b4a;letter-spacing:5px;text-shadow:0 3px 0 #242438,0 6px 14px rgba(36,36,56,.2);}
+.spin-sub-title{font-size:10.5px;font-weight:600;color:#8a8aa3;letter-spacing:3px;margin-top:6px;text-transform:uppercase;}
+.spin-tier-list{display:flex;flex-direction:column;gap:12px;margin-top:10px;}
+.spin-tier{position:relative;padding:16px;background:#fff;border:2px solid #242438;border-radius:18px;box-shadow:0 5px 0 #242438,0 10px 20px rgba(36,36,56,.12);overflow:hidden;animation:slideUpFade .5s cubic-bezier(.22,1.12,.36,1.06) backwards;}
+.spin-tier.tier-normal{animation-delay:.05s;}
+.spin-tier.tier-premium{animation-delay:.12s;}
+.spin-tier.tier-highend{animation-delay:.19s;}
+.spin-tier::before{content:'';position:absolute;inset:0;opacity:.14;pointer-events:none;}
+.spin-tier.tier-normal::before{background:linear-gradient(135deg,#3ddc97,#67c7f0);}
+.spin-tier.tier-premium::before{background:linear-gradient(135deg,#ffc857,#ff6b4a);}
+.spin-tier.tier-highend::before{background:linear-gradient(135deg,#9b6bff,#ff77a9);}
+.spin-tier-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;position:relative;}
+.spin-tier-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;background:#fffaf0;border:2px solid #242438;box-shadow:0 2px 0 #242438;line-height:1;}
+.spin-tier.tier-normal .spin-tier-icon{background:linear-gradient(180deg,#e8fbf1,#a8f0cd);}
+.spin-tier.tier-premium .spin-tier-icon{background:linear-gradient(180deg,#fff5d6,#ffe4a3);}
+.spin-tier.tier-highend .spin-tier-icon{background:linear-gradient(180deg,#f4e8ff,#d4beff);}
+.spin-tier-info{flex:1;min-width:0;}
+.spin-tier-name{font-size:14.5px;font-weight:700;color:#242438;letter-spacing:1px;}
+.spin-tier-desc{font-size:10.5px;color:#4a4a63;font-weight:600;margin-top:2px;line-height:1.3;}
+.spin-tier-price{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;color:#ff6b4a;margin-top:5px;background:#fff5d6;border:1.5px solid #242438;border-radius:8px;padding:2px 8px;}
+.spin-tier-btn{width:100%;padding:13px;border-radius:13px;border:2px solid #242438;font-size:13.5px;font-weight:700;letter-spacing:2px;background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#242438;box-shadow:0 4px 0 #242438;transition:transform .1s,box-shadow .1s;position:relative;}
+.spin-tier.tier-normal .spin-tier-btn{background:linear-gradient(180deg,#a8f0cd,#3ddc97);color:#053b26;}
+.spin-tier.tier-premium .spin-tier-btn{background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#4a3605;}
+.spin-tier.tier-highend .spin-tier-btn{background:linear-gradient(180deg,#d4beff,#9b6bff);color:#fff;}
+.spin-tier-btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #242438;}
+.spin-tier-btn:disabled{background:#e0e0e6;color:#8a8aa3;cursor:not-allowed;box-shadow:0 4px 0 #8a8aa3;border-color:#8a8aa3;}
+#spinResultModal{position:fixed;inset:0;background:rgba(36,36,56,.75);display:none;align-items:center;justify-content:center;z-index:300;padding:20px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+#spinResultModal.on{display:flex;animation:confirmFade .25s ease-out;}
+.spin-result-box{width:100%;max-width:380px;background:#fff;border:3px solid #242438;border-radius:22px;padding:24px 20px;box-shadow:0 20px 50px rgba(0,0,0,.5);text-align:center;position:relative;overflow:hidden;animation:spinResultPop .5s cubic-bezier(.22,1.12,.36,1.06);}
+@keyframes spinResultPop{0%{transform:scale(.6) rotate(-10deg);opacity:0;}60%{transform:scale(1.05) rotate(2deg);opacity:1;}100%{transform:scale(1) rotate(0);opacity:1;}}
+.spin-result-glow{position:absolute;inset:-50%;background:conic-gradient(from 0deg,transparent,rgba(255,200,87,.45),transparent,rgba(155,107,255,.45),transparent);animation:spinGlow 3s linear infinite;z-index:0;pointer-events:none;}
+@keyframes spinGlow{to{transform:rotate(360deg);}}
+.spin-result-inner{position:relative;z-index:1;}
+.spin-result-label{font-size:10.5px;letter-spacing:4px;font-weight:700;color:#8a8aa3;text-transform:uppercase;margin-bottom:6px;}
+.spin-result-icon-wrap{width:120px;height:120px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(180deg,#fffaf0,#ffe4a3);border:3px solid #242438;box-shadow:0 6px 0 #242438,0 12px 30px rgba(255,200,87,.5);font-size:56px;line-height:1;animation:spinIconPulse 1.2s ease-in-out infinite alternate;}
+.spin-result-icon-wrap svg{width:70px;height:70px;}
+@keyframes spinIconPulse{0%{transform:scale(1);}100%{transform:scale(1.06);}}
+.spin-result-name{font-size:17px;font-weight:700;color:#242438;letter-spacing:.5px;margin-bottom:6px;}
+.spin-result-desc{font-size:12px;color:#4a4a63;font-weight:600;margin-bottom:10px;line-height:1.4;}
+.spin-result-tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:2px;padding:3px 10px;border-radius:8px;background:#ffc857;color:#4a3605;border:1.5px solid #242438;margin-bottom:18px;}
+.spin-result-tag.new{background:#a8f0cd;color:#053b26;}
+.spin-result-tag.upgrade{background:#d4beff;color:#2a0f5a;}
+.spin-result-tag.kp{background:#ffe4a3;color:#4a3605;}
+.spin-result-btn{width:100%;padding:14px;border-radius:13px;border:2px solid #242438;font-weight:700;font-size:13.5px;letter-spacing:2px;background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#242438;box-shadow:0 4px 0 #242438;}
+.spin-result-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #242438;}
+.spin-inventory{margin-top:14px;padding:12px;background:#fff;border:2px solid #242438;border-radius:14px;box-shadow:0 3px 0 #242438;}
+.spin-inventory-title{font-size:10px;letter-spacing:2px;font-weight:700;color:#4a4a63;text-transform:uppercase;text-align:center;margin-bottom:8px;}
+.spin-inventory-note{font-size:10.5px;color:#8a8aa3;text-align:center;font-weight:600;line-height:1.5;}
+.spin-inventory-note b{color:#ff6b4a;}
 #mpSendPointsModal{position:fixed;inset:0;background:rgba(36,36,56,.65);display:none;align-items:center;justify-content:center;z-index:250;padding:20px;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
 #mpSendPointsModal.on{display:flex;animation:confirmFade .2s ease-out;}
 .mp-send-box{background:#ffffff;border:2px solid #242438;border-radius:18px;padding:20px;max-width:440px;width:100%;box-shadow:0 20px 50px rgba(36,36,56,.5);animation:confirmPop .3s cubic-bezier(.22,1.12,.36,1.06);}
@@ -398,15 +512,25 @@ svg{display:block;}
 .mp-send-actions{display:flex;justify-content:center;margin-top:6px;}
 #mpSendClose{padding:12px 26px;font-size:12px;font-weight:700;letter-spacing:1px;background:#ffffff;color:#242438;border:2px solid #242438;border-radius:12px;box-shadow:0 4px 0 #242438;transition:transform .1s,box-shadow .1s;}
 #mpSendClose:active{transform:translateY(3px);box-shadow:0 1px 0 #242438;}
+.gift-btn{padding:10px 14px;width:100%;margin-top:10px;background:linear-gradient(180deg,#bde9fb,#67c7f0);border:2px solid #242438;border-radius:12px;font-size:12px;font-weight:700;letter-spacing:1.5px;color:#0c4a6e;box-shadow:0 3px 0 #242438;transition:transform .1s,box-shadow .1s;}
+.gift-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #242438;}
 #mpCelebration{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,rgba(255,200,87,.65),rgba(255,107,74,.75) 45%,rgba(155,107,255,.85));z-index:300;pointer-events:none;padding:24px;text-align:center;}
 #mpCelebration.on{display:flex;animation:confirmFade .3s ease-out;}
 .mp-celeb-title{font-size:clamp(34px,10vw,58px);font-weight:700;letter-spacing:4px;color:#fff;text-shadow:0 4px 0 #242438,0 8px 20px rgba(0,0,0,.4),0 0 40px rgba(255,200,87,.9);margin-bottom:12px;animation:popIn .55s ease-out;}
 .mp-celeb-sub{font-size:14px;font-weight:700;letter-spacing:2px;color:#fff;background:rgba(36,36,56,.5);border:2px solid #fff;border-radius:14px;padding:10px 20px;max-width:340px;text-shadow:0 2px 4px rgba(0,0,0,.5);}
 .mp-celeb-confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.trophy-row{display:flex;align-items:center;gap:6px;justify-content:center;padding:8px;background:linear-gradient(180deg,#fff5d6,#ffe4a3);border:2px solid #242438;border-radius:12px;font-size:11px;font-weight:700;color:#4a3605;letter-spacing:1px;}
+.trophy-row .tr-icon{font-size:16px;line-height:1;}
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
+
+<div id="loadingOverlay">
+  <div class="lo-spinner"></div>
+  <div class="lo-text">Memuat</div>
+</div>
+
 <div id="hud">
   <div class="hud-row">
     <div class="hud-left">
@@ -421,11 +545,18 @@ svg{display:block;}
     </div>
   </div>
 </div>
+<div id="mpLevelBadge">
+  <div class="mlb-label">LEVEL</div>
+  <div class="mlb-level" id="mpLevelNum">1</div>
+  <div class="mlb-xp-track"><div class="mlb-xp-fill" id="mpXpFill"></div></div>
+  <div class="mlb-xp-text" id="mpXpText">0/10</div>
+</div>
 <div id="comboHud"><span class="mult">x1</span><span class="small">COMBO</span></div>
 <div id="streakHud"></div>
 <div id="bossWrap"><div class="boss-inner"><div class="boss-name" id="bossName">BOSS</div><div class="boss-track"><div class="boss-fill" id="bossFill"></div></div></div></div>
 <div id="hint">Geser untuk gerakkan kapal</div>
 <div id="waveBanner"></div>
+<div id="killFeed"></div>
 <div id="achToast"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.5l-6.3 4.3 2.3-7.2-6-4.4h7.6z"/></svg><div><div class="ach-toast-title">Pencapaian</div><div class="ach-toast-name" id="achToastName">-</div></div></div>
 <div id="toastContainer"></div>
 <div id="confirmModal"><div class="confirm-box"><div class="confirm-msg" id="confirmMsg"></div><div class="confirm-btns"><button class="confirm-btn no" id="confirmNo">TIDAK</button><button class="confirm-btn yes" id="confirmYes">YA</button></div></div></div>
@@ -435,7 +566,14 @@ svg{display:block;}
   <div id="skillCdText"></div>
   <div class="lvBadge" id="skillLvBadge"></div>
 </button>
-<button id="mpSendPointsBtn"><span class="spb-icon">+</span>KIRIM KP</button>
+<div id="mpTopStats"><div class="mts-title">KILL LEADERBOARD</div><div id="mpStatsBody"></div></div>
+<div id="mpReviveBox"><div class="rb-title">KAMU MATI</div><div class="rb-count" id="mpReviveCount">5</div><div class="rb-text">Revive otomatis dalam beberapa detik</div><button class="rb-btn" id="mpLeaveBtn">KELUAR</button></div>
+<div id="mpEmojiLayer"></div>
+<div id="mpCelebration">
+  <div class="mp-celeb-confetti" id="mpCelebConfetti"></div>
+  <div class="mp-celeb-title" id="mpCelebTitle">SELESAI!</div>
+  <div class="mp-celeb-sub" id="mpCelebSub">Semua pemain di-revive!</div>
+</div>
 <div id="mpSendPointsModal">
   <div class="mp-send-box">
     <div class="mp-send-title">KIRIM KILL POINTS</div>
@@ -445,27 +583,70 @@ svg{display:block;}
     <div class="mp-send-actions"><button id="mpSendClose">TUTUP</button></div>
   </div>
 </div>
-<div id="mpTopStats"><div class="mts-title">STATISTIK PEMAIN</div><div id="mpStatsBody"></div></div>
-<div id="mpReviveBox"><div class="rb-title">KAMU MATI</div><div class="rb-count" id="mpReviveCount">5</div><div class="rb-text">Revive otomatis dalam beberapa detik</div><button class="rb-btn" id="mpLeaveBtn">KELUAR</button></div>
-<div id="mpEmojiLayer"></div>
-<div id="mpCelebration">
-  <div class="mp-celeb-confetti" id="mpCelebConfetti"></div>
-  <div class="mp-celeb-title" id="mpCelebTitle">SELESAI!</div>
-  <div class="mp-celeb-sub" id="mpCelebSub">Semua pemain di-revive!</div>
-</div>
 
 <div class="screen on" id="menuScreen">
   <div class="deco-layer" id="menuDeco"></div>
-  <div class="scroll-area"><div class="inner menu-inner">
-    <div class="brand"><div class="brand-title">DANIS<span class="dot">.</span>SHOOTER</div></div>
-    <button class="hero-btn" id="playBtn">MAIN</button>
-    <div class="grid-menu">
-      <button class="nav-btn" id="navShop"><svg class="nb-icon" viewBox="0 0 24 24"><path d="M4 4h16v3H4zm1 5h14l-1.5 11h-11z"/></svg><div class="nb-title">TOKO</div><div class="nb-sub" id="shopSub">Senjata & kapal</div></button>
-      <button class="nav-btn green" id="navAch"><svg class="nb-icon" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.5l-6.3 4.3 2.3-7.2-6-4.4h7.6z"/></svg><div class="nb-title">PENCAPAIAN</div><div class="nb-sub" id="achSub">0/0</div></button>
-      <button class="nav-btn purple" id="navStats"><svg class="nb-icon" viewBox="0 0 24 24"><path d="M4 20V10h4v10zm6 0V4h4v16zm6 0v-7h4v7z"/></svg><div class="nb-title">STATISTIK</div><div class="nb-sub">Rekap main</div></button>
-      <button class="nav-btn blue" id="navHelp"><svg class="nb-icon" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2zm1.8-7.2l-.9.9c-.6.6-.9 1.1-.9 2.3h-2c0-1.6.6-2.4 1.4-3.3l1-1c.3-.3.5-.7.5-1.2 0-1-.8-1.8-1.9-1.8s-1.8.8-1.8 1.8H8c0-2.1 1.7-3.8 3.8-3.8s3.8 1.7 3.8 3.8c0 .9-.4 1.7-1 2.3z"/></svg><div class="nb-title">CARA MAIN</div><div class="nb-sub">Panduan singkat</div></button>
-      <button class="nav-btn pink" id="navMP" style="grid-column:1 / -1;"><svg class="nb-icon" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><div class="nb-title">MULTIPLAYER</div><div class="nb-sub">Bermain dengan grup</div></button>
+  <div class="menu-wrap"><div class="menu-inner">
+    <div class="user-card">
+      <button class="user-gear" id="menuGear" aria-label="Pengaturan">&#9881;</button>
+      <div class="user-ship"><canvas id="menuShipPreview" width="140" height="140"></canvas></div>
+      <div class="user-info">
+        <div class="user-name" id="menuPlayerName">PLAYER</div>
+        <div class="user-level-row">
+          <span class="user-level" id="menuPlayerLevel">LV 1</span>
+          <span class="user-trophy" id="menuTrophy"><span class="tr-icon">&#127942;</span><span id="menuTrophyCount">0</span></span>
+        </div>
+        <div class="user-xp-track">
+          <div class="user-xp-fill" id="menuXpFill"></div>
+          <span class="user-xp-text" id="menuXpText">0/10</span>
+        </div>
+      </div>
     </div>
+
+    <div class="menu-title-wrap">
+      <div class="brand-title">DANIS<span class="dot">.</span>SHOOTER</div>
+      <div class="menu-title-sub">Space Combat Arena</div>
+    </div>
+
+    <button class="menu-main" id="playBtn">
+      <span class="mm-play">&#9654;</span>
+      <span>MULAI MISI</span>
+    </button>
+
+    <div class="menu-grid">
+      <button class="menu-tile t-spin" id="navSpin">
+        <span class="tile-icon">&#127920;</span>
+        <span class="tile-title">SPIN</span>
+        <span class="tile-sub">Hadiah</span>
+      </button>
+      <button class="menu-tile t-shop" id="navShop">
+        <span class="tile-icon">&#128722;</span>
+        <span class="tile-title">TOKO</span>
+        <span class="tile-sub" id="shopSub">Senjata</span>
+      </button>
+      <button class="menu-tile t-mp" id="navMP">
+        <span class="tile-icon">&#128101;</span>
+        <span class="tile-title">GRUP</span>
+        <span class="tile-sub">Bareng</span>
+      </button>
+      <button class="menu-tile t-ach" id="navAch">
+        <span class="tile-icon">&#127942;</span>
+        <span class="tile-title">LENCANA</span>
+        <span class="tile-sub" id="achSub">0/0</span>
+      </button>
+      <button class="menu-tile t-stats" id="navStats">
+        <span class="tile-icon">&#128202;</span>
+        <span class="tile-title">STATISTIK</span>
+        <span class="tile-sub">Rekap</span>
+      </button>
+      <button class="menu-tile t-help" id="navHelp">
+        <span class="tile-icon">&#10068;</span>
+        <span class="tile-title">CARA MAIN</span>
+        <span class="tile-sub">Panduan</span>
+      </button>
+    </div>
+
+    <div class="menu-footer">v3.0 &middot; Tap for glory</div>
   </div></div>
 </div>
 
@@ -531,6 +712,7 @@ svg{display:block;}
       <div class="stat-block"><div class="sb-lbl">MENANG IMPOSSIBLE</div><div class="sb-val" id="stImpossible">0</div></div>
       <div class="stat-block"><div class="sb-lbl">COMBO TERTINGGI</div><div class="sb-val" id="stCombo">x1</div></div>
       <div class="stat-block"><div class="sb-lbl">LENCANA</div><div class="sb-val" id="stAch">0/0</div></div>
+      <div class="stat-block"><div class="sb-lbl">TROPHY TOURNAMENT</div><div class="sb-val" id="stTrophy">0</div></div>
       <div class="stat-block wide"><div class="sb-lbl">KOLEKSI DIMILIKI</div><div class="sb-val" id="stCollection">0 / 0</div></div>
       <div class="stat-block wide"><div class="sb-lbl">TINGKAT SELESAI</div><div class="sb-val" id="stCleared">0 / 10</div></div>
     </div>
@@ -549,7 +731,9 @@ svg{display:block;}
   <div class="scroll-area"><div class="inner">
     <div class="help-block"><h3>Kontrol</h3><ul><li>Geser untuk gerakkan kapal</li><li>Tembakan otomatis</li><li>Tombol kanan bawah untuk aktifkan skill</li></ul></div>
     <div class="help-block"><h3>Bab & Tingkat</h3><ul><li>Bab 1: Tutorial, Mudah, Sedang</li><li>Bab 2: Sulit, Ahli, Nightmare</li><li>Bab 3: Impossible, Doom, 4RROR</li><li>Final Boss: semua boss bertumpuk</li></ul></div>
-    <div class="help-block"><h3>Multiplayer</h3><p>Grup maksimal 5 pemain. Host pilih mode & bisa kick. Ada emoji & kirim poin kill. Revive hanya 5 detik.</p></div>
+    <div class="help-block"><h3>Spin</h3><p>Ada 3 tipe spin: Normal (25 KP), Premium (500 KP), High-End (15.000 KP). Dapatkan KP, kapal, bentuk, atau senjata.</p></div>
+    <div class="help-block"><h3>Level & XP</h3><p>Setiap 1 KP yang didapat setara 1 XP. Naik level untuk membuka gelar baru. Maksimum level 999.</p></div>
+    <div class="help-block"><h3>Multiplayer</h3><p>Grup maksimal 6 pemain. Host pilih mode, kick pemain, kirim poin di lobby, dan chat bareng. Juara 1 dapat Trophy Tournament Legend.</p></div>
     <div class="help-block"><h3>Item di Layar</h3><ul><li>Gelembung hijau: tambah HP</li><li>Gelembung putih: tembakan ganda</li><li>Bintang kuning: damage 4x</li><li>Perisai biru: kurangi damage 90%</li><li>Bunga pink: tembak lebih cepat</li><li>Kristal ungu: tembus semua musuh</li><li>Bola emas x2: gandakan KP 3 detik</li><li>Bom gelap: kurangi 20 HP</li></ul></div>
   </div></div>
 </div>
@@ -569,6 +753,69 @@ svg{display:block;}
     <div class="voucher-msg" id="voucherMsg"></div>
     <div class="voucher-total"><svg viewBox="0 0 24 24"><path d="M12 2C7.03 2 3 6.03 3 11c0 2.4 1 4.6 2.5 6.2V21c0 .55.45 1 1 1h11c.55 0 1-.45 1-1v-3.8C20 15.6 21 13.4 21 11c0-4.97-4.03-9-9-9z"/></svg>Poin saat ini: <b id="voucherTotal">0</b></div>
     <div class="voucher-hint">Setiap kode hanya berlaku untuk satu penukaran</div>
+  </div>
+</div>
+
+<div class="screen" id="spinScreen">
+  <div class="topbar"><button class="icon-btn" id="spinBack"><svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>Kembali</button><div class="kill-chip"><svg viewBox="0 0 24 24"><path d="M12 2C7.03 2 3 6.03 3 11c0 2.4 1 4.6 2.5 6.2V21c0 .55.45 1 1 1h11c.55 0 1-.45 1-1v-3.8C20 15.6 21 13.4 21 11c0-4.97-4.03-9-9-9z"/></svg><span id="killsSpin">0</span></div></div>
+  <div class="spin-wrap">
+    <div class="spin-title-block">
+      <div class="spin-big-title">SPIN</div>
+      <div class="spin-sub-title">Coba keberuntunganmu</div>
+    </div>
+    <div class="spin-tier-list">
+      <div class="spin-tier tier-normal">
+        <div class="spin-tier-head">
+          <div class="spin-tier-icon">&#127922;</div>
+          <div class="spin-tier-info">
+            <div class="spin-tier-name">NORMAL SPIN</div>
+            <div class="spin-tier-desc">Hadiah ringan untuk harian</div>
+            <div class="spin-tier-price">25 KP</div>
+          </div>
+        </div>
+        <button class="spin-tier-btn" id="spinNormalBtn">SPIN NORMAL</button>
+      </div>
+      <div class="spin-tier tier-premium">
+        <div class="spin-tier-head">
+          <div class="spin-tier-icon">&#11088;</div>
+          <div class="spin-tier-info">
+            <div class="spin-tier-name">PREMIUM SPIN</div>
+            <div class="spin-tier-desc">Peluang item langka lebih besar</div>
+            <div class="spin-tier-price">500 KP</div>
+          </div>
+        </div>
+        <button class="spin-tier-btn" id="spinPremiumBtn">SPIN PREMIUM</button>
+      </div>
+      <div class="spin-tier tier-highend">
+        <div class="spin-tier-head">
+          <div class="spin-tier-icon">&#128142;</div>
+          <div class="spin-tier-info">
+            <div class="spin-tier-name">HIGH-END SPIN</div>
+            <div class="spin-tier-desc">Hadiah terbaik, item eksklusif</div>
+            <div class="spin-tier-price">15.000 KP</div>
+          </div>
+        </div>
+        <button class="spin-tier-btn" id="spinHighEndBtn">SPIN HIGH-END</button>
+      </div>
+    </div>
+    <div class="spin-inventory">
+      <div class="spin-inventory-title">Cara Kerja</div>
+      <div class="spin-inventory-note">Setiap spin punya <b>10 hadiah</b>: 5 KP, 2 kapal, 2 bentuk, 1 senjata. Jika sudah punya, otomatis <b>upgrade</b>.</div>
+    </div>
+  </div>
+</div>
+
+<div id="spinResultModal">
+  <div class="spin-result-box">
+    <div class="spin-result-glow"></div>
+    <div class="spin-result-inner">
+      <div class="spin-result-label" id="spinResultLabel">HADIAH</div>
+      <div class="spin-result-icon-wrap" id="spinResultIcon">&#11088;</div>
+      <div class="spin-result-name" id="spinResultName">-</div>
+      <div class="spin-result-desc" id="spinResultDesc">-</div>
+      <div class="spin-result-tag kp" id="spinResultTag">BARU</div>
+      <button class="spin-result-btn" id="spinResultClose">OKE</button>
+    </div>
   </div>
 </div>
 
@@ -593,7 +840,7 @@ svg{display:block;}
       <button class="mp-btn join" id="mpJoinBtn">MASUK GRUP</button>
     </div>
     <div class="section-title">Info</div>
-    <div class="help-block"><p style="font-size:12px;">Grup maksimal 5 pemain. Minimal 2 pemain untuk mulai. Host pilih mode, kick pemain, dan bisa kirim poin ke teman. Setiap pemain punya emoji.</p></div>
+    <div class="help-block"><p style="font-size:12px;">Grup maksimal 6 pemain. Minimal 2 pemain untuk mulai. Host pilih mode, kick pemain, dan kirim poin. Ada chat & emoji di lobby.</p></div>
   </div></div>
 </div>
 
@@ -613,13 +860,22 @@ svg{display:block;}
         <div class="mp-mode-title" id="mpModeTitle">PILIH MODE (HOST)</div>
         <div class="mp-mode-grid" id="mpModeGrid"></div>
       </div>
+      <button class="gift-btn" id="mpLobbyGiftBtn">KIRIM KILL POINTS KE TEMAN</button>
       <div class="emoji-bar" id="emojiBar">
-        <button class="emoji-btn" data-emoji="👍">👍</button>
-        <button class="emoji-btn" data-emoji="🖕">🖕</button>
-        <button class="emoji-btn" data-emoji="🙏">🙏</button>
-        <button class="emoji-btn" data-emoji="😡">😡</button>
-        <button class="emoji-btn" data-emoji="😁">😁</button>
-        <button class="emoji-btn" data-emoji="🤨">🤨</button>
+        <button class="emoji-btn" data-emoji="&#128077;">&#128077;</button>
+        <button class="emoji-btn" data-emoji="&#128405;">&#128405;</button>
+        <button class="emoji-btn" data-emoji="&#128591;">&#128591;</button>
+        <button class="emoji-btn" data-emoji="&#128545;">&#128545;</button>
+        <button class="emoji-btn" data-emoji="&#128513;">&#128513;</button>
+        <button class="emoji-btn" data-emoji="&#129300;">&#129300;</button>
+      </div>
+      <div class="mp-chat">
+        <div class="mp-chat-header"><span>Chat</span><span class="mp-chat-count" id="mpChatCount">0</span></div>
+        <div class="mp-chat-list" id="mpChatList"><div class="mp-chat-empty">Belum ada pesan</div></div>
+        <div class="mp-chat-input-row">
+          <input type="text" class="mp-chat-input" id="mpChatInput" maxlength="100" placeholder="Ketik pesan..." autocomplete="off" spellcheck="false">
+          <button class="mp-chat-send" id="mpChatSend">KIRIM</button>
+        </div>
       </div>
       <div class="mp-actions">
         <button class="mp-btn start" id="mpStartBtn" disabled>START</button>
@@ -647,5 +903,6 @@ svg{display:block;}
 
 <script src="game.js"></script>
 <script src="multiplayer.js"></script>
+<script src="addings.js"></script>
 </body>
 </html>
