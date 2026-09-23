@@ -2,6 +2,11 @@
 'use strict';
 
 var db=null;
+var MAX_PLAYERS=6;
+var CHAT_MAX_STORE=80;
+var CHAT_MAX_SHOW=60;
+var KF_MAX_ITEMS=5;
+var KF_LIFE=4000;
 
 var mp={
   roomCode:null,
@@ -11,8 +16,10 @@ var mp={
   playersCache:{},
   roomRef:null,
   playerRef:null,
-  pollInterval:null,
+  chatRef:null,
   emojiRef:null,
+  kfRef:null,
+  pollInterval:null,
   gameUpdateTimer:0,
   selectedMode:1,
   startRequested:false,
@@ -23,14 +30,20 @@ var mp={
   miniTimers:{},
   inGameDead:false,
   reviveCountdown:0,
-  lastWrittenKills:null,
+  lastWrittenKp:null,
   sendModalOpen:false,
   pfCtx:null,
   pfCanvas:null,
   pfAnim:null,
   pfLastW:0,
   pfLastH:0,
-  seenEmojis:{}
+  pfLastDPR:0,
+  seenEmojis:{},
+  seenKf:{},
+  chatItems:[],
+  chatLoaded:false,
+  chatCounter:0,
+  kfItems:[]
 };
 
 var MP_MODES=[
@@ -84,6 +97,8 @@ function fmtK(n){
   return String(n);
 }
 
+function clamp(v,a,b){return v<a?a:(v>b?b:v);}
+
 function createGroup(){
   var name=(document.getElementById('mpNameInput').value||'').trim().toUpperCase();
   if(name.length<3){DS().showToast('Nama minimal 3 karakter','error');return;}
@@ -96,7 +111,7 @@ function createGroup(){
   mp.isHost=true;
   mp.roomCode=code;
   mp.selectedMode=1;
-  mp.lastWrittenKills=null;
+  mp.lastWrittenKp=null;
   mp.lobbyX=0.5;
   mp.gameEnded=false;
   var ref=db.ref('rooms/'+code);
@@ -110,7 +125,10 @@ function createGroup(){
       gun:DS().save.selectedGun,
       skill:DS().save.selectedSkill||'',
       alive:true,
-      kills:DS().save.kills,
+      kills:0,
+      kp:DS().save.kills,
+      level:DS().save.level,
+      xp:DS().save.xp,
       joinedAt:Date.now(),
       lastSeen:Date.now(),
       lobbyX:0.5,
@@ -154,16 +172,17 @@ function joinGroup(){
     if(data.state&&data.state!=='lobby'){DS().showToast('Grup sudah mulai bermain','error');return;}
     var players=data.players||{};
     var names=[];
-    for(var k in players)names.push((players[k].name||'').toUpperCase());
+    var cnt=0;
+    for(var k in players){names.push((players[k].name||'').toUpperCase());cnt++;}
     if(names.indexOf(name)>=0){DS().showToast('Nama sudah dipakai','error');return;}
-    if(Object.keys(players).length>=5){DS().showToast('Grup sudah penuh','error');return;}
+    if(cnt>=MAX_PLAYERS){DS().showToast('Grup sudah penuh','error');return;}
     var myId=genPlayerId();
     mp.myId=myId;
     mp.isHost=false;
     mp.hostId=data.hostId||null;
     mp.roomCode=code;
     mp.selectedMode=data.mode||1;
-    mp.lastWrittenKills=null;
+    mp.lastWrittenKp=null;
     mp.lobbyX=0.5;
     mp.gameEnded=false;
     var me={
@@ -174,7 +193,10 @@ function joinGroup(){
       gun:DS().save.selectedGun,
       skill:DS().save.selectedSkill||'',
       alive:true,
-      kills:DS().save.kills,
+      kills:0,
+      kp:DS().save.kills,
+      level:DS().save.level,
+      xp:DS().save.xp,
       joinedAt:Date.now(),
       lastSeen:Date.now(),
       lobbyX:0.5,
@@ -198,16 +220,13 @@ function attachListeners(code,myId,isHost){
   mp.isHost=isHost;
   MPApi().myId=myId;
   MPApi().isHost=isHost;
-  if(mp.pollInterval){clearInterval(mp.pollInterval);mp.pollInterval=null;}
-  if(mp.roomRef){try{mp.roomRef.off();}catch(e){}}
-  if(mp.emojiRef){try{mp.emojiRef.off();}catch(e){}}
+  detachAll();
   mp.roomRef=db.ref('rooms/'+code);
   mp.playerRef=db.ref('rooms/'+code+'/players/'+myId);
   MPApi().roomRef=mp.roomRef;
   MPApi().playerRef=mp.playerRef;
   mp.playerRef.child('lastSeen').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
   mp.playerRef.onDisconnect().remove();
-
   mp.roomRef.on('value',function(snap){
     var data=snap.val();
     if(!data){
@@ -225,11 +244,20 @@ function attachListeners(code,myId,isHost){
       return;
     }
     var myData=players[myId];
-    if(myData.kills!==undefined&&myData.kills!==mp.lastWrittenKills){
-      DS().save.kills=myData.kills;
-      mp.lastWrittenKills=myData.kills;
+    if(myData.kp!==undefined&&myData.kp!==mp.lastWrittenKp){
+      DS().save.kills=myData.kp;
+      mp.lastWrittenKp=myData.kp;
       DS().refreshHeaderKills();
       DS().refreshProfile();
+      DS().updateMenuCard();
+    }
+    if(myData.level!==undefined&&myData.level!==DS().save.level){
+      DS().save.level=myData.level;
+    }
+    if(myData.xp!==undefined&&myData.xp!==DS().save.xp){
+      DS().save.xp=myData.xp;
+      DS().updateMPLevelBadge();
+      DS().updateMenuCard();
     }
     var st=DS().getAppState();
     if(data.state==='playing'&&st!=='playingMP'){
@@ -247,25 +275,43 @@ function attachListeners(code,myId,isHost){
     if(st==='mpLobbyMenu')renderLobby();
     if(st==='playingMP')updateTopStats();
   });
-
   mp.emojiRef=mp.roomRef.child('lastEmoji');
   mp.emojiRef.on('value',function(snap){
     var d=snap.val();
     if(d)handleRemoteEmoji(d);
   });
-
+  mp.kfRef=mp.roomRef.child('killfeed');
+  mp.kfRef.on('value',function(snap){
+    var d=snap.val();
+    if(d)handleRemoteKillFeed(d);
+  });
+  mp.chatRef=mp.roomRef.child('chat');
+  mp.chatRef.limitToLast(CHAT_MAX_STORE).on('child_added',function(snap){
+    var d=snap.val();
+    if(!d)return;
+    var key=snap.key;
+    if(mp.seenEmojis['c_'+key])return;
+    mp.seenEmojis['c_'+key]=true;
+    addChatItem(d);
+  });
   mp.pollInterval=setInterval(function(){
     if(mp.playerRef)mp.playerRef.child('lastSeen').set(Date.now());
   },5000);
+}
+
+function detachAll(){
+  if(mp.pollInterval){clearInterval(mp.pollInterval);mp.pollInterval=null;}
+  if(mp.roomRef){try{mp.roomRef.off();}catch(e){}mp.roomRef=null;}
+  if(mp.emojiRef){try{mp.emojiRef.off();}catch(e){}mp.emojiRef=null;}
+  if(mp.kfRef){try{mp.kfRef.off();}catch(e){}mp.kfRef=null;}
+  if(mp.chatRef){try{mp.chatRef.off();}catch(e){}mp.chatRef=null;}
 }
 
 function leaveGroup(){
   if(mp.roomRef&&mp.myId&&mp.roomCode){
     try{db.ref('rooms/'+mp.roomCode+'/players/'+mp.myId).remove();}catch(e){}
   }
-  if(mp.pollInterval){clearInterval(mp.pollInterval);mp.pollInterval=null;}
-  if(mp.roomRef){try{mp.roomRef.off();}catch(e){}mp.roomRef=null;}
-  if(mp.emojiRef){try{mp.emojiRef.off();}catch(e){}mp.emojiRef=null;}
+  detachAll();
   mp.roomCode=null;
   mp.myId=null;
   mp.hostId=null;
@@ -275,10 +321,16 @@ function leaveGroup(){
   mp.finalSent=false;
   mp.gameEnded=false;
   mp.selectedMode=1;
-  mp.lastWrittenKills=null;
+  mp.lastWrittenKp=null;
   mp.miniTimers={};
   mp.inGameDead=false;
   mp.reviveCountdown=0;
+  mp.chatItems=[];
+  mp.chatLoaded=false;
+  mp.chatCounter=0;
+  mp.kfItems=[];
+  mp.seenEmojis={};
+  mp.seenKf={};
   MPApi().active=false;
   MPApi().dead=false;
   MPApi().myId=null;
@@ -299,6 +351,14 @@ function leaveGroup(){
   if(ts)ts.classList.remove('on');
   var sm=document.getElementById('mpSendPointsModal');
   if(sm)sm.classList.remove('on');
+  var cl=document.getElementById('mpChatList');
+  if(cl)cl.innerHTML='<div class="mp-chat-empty">Belum ada pesan</div>';
+  var cc=document.getElementById('mpChatCount');
+  if(cc)cc.textContent='0';
+  var kf=document.getElementById('killFeed');
+  if(kf){kf.innerHTML='';kf.classList.remove('on');}
+  var lb=document.getElementById('mpLevelBadge');
+  if(lb)lb.classList.remove('on');
 }
 
 function renderLobby(){
@@ -331,7 +391,7 @@ function renderLobby(){
     html+='<canvas width="140" height="140"></canvas>';
     html+='<div class="mp-name">'+esc((pl.name||'-').toUpperCase())+'</div>';
     html+='<div class="mp-role '+(pl.id===hostId?'host':'')+'">'+(pl.id===hostId?'HOST':'PLAYER')+'</div>';
-    html+='<div class="mp-kills">KP <b>'+fmtK(pl.kills||0)+'</b></div>';
+    html+='<div class="mp-kills">KP <b>'+fmtK(pl.kp||0)+'</b></div>';
     html+='</div>';
   }
   var el=document.getElementById('mpPlayers');
@@ -345,18 +405,20 @@ function renderLobby(){
   }
   var wait=document.getElementById('mpWaiting');
   if(wait){
-    if(ordered.length<2)wait.textContent='Menunggu pemain... ('+ordered.length+'/5) - Butuh minimal 2';
-    else wait.textContent=ordered.length+' pemain di grup';
+    var total=ordered.length;
+    if(total<2)wait.textContent='Menunggu pemain... ('+total+'/'+MAX_PLAYERS+') - Butuh minimal 2';
+    else wait.textContent=total+' / '+MAX_PLAYERS+' pemain di grup';
   }
   var startBtn=document.getElementById('mpStartBtn');
   if(startBtn){
-    var canStart=mp.isHost&&ordered.length>=2&&ordered.length<=5;
+    var canStart=mp.isHost&&ordered.length>=2&&ordered.length<=MAX_PLAYERS;
     startBtn.disabled=!canStart;
     startBtn.textContent=mp.isHost?'START':'MENUNGGU HOST';
   }
   var mt=document.getElementById('mpModeTitle');
   if(mt)mt.textContent=mp.isHost?'PILIH MODE (HOST)':'MODE DIPILIH HOST';
   renderModeGrid();
+  renderChat();
 }
 
 function renderModeGrid(){
@@ -393,6 +455,7 @@ function initPlayfield(){
   mp.pfCtx=cv.getContext('2d');
   mp.pfLastW=0;
   mp.pfLastH=0;
+  mp.pfLastDPR=0;
   cv.addEventListener('touchstart',pfTouchStart,{passive:false});
   cv.addEventListener('touchmove',pfTouchMove,{passive:false});
   cv.addEventListener('touchend',function(){mp.lobbyDragging=false;});
@@ -431,10 +494,8 @@ function pfUpdateFromX(clientX){
   var rect=cv.getBoundingClientRect();
   if(rect.width<=0)return;
   var rel=(clientX-rect.left)/rect.width;
-  if(rel<0.05)rel=0.05;
-  if(rel>0.95)rel=0.95;
-  mp.lobbyX=rel;
-  if(mp.playerRef)mp.playerRef.child('lobbyX').set(rel);
+  mp.lobbyX=clamp(rel,0.05,0.95);
+  if(mp.playerRef)mp.playerRef.child('lobbyX').set(mp.lobbyX);
 }
 
 function pfLoop(){
@@ -442,22 +503,20 @@ function pfLoop(){
   var cv=mp.pfCanvas,ctx=mp.pfCtx;
   if(!cv||!ctx)return;
   if(DS().getAppState()!=='mpLobbyMenu')return;
-
   var dpr=window.devicePixelRatio||1;
   var cw=cv.clientWidth;
   var ch=cv.clientHeight;
   if(cw<=0||ch<=0)return;
-
-  var targetW=Math.round(cw*dpr);
-  var targetH=Math.round(ch*dpr);
-  if(cv.width!==targetW||cv.height!==targetH||mp.pfLastW!==cw||mp.pfLastH!==ch){
-    cv.width=targetW;
-    cv.height=targetH;
+  var tw=Math.round(cw*dpr);
+  var th=Math.round(ch*dpr);
+  if(cv.width!==tw||cv.height!==th||mp.pfLastW!==cw||mp.pfLastH!==ch||mp.pfLastDPR!==dpr){
+    cv.width=tw;
+    cv.height=th;
     ctx.setTransform(dpr,0,0,dpr,0,0);
     mp.pfLastW=cw;
     mp.pfLastH=ch;
+    mp.pfLastDPR=dpr;
   }
-
   ctx.clearRect(0,0,cw,ch);
   var now=performance.now();
   var players=[];
@@ -520,6 +579,147 @@ function pfLoop(){
   }
 }
 
+function addChatItem(d){
+  mp.chatItems.push(d);
+  if(mp.chatItems.length>CHAT_MAX_SHOW)mp.chatItems.shift();
+  renderChat();
+}
+
+function renderChat(){
+  var list=document.getElementById('mpChatList');
+  if(!list)return;
+  if(mp.chatItems.length===0){
+    list.innerHTML='<div class="mp-chat-empty">Belum ada pesan</div>';
+  }else{
+    var html='';
+    for(var i=0;i<mp.chatItems.length;i++){
+      var c=mp.chatItems[i];
+      var mine=c.id===mp.myId?' mine':'';
+      html+='<div class="mp-chat-item'+mine+'">';
+      html+='<div class="mp-chat-name">'+esc((c.name||'-').toUpperCase())+'</div>';
+      html+='<div class="mp-chat-text">'+esc(c.text||'')+'</div>';
+      html+='</div>';
+    }
+    list.innerHTML=html;
+    list.scrollTop=list.scrollHeight;
+  }
+  var cnt=document.getElementById('mpChatCount');
+  if(cnt)cnt.textContent=mp.chatItems.length;
+}
+
+function sendChat(){
+  var input=document.getElementById('mpChatInput');
+  if(!input||!mp.chatRef)return;
+  var text=(input.value||'').trim();
+  if(!text)return;
+  if(text.length>100)text=text.slice(0,100);
+  var msg={
+    id:mp.myId,
+    name:(DS().save.playerName||'PLAYER').toUpperCase(),
+    text:text,
+    ts:Date.now()
+  };
+  mp.chatRef.push(msg);
+  input.value='';
+  DS().sfxClick();
+}
+
+function showFlyingEmoji(emojiChar,posX){
+  var layer=document.getElementById('mpEmojiLayer');
+  if(!layer)return;
+  var el=document.createElement('div');
+  el.className='mp-fly-emoji';
+  el.textContent=emojiChar;
+  var W=window.innerWidth;
+  var H=window.innerHeight;
+  var x=clamp(posX*W,40,W-40);
+  el.style.left=x+'px';
+  el.style.top=(H*0.55)+'px';
+  el.style.transform='translate(-50%,-50%)';
+  layer.appendChild(el);
+  setTimeout(function(){
+    if(el.parentNode)el.parentNode.removeChild(el);
+  },2300);
+}
+
+function sendEmoji(emojiChar){
+  if(!mp.roomRef)return;
+  var data={
+    id:mp.myId,
+    name:(DS().save.playerName||'PLAYER'),
+    emoji:emojiChar,
+    posX:mp.lobbyX,
+    ts:Date.now(),
+    nonce:Math.random().toString(36).slice(2,7)
+  };
+  mp.roomRef.child('lastEmoji').set(data);
+  showFlyingEmoji(emojiChar,mp.lobbyX);
+  DS().sfxEmoji();
+}
+
+function handleRemoteEmoji(d){
+  if(!d)return;
+  if(Date.now()-d.ts>8000)return;
+  var key=(d.id||'')+'_'+(d.ts||0)+'_'+(d.nonce||'');
+  if(mp.seenEmojis[key])return;
+  mp.seenEmojis[key]=true;
+  if(d.id===mp.myId)return;
+  showFlyingEmoji(d.emoji,d.posX||0.5);
+  DS().sfxEmoji();
+}
+
+function broadcastKill(targetName){
+  if(!mp.roomRef||!MPApi().active)return;
+  var me=PC()[mp.myId];
+  var data={
+    killerId:mp.myId,
+    killerName:(me&&me.name)||(DS().save.playerName||'PLAYER'),
+    targetName:targetName||'Musuh',
+    ts:Date.now(),
+    nonce:Math.random().toString(36).slice(2,7)
+  };
+  mp.roomRef.child('killfeed').set(data);
+}
+
+function handleRemoteKillFeed(d){
+  if(!d)return;
+  if(Date.now()-d.ts>6000)return;
+  var key=(d.killerId||'')+'_'+(d.ts||0)+'_'+(d.nonce||'');
+  if(mp.seenKf[key])return;
+  mp.seenKf[key]=true;
+  if(d.killerId===mp.myId)return;
+  addKillFeed(d.killerName,d.targetName);
+}
+
+function addKillFeed(killer,target){
+  var el=document.getElementById('killFeed');
+  if(!el)return;
+  var item=document.createElement('div');
+  item.className='kf-item';
+  item.innerHTML='<span class="kf-killer">'+esc((killer||'').toUpperCase())+'</span>'+
+    '<span class="kf-icon">&gt;&gt;</span>'+
+    '<span class="kf-target">'+esc(target||'')+'</span>';
+  el.appendChild(item);
+  mp.kfItems.push(item);
+  while(el.children.length>KF_MAX_ITEMS){
+    var old=el.firstChild;
+    el.removeChild(old);
+    if(mp.kfItems.length)mp.kfItems.shift();
+  }
+  setTimeout(function(){
+    if(item.parentNode){
+      item.style.transition='opacity .3s,transform .3s';
+      item.style.opacity='0';
+      item.style.transform='translateX(20px)';
+      setTimeout(function(){
+        if(item.parentNode)item.parentNode.removeChild(item);
+        var idx=mp.kfItems.indexOf(item);
+        if(idx>=0)mp.kfItems.splice(idx,1);
+      },320);
+    }
+  },KF_LIFE);
+}
+
 function startGame(){
   if(!mp.roomRef)return;
   var lvl=DS().LEVELS[1];
@@ -533,28 +733,57 @@ function startGame(){
   MPApi().playerRef=mp.playerRef;
   MPApi().isHost=mp.isHost;
   MPApi().myKills=0;
+  MPApi().myKillCount=0;
   mp.startRequested=true;
   mp.gameUpdateTimer=0;
   mp.inGameDead=false;
   mp.reviveCountdown=0;
-  mp.lastWrittenKills=DS().save.kills;
+  mp.lastWrittenKp=DS().save.kills;
   mp.gameEnded=false;
   mp.finalSent=false;
-  mp.roomRef.child('state').set('playing');
-  mp.roomRef.child('startAt').set(Date.now());
-  mp.roomRef.child('mode').set(mp.selectedMode);
+  mp.kfItems=[];
   setupGameHooks();
-  DS().startLevel(lvl,true);
-  var ts=document.getElementById('mpTopStats');
-  if(ts)ts.classList.add('on');
-  var spBtn=document.getElementById('mpSendPointsBtn');
-  if(spBtn)spBtn.classList.add('on');
+  var roomRef=mp.roomRef;
+  var players=PC();
+  var startAt=Date.now()+600;
+  var updates={};
+  for(var pid in players){
+    updates['players/'+pid+'/kills']=0;
+    updates['players/'+pid+'/alive']=true;
+    updates['players/'+pid+'/posHp']=1;
+  }
+  updates['mode']=mp.selectedMode;
+  updates['startAt']=startAt;
+  roomRef.update(updates,function(){
+    roomRef.child('state').set('playing');
+  });
+  var kf=document.getElementById('killFeed');
+  if(kf){
+    kf.innerHTML='';
+    kf.classList.add('on');
+  }
+  var lb=document.getElementById('mpLevelBadge');
+  if(lb)lb.classList.add('on');
+  var spb=document.getElementById('mpSendPointsBtn');
+  if(spb)spb.classList.remove('on');
   var cel=document.getElementById('mpCelebration');
   if(cel)cel.classList.remove('on');
   var rb=document.getElementById('mpReviveBox');
   if(rb)rb.classList.remove('on');
-  setTimeout(updateTopStats,600);
-  setTimeout(updateTopStats,1600);
+  var ts=document.getElementById('mpTopStats');
+  if(ts)ts.classList.add('on');
+  setTimeout(function(){startMpLevel();},60);
+  setTimeout(updateTopStats,700);
+  setTimeout(updateTopStats,1800);
+}
+
+function startMpLevel(){
+  var lvl=DS().LEVELS[1];
+  for(var i=0;i<MP_MODES.length;i++){
+    if(MP_MODES[i].id===mp.selectedMode){lvl=DS().LEVELS[MP_MODES[i].level];break;}
+  }
+  DS().startLevel(lvl,true);
+  DS().updateMPLevelBadge();
 }
 
 function setupGameHooks(){
@@ -562,6 +791,7 @@ function setupGameHooks(){
   MPApi().onGameEnd=onLocalWin;
   MPApi().onTickDead=tickDead;
   MPApi().drawOtherPlayers=drawOtherPlayersInGame;
+  window.MP_broadcastKill=broadcastKill;
 }
 
 function onLocalDeath(){
@@ -618,7 +848,35 @@ function onRoomEnded(){
   if(spBtn)spBtn.classList.remove('on');
   var rb=document.getElementById('mpReviveBox');
   if(rb)rb.classList.remove('on');
+  var lb=document.getElementById('mpLevelBadge');
+  if(lb)lb.classList.remove('on');
   if(mp.playerRef)mp.playerRef.child('alive').set(true);
+  var sorted=sortPlayersByKills();
+  var myRank=0;
+  for(var i=0;i<sorted.length;i++){
+    if(sorted[i].id===mp.myId){myRank=i+1;break;}
+  }
+  var rewardText='';
+  if(myRank===1){
+    DS().save.trophies=(DS().save.trophies||0)+1;
+    rewardText='JUARA 1 - Trophy Tournament Legend!';
+    DS().showToast('Kamu dapat Trophy Tournament Legend!','success',3600);
+  }else if(myRank===2){
+    DS().grantKP(500);
+    rewardText='Juara 2 - +500 KP';
+    DS().showToast('Kamu dapat +500 KP (Juara 2)!','success',3200);
+  }else if(myRank===3){
+    DS().grantKP(250);
+    rewardText='Juara 3 - +250 KP';
+    DS().showToast('Kamu dapat +250 KP (Juara 3)!','success',3200);
+  }else if(myRank>=4&&myRank<=6){
+    DS().grantKP(100);
+    rewardText='Juara '+myRank+' - +100 KP';
+    DS().showToast('Kamu dapat +100 KP','success',2800);
+  }
+  DS().save.mpWins=(DS().save.mpWins||0)+1;
+  DS().checkAchievements();
+  DS().persist();
   var cel=document.getElementById('mpCelebration');
   var title=document.getElementById('mpCelebTitle');
   var sub=document.getElementById('mpCelebSub');
@@ -626,7 +884,7 @@ function onRoomEnded(){
   if(conf){
     conf.innerHTML='';
     var colors=['#ffc857','#ff6b4a','#3ddc97','#67c7f0','#9b6bff','#ff77a9','#ffffff'];
-    for(var i=0;i<80;i++){
+    for(var c=0;c<90;c++){
       var el=document.createElement('div');
       el.className='confetti';
       el.style.left=(Math.random()*100)+'%';
@@ -640,42 +898,56 @@ function onRoomEnded(){
     }
   }
   if(title)title.textContent='SELESAI!';
-  if(sub)sub.textContent='Semua pemain di-revive! Menampilkan hasil...';
+  if(sub)sub.textContent=rewardText||'Semua pemain di-revive!';
   if(cel)cel.classList.add('on');
   DS().sfxVictory();
   setTimeout(function(){
     if(cel)cel.classList.remove('on');
-    DS().save.mpWins=(DS().save.mpWins||0)+1;
-    DS().checkAchievements();
-    DS().persist();
     DS().showScreen('mpLobby');
     DS().setAppState('mpLobbyMenu');
-    showMpResults();
+    showMpResults(sorted,myRank);
     mp.startRequested=false;
     mp.finalSent=false;
     mp.gameEnded=false;
     MPApi().active=false;
     DS().refreshProfile();
+    DS().updateMenuCard();
     renderLobby();
   },3600);
 }
 
-function showMpResults(){
+function sortPlayersByKills(){
   var players=[];
   for(var k in PC())players.push(PC()[k]);
-  players.sort(function(a,b){return (b.kills||0)-(a.kills||0);});
+  players.sort(function(a,b){
+    var ka=a.kills||0,kb=b.kills||0;
+    if(kb!==ka)return kb-ka;
+    return (a.joinedAt||0)-(b.joinedAt||0);
+  });
+  return players;
+}
+
+function showMpResults(sorted,myRank){
   var maxKills=1;
-  for(var m=0;m<players.length;m++)if((players[m].kills||0)>maxKills)maxKills=players[m].kills;
+  for(var m=0;m<sorted.length;m++)if((sorted[m].kills||0)>maxKills)maxKills=sorted[m].kills;
   var html='';
-  for(var j=0;j<players.length;j++){
-    var pl=players[j];
+  for(var j=0;j<sorted.length;j++){
+    var pl=sorted[j];
     var kp=pl.kills||0;
     var pct=Math.round(kp/maxKills*100);
     if(pct<4)pct=4;
+    var rank=j+1;
+    var color='#4a4a63';
+    var icon='';
+    if(rank===1){color='#ffc857';icon='1';}
+    else if(rank===2){color='#b8c4cc';icon='2';}
+    else if(rank===3){color='#d68a3c';icon='3';}
+    else{color='#8a8aa3';icon=String(rank);}
     html+='<div class="mp-bar-row">';
+    html+='<div class="mp-bar-place" style="color:'+color+';">#'+icon+'</div>';
     html+='<div class="mp-bar-name">'+esc((pl.name||'-').toUpperCase())+'</div>';
     html+='<div class="mp-bar-track"><div class="mp-bar-fill" style="width:'+pct+'%"></div></div>';
-    html+='<div class="mp-bar-info">'+fmtK(kp)+' KP</div>';
+    html+='<div class="mp-bar-info">'+kp+' kill</div>';
     html+='</div>';
   }
   var body=document.getElementById('mpEndBody');
@@ -687,13 +959,11 @@ function showMpResults(){
 function updateTopStats(){
   var el=document.getElementById('mpStatsBody');
   if(!el)return;
-  var players=[];
-  for(var k in PC())players.push(PC()[k]);
+  var players=sortPlayersByKills();
   if(players.length===0){
     el.innerHTML='<div style="font-size:11px;color:#8a8aa3;">Menunggu data...</div>';
     return;
   }
-  players.sort(function(a,b){return (b.kills||0)-(a.kills||0);});
   var maxKills=1;
   for(var m=0;m<players.length;m++)if((players[m].kills||0)>maxKills)maxKills=players[m].kills;
   var html='';
@@ -706,7 +976,7 @@ function updateTopStats(){
     html+='<div class="mts-row">';
     html+='<div class="mts-name"'+isMe+'>'+esc((pl.name||'-').toUpperCase())+'</div>';
     html+='<div class="mts-bar"><div class="mts-fill" style="width:'+pct+'%"></div></div>';
-    html+='<div class="mts-kill">'+fmtK(kp)+'</div>';
+    html+='<div class="mts-kill">'+kp+'</div>';
     html+='</div>';
   }
   el.innerHTML=html;
@@ -724,17 +994,17 @@ function drawOtherPlayersInGame(){
   if(!ctx)return;
   var W=DS().getW();
   var H=DS().getH();
-  var BASE_SIZE=DS().BASE_SIZE;
+  var BS=DS().BASE_SIZE;
   var border=DS().BORDER;
   for(var k in PC()){
     if(k===mp.myId)continue;
     var pl=PC()[k];
     if(pl.alive===false)continue;
     if(pl.posX===undefined||pl.posHp===undefined)continue;
-    var ox=pl.posX*W-BASE_SIZE/2;
+    var ox=pl.posX*W-BS/2;
     var elL=DS().edgeLeft(),elR=DS().edgeRight();
     if(ox<elL)ox=elL;
-    if(ox+BASE_SIZE>elR)ox=elR-BASE_SIZE;
+    if(ox+BS>elR)ox=elR-BS;
     var oy=H-border-160;
     var ship=DS().findShip(pl.ship||'default');
     var shape=DS().findShape(pl.shape||'square');
@@ -743,18 +1013,16 @@ function drawOtherPlayersInGame(){
     var spr=cache[key]||cache[ship.id+'_square']||cache['default_square'];
     if(!spr)continue;
     var glow=DS().playerGlowCache()[ship.id];
-    var cx=ox+BASE_SIZE/2,cy=oy+BASE_SIZE/2;
-    var hpRatio=pl.posHp;
-    if(hpRatio<0)hpRatio=0;
-    if(hpRatio>1)hpRatio=1;
+    var cx=ox+BS/2,cy=oy+BS/2;
+    var hpRatio=clamp(pl.posHp,0,1);
     ctx.save();
     ctx.globalAlpha=0.85;
     ctx.fillStyle='rgba(255,255,255,0.9)';
-    ctx.fillRect(ox-3,oy-26,BASE_SIZE+6,7);
+    ctx.fillRect(ox-3,oy-26,BS+6,7);
     ctx.fillStyle='rgba(36,36,56,0.35)';
-    ctx.fillRect(ox-2,oy-25,BASE_SIZE+4,5);
+    ctx.fillRect(ox-2,oy-25,BS+4,5);
     ctx.fillStyle=hpRatio<0.35?'#ff6b4a':'#3ddc97';
-    ctx.fillRect(ox,oy-24,BASE_SIZE*hpRatio,3);
+    ctx.fillRect(ox,oy-24,BS*hpRatio,3);
     ctx.restore();
     ctx.save();
     ctx.globalAlpha=0.5;
@@ -782,70 +1050,28 @@ function gameSyncTick(dt){
   mp.gameUpdateTimer=0.1;
   var p=DS().getPlayer();
   if(!p)return;
-  mp.lastWrittenKills=DS().save.kills;
+  mp.lastWrittenKp=DS().save.kills;
   mp.playerRef.update({
     posX:p.x/DS().getW(),
     posHp:Math.max(0,p.hp/p.maxHp),
     alive:!mp.inGameDead,
-    kills:DS().save.kills,
+    kills:MPApi().myKillCount,
+    kp:DS().save.kills,
+    level:DS().save.level,
+    xp:DS().save.xp,
     ship:DS().save.selectedShip,
     shape:DS().save.selectedShape,
     gun:DS().save.selectedGun,
     skill:DS().save.selectedSkill||'',
     lastSeen:Date.now()
   });
-}
-
-function sendEmoji(emojiChar){
-  if(!mp.roomRef)return;
-  var data={
-    id:mp.myId,
-    name:(DS().save.playerName||'PLAYER'),
-    emoji:emojiChar,
-    posX:mp.lobbyX,
-    ts:Date.now(),
-    nonce:Math.random().toString(36).slice(2,7)
-  };
-  mp.roomRef.child('lastEmoji').set(data);
-  showFlyingEmoji(emojiChar,mp.lobbyX);
-  DS().sfxEmoji();
-}
-
-function showFlyingEmoji(emojiChar,posX){
-  var layer=document.getElementById('mpEmojiLayer');
-  if(!layer)return;
-  var el=document.createElement('div');
-  el.className='mp-fly-emoji';
-  el.textContent=emojiChar;
-  var W=window.innerWidth;
-  var H=window.innerHeight;
-  var x=posX*W;
-  if(x<40)x=40;
-  if(x>W-40)x=W-40;
-  el.style.left=x+'px';
-  el.style.top=(H*0.55)+'px';
-  el.style.transform='translate(-50%,-50%)';
-  layer.appendChild(el);
-  setTimeout(function(){
-    if(el.parentNode)el.parentNode.removeChild(el);
-  },2300);
-}
-
-function handleRemoteEmoji(emojiData){
-  if(!emojiData)return;
-  if(Date.now()-emojiData.ts>8000)return;
-  var key=(emojiData.id||'')+'_'+(emojiData.ts||0)+'_'+(emojiData.nonce||'');
-  if(mp.seenEmojis[key])return;
-  mp.seenEmojis[key]=true;
-  if(emojiData.id===mp.myId)return;
-  showFlyingEmoji(emojiData.emoji,emojiData.posX||0.5);
-  DS().sfxEmoji();
+  DS().updateMPLevelBadge();
 }
 
 function openSendModal(){
-  if(!MPApi().active)return;
   var modal=document.getElementById('mpSendPointsModal');
   if(!modal)return;
+  if(DS().getAppState()!=='mpLobbyMenu')return;
   var bal=document.getElementById('mpSendBalance');
   if(bal)bal.textContent=fmtK(DS().save.kills);
   var list=document.getElementById('mpSendPlayerList');
@@ -881,13 +1107,11 @@ function doSendKP(targetId){
   var amt=parseInt(input.value,10);
   if(!amt||amt<=0){DS().showToast('Masukkan jumlah valid','error');return;}
   if(amt>DS().save.kills){DS().showToast('Poin kamu tidak cukup','error');return;}
-  var myRef=mp.roomRef.child('players/'+mp.myId+'/kills');
-  var tgtRef=mp.roomRef.child('players/'+targetId+'/kills');
   DS().save.kills-=amt;
-  mp.lastWrittenKills=DS().save.kills;
+  mp.lastWrittenKp=DS().save.kills;
   DS().persist();
-  myRef.set(DS().save.kills);
-  tgtRef.transaction(function(cur){
+  mp.roomRef.child('players/'+mp.myId+'/kp').set(DS().save.kills);
+  mp.roomRef.child('players/'+targetId+'/kp').transaction(function(cur){
     return (cur||0)+amt;
   });
   DS().save.mpGifts=(DS().save.mpGifts||0)+1;
@@ -899,6 +1123,9 @@ function doSendKP(targetId){
   var tgt=PC()[targetId];
   DS().showToast('Kirim '+fmtK(amt)+' KP ke '+(tgt?(tgt.name||'-'):'-'),'success');
   DS().sfxGift();
+  DS().refreshHeaderKills();
+  DS().refreshProfile();
+  DS().updateMenuCard();
 }
 
 function kickPlayer(targetId){
@@ -922,6 +1149,9 @@ function bindUI(){
       this.value=this.value.toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,10);
       var sn=document.getElementById('mpSelfName');
       if(sn)sn.textContent=this.value||'-';
+      if(DS().save.playerName!==this.value){
+        DS().save.playerName=this.value;
+      }
     });
   }
   var codeIn=document.getElementById('mpCodeInput');
@@ -958,12 +1188,9 @@ function bindUI(){
     var cnt=0;
     for(var k in PC())cnt++;
     if(cnt<2){DS().showToast('Butuh minimal 2 pemain','error');return;}
-    if(cnt>5){DS().showToast('Maksimal 5 pemain','error');return;}
+    if(cnt>MAX_PLAYERS){DS().showToast('Maksimal '+MAX_PLAYERS+' pemain','error');return;}
     DS().initAudio();DS().sfxClick();
-    if(mp.roomRef){
-      mp.roomRef.child('mode').set(mp.selectedMode);
-      mp.roomRef.child('state').set('playing');
-    }
+    if(mp.roomRef)mp.roomRef.child('mode').set(mp.selectedMode);
   });
   var mgrid=document.getElementById('mpModeGrid');
   if(mgrid){
@@ -1002,8 +1229,21 @@ function bindUI(){
       sendEmoji(e);
     });
   }
-  var spBtn=document.getElementById('mpSendPointsBtn');
-  if(spBtn)spBtn.addEventListener('click',function(){DS().initAudio();DS().sfxClick();openSendModal();});
+  var chatSend=document.getElementById('mpChatSend');
+  if(chatSend)chatSend.addEventListener('click',function(){DS().initAudio();sendChat();});
+  var chatInput=document.getElementById('mpChatInput');
+  if(chatInput){
+    chatInput.addEventListener('keydown',function(ev){
+      ev.stopPropagation();
+      if(ev.key==='Enter'||ev.keyCode===13){
+        ev.preventDefault();
+        DS().initAudio();
+        sendChat();
+      }
+    });
+  }
+  var giftBtn=document.getElementById('mpLobbyGiftBtn');
+  if(giftBtn)giftBtn.addEventListener('click',function(){DS().initAudio();DS().sfxClick();openSendModal();});
   var spClose=document.getElementById('mpSendClose');
   if(spClose)spClose.addEventListener('click',function(){DS().sfxClick();closeSendModal();});
   var spModal=document.getElementById('mpSendPointsModal');
@@ -1051,6 +1291,8 @@ window.MP_refreshSelfPreview=function(){
   if(nm)nm.textContent=(DS().save.playerName||'-').toUpperCase();
 };
 
+window.MP_broadcastKill=null;
+
 function boot(){
   initFirebase();
   bindUI();
@@ -1058,6 +1300,7 @@ function boot(){
   var nameIn=document.getElementById('mpNameInput');
   if(nameIn&&DS().save.playerName)nameIn.value=DS().save.playerName;
   if(!DS().save.mpGifts)DS().save.mpGifts=0;
+  if(!DS().save.trophies)DS().save.trophies=0;
   requestAnimationFrame(mainLoop);
 }
 
