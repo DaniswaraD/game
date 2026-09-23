@@ -343,6 +343,13 @@ svg{display:block;}
 .mp-waiting{text-align:center;color:#4a4a63;font-size:12px;font-weight:600;margin-top:10px;letter-spacing:1px;}
 .mp-actions{display:flex;gap:10px;margin-top:14px;}
 .mp-actions .mp-btn{flex:1;}
+.mp-mode-picker{margin-top:14px;padding:12px;background:#fffaf0;border:2px solid #242438;border-radius:14px;box-shadow:0 3px 0 rgba(36,36,56,.15);}
+.mp-mode-title{font-size:10px;letter-spacing:2px;color:#4a4a63;font-weight:700;text-align:center;margin-bottom:8px;text-transform:uppercase;}
+.mp-mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.mp-mode-btn{padding:10px 4px;font-size:10px;font-weight:700;letter-spacing:.3px;border:2px solid #242438;border-radius:10px;background:#ffffff;color:#4a4a63;box-shadow:0 2px 0 #242438;transition:transform .1s,box-shadow .1s;}
+.mp-mode-btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 0 0 #242438;}
+.mp-mode-btn.on{background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#242438;box-shadow:0 2px 0 #242438,0 0 0 2px rgba(255,200,87,.45);}
+.mp-mode-btn.locked{opacity:.55;cursor:not-allowed;}
 #mpEndStats{background:#ffffff;border:2px solid #242438;border-radius:16px;padding:16px;box-shadow:0 4px 0 #242438;margin-top:12px;}
 .mp-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
 .mp-bar-name{font-size:11px;font-weight:700;min-width:80px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -496,7 +503,7 @@ svg{display:block;}
     <div class="help-block"><h3>Kontrol</h3><ul><li>Geser untuk gerakkan kapal</li><li>Tembakan otomatis</li><li>Tombol kanan bawah untuk aktifkan skill</li></ul></div>
     <div class="help-block"><h3>Bab & Tingkat</h3><ul><li>Bab 1: Tutorial, Mudah, Sedang</li><li>Bab 2: Sulit, Ahli, Nightmare</li><li>Bab 3: Impossible, Doom, 4RROR</li><li>Final Boss: semua boss bertumpuk</li></ul></div>
     <div class="help-block"><h3>Final Boss</h3><p>Semua boss muncul bertumpuk sekaligus. Bertahan sampai waktu habis untuk menang.</p></div>
-    <div class="help-block"><h3>Multiplayer</h3><p>Bermain grup maks 5 pemain. Butuh minimal 2 pemain. Mode Impossible 75 detik.</p></div>
+    <div class="help-block"><h3>Multiplayer</h3><p>Bermain grup maks 5 pemain. Butuh minimal 2 pemain. Host memilih mode permainan.</p></div>
     <div class="help-block"><h3>Item di Layar</h3><ul><li>Gelembung hijau: tambah HP</li><li>Gelembung putih: tembakan ganda</li><li>Bintang kuning: damage 4x</li><li>Perisai biru: kurangi damage 90%</li><li>Bunga pink: tembak lebih cepat</li><li>Kristal ungu: tembus semua musuh</li><li>Bola emas x2: gandakan KP 3 detik</li><li>Bom gelap: kurangi 20 HP</li></ul></div>
   </div></div>
 </div>
@@ -540,7 +547,7 @@ svg{display:block;}
       <button class="mp-btn join" id="mpJoinBtn">MASUK GRUP</button>
     </div>
     <div class="section-title">Info</div>
-    <div class="help-block"><p style="font-size:12px;">Grup maksimal 5 pemain. Minimal 2 pemain untuk mulai. Setiap pemain butuh nama unik. Host bisa menekan tombol START di lobby.</p></div>
+    <div class="help-block"><p style="font-size:12px;">Grup maksimal 5 pemain. Minimal 2 pemain untuk mulai. Setiap pemain butuh nama unik. Host memilih mode permainan lalu menekan tombol START di lobby.</p></div>
   </div></div>
 </div>
 
@@ -551,6 +558,10 @@ svg{display:block;}
       <div class="mp-lobby-code">KODE GRUP<b id="mpRoomCode">------</b></div>
       <div class="mp-players" id="mpPlayers"></div>
       <div class="mp-waiting" id="mpWaiting">Menunggu pemain...</div>
+      <div class="mp-mode-picker">
+        <div class="mp-mode-title" id="mpModeTitle">PILIH MODE (HOST)</div>
+        <div class="mp-mode-grid" id="mpModeGrid"></div>
+      </div>
       <div class="mp-actions">
         <button class="mp-btn start" id="mpStartBtn" disabled>START</button>
         <button class="mp-btn leave" id="mpLeaveBtn2">KELUAR</button>
