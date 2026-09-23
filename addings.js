@@ -36,11 +36,11 @@ var rolling=false;
 function DS(){return window.DS;}
 function pick(a){return a[(Math.random()*a.length)|0];}
 
-function kpIconBig(){
-  return '<div style="font-size:58px;line-height:1;filter:drop-shadow(0 3px 5px rgba(0,0,0,.25));">&#128176;</div>';
+function kpIcon(){
+  return '<svg viewBox="0 0 24 24"><path d="M14 2h-4l-1 2H6l1 3c-1.5 1.5-2.5 3.5-2.5 5.5C4.5 17 8 21 12 21s7.5-4 7.5-8.5c0-2-1-4-2.5-5.5l1-3h-3l-1-2zm-2 4l1.5-1.5L15 6h-3zM12 19c-3 0-5.5-2.5-5.5-5.5S9 8 12 8s5.5 2.5 5.5 5.5S15 19 12 19z"/></svg>';
 }
 
-function shipIconBig(ship){
+function shipIcon(ship){
   return '<svg viewBox="0 0 40 40" width="80" height="80">'+
     '<rect x="6" y="6" width="28" height="28" rx="6" fill="'+ship.edge+'" stroke="#242438" stroke-width="1.5"/>'+
     '<path d="M20 9 L27 18 L32 22 L28 31 L12 31 L8 22 L13 18 Z" fill="'+ship.body+'" stroke="#242438" stroke-width="1.2"/>'+
@@ -51,21 +51,17 @@ function shipIconBig(ship){
     '</svg>';
 }
 
-function shapeIconBig(shape){
-  var ic=DS().ICONS[shape.icon];
-  return ic||DS().ICONS.square;
+function shapeIcon(shape){
+  return DS().ICONS[shape.icon]||DS().ICONS.square;
 }
 
-function gunIconBig(gun){
-  var ic=DS().ICONS[gun.icon];
-  return ic||DS().ICONS.bullet;
+function gunIcon(gun){
+  return DS().ICONS[gun.icon]||DS().ICONS.bullet;
 }
 
 function buildPool(tier){
   var pool=[];
-  for(var i=0;i<tier.kpValues.length;i++){
-    pool.push({type:'kp',amount:tier.kpValues[i]});
-  }
+  for(var i=0;i<tier.kpValues.length;i++)pool.push({type:'kp',amount:tier.kpValues[i]});
   pool.push({type:'ship',id:pick(tier.ships)});
   pool.push({type:'ship',id:pick(tier.ships)});
   pool.push({type:'shape',id:pick(tier.shapes)});
@@ -109,7 +105,7 @@ function applyReward(reward){
     DS().grantKP(reward.amount);
     res.name='+'+reward.amount.toLocaleString('id-ID')+' KP';
     res.desc='Poin tambahan untuk dibelanjakan di toko';
-    res.icon=kpIconBig();
+    res.icon=kpIcon();
     res.tag='KILL POINTS';
     res.tagClass='kp';
     return res;
@@ -139,7 +135,7 @@ function applyReward(reward){
       res.tag='KONVERSI KP';
       res.tagClass='kp';
     }
-    res.icon=shipIconBig(ship);
+    res.icon=shipIcon(ship);
     return res;
   }
 
@@ -158,7 +154,7 @@ function applyReward(reward){
       res.tag='SUDAH DIMILIKI';
       res.tagClass='upgrade';
     }
-    res.icon=shapeIconBig(shape);
+    res.icon=shapeIcon(shape);
     return res;
   }
 
@@ -186,7 +182,7 @@ function applyReward(reward){
       res.tag='KONVERSI KP';
       res.tagClass='kp';
     }
-    res.icon=gunIconBig(gun);
+    res.icon=gunIcon(gun);
     return res;
   }
 
@@ -294,6 +290,11 @@ window.AD_spinRender=function(){
   if(h){
     h.disabled=s.kills<15000;
     h.textContent=h.disabled?'KP KURANG':'SPIN HIGH-END';
+  }
+  var badge=document.getElementById('spinTileBadge');
+  if(badge){
+    if(s.kills>=25)badge.style.display='block';
+    else badge.style.display='none';
   }
 };
 
