@@ -17,7 +17,6 @@ var MAX_UPGRADE_LEVEL=5;
 var MAX_LEVEL=999;
 var SIDE_LASER_DAMAGE=35;
 var SIDE_LASER_START_TIME=30;
-var GLOBAL_SYNC_RATE=0.05;
 
 var STREAK_LABELS=[
   {n:2,label:'DOUBLE KILL'},{n:3,label:'TRIPEL KILL'},{n:5,label:'ENEMY HUNTER'},
@@ -52,33 +51,20 @@ var PLAYER_TIERS=[
 ];
 
 var save={
-  kills:0,totalKills:0,
-  level:1,xp:0,totalXp:0,
-  trophies:0,
-  mpGifts:0,
+  kills:0,totalKills:0,level:1,xp:0,totalXp:0,trophies:0,mpGifts:0,
   ownedSkills:[],selectedSkill:null,
   ships:['default'],selectedShip:'default',
   shapes:['square'],selectedShape:'square',
   guns:['bullet'],selectedGun:'bullet',
   achievements:{},
   expertWins:0,hardWins:0,nightmareWins:0,impossibleWins:0,doomWins:0,rrrorWins:0,finalWins:0,bossKills:0,
-  winFlags:{},noHitFlags:{},
-  comboMax:0,startingUpgrades:[],
+  winFlags:{},noHitFlags:{},comboMax:0,startingUpgrades:[],
   soundVol:80,bgmVol:50,bgmOn:true,shakeAmt:100,
-  gunUpgrades:{},shipUpgrades:{},skillUpgrades:{},
-  bestKills:{},
-  unlockedLevels:[0],
-  usedVouchers:{},
-  playerName:'',
-  mpWins:0,
-  pets:['scout'],selectedPet:'scout',
-  petUpgrades:{},
-  endlessBest:0,
-  challengeBests:{nohit:0,pistol:0,speed:0,bossrush:0},
-  globalId:'',
-  friends:{},
-  friendRequests:{},
-  friendSent:{}
+  gunUpgrades:{},shipUpgrades:{},skillUpgrades:{},bestKills:{},
+  unlockedLevels:[0],usedVouchers:{},playerName:'',mpWins:0,
+  pets:['scout'],selectedPet:'scout',petUpgrades:{},
+  endlessBest:0,challengeBests:{nohit:0,pistol:0,speed:0,bossrush:0},
+  globalId:'',friends:{},friendRequests:{},friendSent:{}
 };
 
 var killDirty=false,lastPersistTime=0;
@@ -124,9 +110,7 @@ function validateSave(){
   if(!save.friends||typeof save.friends!=='object')save.friends={};
   if(!save.friendRequests||typeof save.friendRequests!=='object')save.friendRequests={};
   if(!save.friendSent||typeof save.friendSent!=='object')save.friendSent={};
-  if(!save.globalId){
-    save.globalId='g_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
-  }
+  if(!save.globalId)save.globalId='g_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
 }
 
 function persist(){
@@ -164,29 +148,24 @@ function xpNeededForLevel(lv){
 
 function addXP(amount){
   if(!amount||amount<=0)return 0;
-  save.xp+=amount;
-  save.totalXp+=amount;
+  save.xp+=amount;save.totalXp+=amount;
   var leveled=0;
   while(save.level<MAX_LEVEL&&save.xp>=xpNeededForLevel(save.level)){
     save.xp-=xpNeededForLevel(save.level);
-    save.level++;
-    leveled++;
+    save.level++;leveled++;
   }
   if(leveled>0){sfxUpg();showToast('Naik ke Level '+save.level+'!','success',2800);}
   killDirty=true;
-  updateMenuCard();
-  updateMPLevelBadge();
+  updateMenuCard();updateMPLevelBadge();
   return leveled;
 }
 
 function grantKP(amount){
   if(!amount||amount<=0)return;
-  save.kills+=amount;
-  save.totalKills+=amount;
+  save.kills+=amount;save.totalKills+=amount;
   addXP(amount);
   killDirty=true;
-  refreshHeaderKills();
-  refreshProfile();
+  refreshHeaderKills();refreshProfile();
 }
 
 function isLevelUnlocked(i){return save.unlockedLevels.indexOf(i)>=0;}
@@ -331,8 +310,7 @@ function startBGM(){
     var o=audioCtx.createOscillator();
     o.type='triangle';
     o.frequency.value=seq[step%seq.length];
-    o.connect(g);
-    o.start(t);o.stop(t+beatDur*0.9);
+    o.connect(g);o.start(t);o.stop(t+beatDur*0.9);
     var o2=audioCtx.createOscillator(),g2=audioCtx.createGain();
     g2.gain.setValueAtTime(0.0001,t);
     g2.gain.linearRampToValueAtTime(vol*0.7,t+0.05);
@@ -737,13 +715,26 @@ var shipFxTimer=0;
 var mpBadgeXpText='';
 var winShown=false;
 var enemyIdCounter=0;
-var isGlobalGame=false;
+var isNetworkGame=false;
 
 window.DS_MP=window.DS_MP||{
-  active:false,dead:false,globalMode:false,playersCache:{},myId:null,roomRef:null,playerRef:null,
+  active:false,dead:false,globalMode:false,networkMode:false,isGlobalHost:false,isHost:false,
+  playersCache:{},myId:null,roomRef:null,playerRef:null,
   updateTimer:0,reviveCountdown:0,myKills:0,myKillCount:0,
-  onPlayerDeath:null,onGameEnd:null,onTickDead:null,drawOtherPlayers:null,isHost:false,isGlobalHost:false
+  onPlayerDeath:null,onGameEnd:null,onTickDead:null,drawOtherPlayers:null,
+  globalEnemiesCache:{},globalBossesCache:{}
 };
+if(!window.DS_MP.globalEnemiesCache)window.DS_MP.globalEnemiesCache={};
+if(!window.DS_MP.globalBossesCache)window.DS_MP.globalBossesCache={};
+
+function amHost(){
+  if(!window.DS_MP)return false;
+  return !!(window.DS_MP.isGlobalHost||window.DS_MP.isHost);
+}
+function netBase(){
+  if(!window.DS_MP)return '';
+  return window.DS_MP.globalMode?'global_arena':('rooms/'+(window.DS_MP.roomCode||''));
+}
 
 function lightenHex(hex,amt){
   var n=parseInt(hex.slice(1),16);
@@ -1258,7 +1249,7 @@ function resetGame(level,challenge){
   currentChallenge=challenge||null;
   paused=false;
   winShown=false;
-  isGlobalGame=!!(window.DS_MP&&window.DS_MP.active&&window.DS_MP.globalMode);
+  isNetworkGame=!!(window.DS_MP&&window.DS_MP.active&&window.DS_MP.networkMode);
   applyStartingBonus();
   shipPassive=getShipPassive();
   shapePassive=getShapePassive();
@@ -1267,28 +1258,12 @@ function resetGame(level,challenge){
   var mhp=Math.round((BASE_MAX_HP+maxHpBonus+shipUpgLv*10)*shipHpMult);
   if(currentChallenge==='nohit')mhp=Math.round(mhp*0.8);
   player={x:W/2-BASE_SIZE/2,y:H-BORDER-160,width:BASE_SIZE,height:BASE_SIZE,hp:mhp,maxHp:mhp};
-  enemies.length=0;
-  enemyProjectiles.length=0;
-  playerProjectiles.length=0;
-  healBubbles.length=0;
-  boostBubbles.length=0;
-  bombBubbles.length=0;
-  lasers.length=0;
-  particles.length=0;
-  shockwaves.length=0;
-  powerups.length=0;
-  bosses.length=0;
-  obstacleLasers.length=0;
-  bossesSpawnedInRun=0;
-  miniBossCount=0;
-  elapsed=0;
-  spawnAccum=0;
-  spawnMultiplier=1;
-  activeCapDelta=0;
-  lastThrottleCheck=0;
-  playerTier=0;
-  runDamage=0;
-  computePlayerStats();
+  enemies.length=0;enemyProjectiles.length=0;playerProjectiles.length=0;
+  healBubbles.length=0;boostBubbles.length=0;bombBubbles.length=0;lasers.length=0;
+  particles.length=0;shockwaves.length=0;powerups.length=0;bosses.length=0;obstacleLasers.length=0;
+  bossesSpawnedInRun=0;miniBossCount=0;
+  elapsed=0;spawnAccum=0;spawnMultiplier=1;activeCapDelta=0;lastThrottleCheck=0;
+  playerTier=0;runDamage=0;computePlayerStats();
   fireTimer=0.3;
   healSpawnTimer=(8+Math.random()*5)/level.healFreqMult;
   boostSpawnTimer=(16+Math.random()*6)/level.healFreqMult;
@@ -1301,16 +1276,12 @@ function resetGame(level,challenge){
   spikesActive=false;invincibleActive=false;wipeoutActive=false;freezeActive=false;magnetActive=false;
   slowActive=false;leechActive=false;rageActive=false;mirrorActive=false;chainActive=false;voidbeamActive=false;
   chainTimer=0;voidbeamTimer=0;
-  nextBossTime=currentLevel.bossInterval;
-  bossIndex=0;
-  lastWaveShownAt=0;
-  nextMiniBossTime=25;
+  nextBossTime=currentLevel.bossInterval;bossIndex=0;lastWaveShownAt=0;nextMiniBossTime=25;
   quadTime=0;shieldTime=0;rapidTime=0;pierceTime=0;multiplierTime=0;
   comboCount=0;comboTimer=0;comboLevel=1;
   streakKillCount=0;streakTimer=0;streakLevel=0;lastStreakLabel='';
   tookDamageThisRun=false;
-  playerPoisonTime=0;playerPoisonDPS=0;
-  killTapCount=0;
+  playerPoisonTime=0;playerPoisonDPS=0;killTapCount=0;
   petState=null;
   if(save.selectedPet&&findPet(save.selectedPet)){
     petState={id:save.selectedPet,x:W/2+60,y:H-BORDER-200,angle:0,attackTimer:1,healTimer:2,shieldTimer:5,chainTimer:1,eff:getPetEffects()};
@@ -1322,12 +1293,12 @@ function resetGame(level,challenge){
   comboHud.classList.remove('on');
   hpFill.classList.remove('poison');
   updateHud();updateSkillBtn();updatePuHud();updateComboHud();updatePetHud();
-  if(isGlobalGame){
+  if(isNetworkGame){
     window.DS_MP.myKillCount=0;
     window.DS_MP.myKills=0;
   }
   if(currentLevel.isFinal){
-    if(!isGlobalGame||(window.DS_MP&&window.DS_MP.isGlobalHost)){
+    if(!isNetworkGame||amHost()){
       for(var i=0;i<BOSS_TYPES.length;i++)spawnBossForFinal(i);
     }
   }
@@ -1342,14 +1313,25 @@ function spawnBossForFinal(idx){
   var baseX=edgeLeft()+40+Math.random()*(edgeRight()-edgeLeft()-w-80);
   var hp=Math.round(def.hp*BOSS_HP_MULT*currentLevel.hpMult*4);
   var range=Math.min(def.moveRange,(edgeRight()-edgeLeft()-w)/2-8);
-  bosses.push({
+  var boss={
     idx:idx%BOSS_TYPES.length,name:def.name,x:baseX,y:edgeTop()+40+idx*90,width:w,height:w,
     hp:hp,maxHp:hp,baseX:baseX,moveRange:range,phase:Math.random()*6.283,speed:def.speed,
     attackCycle:def.cycle,attackIdx:idx,shootInterval:def.shootInterval,fireTimer:1+idx*0.3,
     gatling:0,gatlingTimer:0,spawnT:0.6+idx*0.2,hitFlash:0,color:def.color,dark:def.dark,
     spiralAngle:0,bossNumber:idx+1,poisonTime:0,poisonDPS:0
-  });
+  };
   bossesSpawnedInRun++;
+  if(isNetworkGame){
+    boss.id='b_'+Date.now().toString(36)+'_'+idx+'_'+Math.random().toString(36).slice(2,5);
+    boss.spawnTime=Date.now();
+    if(window.MP_spawnGlobalBoss)window.MP_spawnGlobalBoss(boss);
+    boss._net=true;
+    bosses.push(boss);
+    bossWrap.classList.add('on');
+    bossName.textContent=def.name;
+  }else{
+    bosses.push(boss);
+  }
 }
 
 function getPhase(t,level){
@@ -1388,7 +1370,7 @@ function pickSpawnX(w){
   return bestX;
 }
 
-function genEnemyId(){enemyIdCounter++;return window.DS_MP.myId+'_'+Date.now().toString(36)+'_'+enemyIdCounter;}
+function genEnemyId(){enemyIdCounter++;return 'e_'+Date.now().toString(36)+'_'+enemyIdCounter+'_'+Math.random().toString(36).slice(2,5);}
 
 function buildEnemyObject(typeKey,xOverride,yOverride,shapeOverride){
   var def=ENEMY_TYPES[typeKey];
@@ -1416,16 +1398,19 @@ function buildEnemyObject(typeKey,xOverride,yOverride,shapeOverride){
 }
 
 function spawnEnemyAt(typeKey,xOverride,yOverride,shapeOverride){
+  if(isNetworkGame&&!amHost())return;
   var e=buildEnemyObject(typeKey,xOverride,yOverride,shapeOverride);
   if(!e)return;
-  if(isGlobalGame){
-    if(!window.DS_MP||!window.DS_MP.isGlobalHost)return;
+  if(isNetworkGame){
     e.id=genEnemyId();
     e.spawnTime=Date.now();
+    e._netSpawnTime=e.spawnTime;
+    e._netStartY=e.y;
     if(window.MP_spawnGlobalEnemy)window.MP_spawnGlobalEnemy(e);
-    return;
+    enemies.push(e);
+  }else{
+    enemies.push(e);
   }
-  enemies.push(e);
 }
 
 function spawnEnemy(){
@@ -1435,7 +1420,7 @@ function spawnEnemy(){
 }
 
 function spawnMiniBoss(){
-  if(isGlobalGame&&(!window.DS_MP||!window.DS_MP.isGlobalHost))return;
+  if(isNetworkGame&&!amHost())return;
   var baseHp=ENEMY_TYPES.miniBoss.hp;
   var scale=1+miniBossCount*0.6;
   var def=ENEMY_TYPES.miniBoss;
@@ -1453,19 +1438,22 @@ function spawnMiniBoss(){
     poisonTime:0,poisonDPS:0,shape:shape.id,shapeKp:shape.kpMult*2,isMiniBoss:true
   };
   miniBossCount++;
-  if(isGlobalGame){
+  if(isNetworkGame){
     e.id=genEnemyId();
     e.spawnTime=Date.now();
+    e._netSpawnTime=e.spawnTime;
+    e._netStartY=e.y;
     if(window.MP_spawnGlobalEnemy)window.MP_spawnGlobalEnemy(e);
+    enemies.push(e);
   }else{
     enemies.push(e);
+    showWaveBanner('MUSUH BESAR!',true);
+    sfxRoar();
   }
-  showWaveBanner('MUSUH BESAR!',true);
-  sfxRoar();
 }
 
 function spawnBoss(){
-  if(isGlobalGame&&(!window.DS_MP||!window.DS_MP.isGlobalHost))return;
+  if(isNetworkGame&&!amHost())return;
   var idx=bossIndex%BOSS_TYPES.length;
   var def=BOSS_TYPES[idx];
   var w=BASE_SIZE*def.size;
@@ -1485,10 +1473,14 @@ function spawnBoss(){
     bossNumber:bossesSpawnedInRun+1,poisonTime:0,poisonDPS:0
   };
   bossesSpawnedInRun++;
-  if(isGlobalGame){
-    nb.id=genEnemyId();
+  if(isNetworkGame){
+    nb.id='b_'+Date.now().toString(36)+'_'+idx+'_'+Math.random().toString(36).slice(2,5);
     nb.spawnTime=Date.now();
+    nb._net=true;
     if(window.MP_spawnGlobalBoss)window.MP_spawnGlobalBoss(nb);
+    bosses.push(nb);
+    bossWrap.classList.add('on');
+    bossName.textContent=def.name;
   }else{
     bosses.push(nb);
     bossIndex++;
@@ -1516,8 +1508,7 @@ function bossAttack(boss,type){
       pushEnemyProjectile({x:cx+offX,y:cy+boss.height*0.3,vx:0,vy:200,r:sprite.r,damage:15*currentLevel.dmgMult,sprite:sprite,zigzag:true,zigzagTime:Math.random()*6.283,zigzagAmp:60+Math.random()*20,zigzagFreq:3+Math.random()*1.5,baseX:cx+offX,spin:2.2});
     }
   }else if(type==='gatling'){
-    boss.gatling=10;
-    boss.gatlingTimer=0;
+    boss.gatling=10;boss.gatlingTimer=0;
   }else if(type==='homing'){
     for(k=0;k<3;k++){
       var sp3=getEnemyProjSprite(18);
@@ -1541,6 +1532,8 @@ function bossAttack(boss,type){
 }
 
 function killBoss(boss){
+  if(boss._credited)return;
+  boss._credited=true;
   var cx=boss.x+boss.width/2,cy=boss.y+boss.height/2;
   for(var i=0;i<6;i++)pushShockwave(cx,cy,140+i*30,'rgba(255,200,100,0.9)',0.7+i*0.1);
   for(var j=0;j<28;j++){
@@ -1549,18 +1542,16 @@ function killBoss(boss){
   }
   triggerShake(20,0.6);
   sfxBossDie();
-  save.bossKills++;
-  runBossKills++;
+  save.bossKills++;runBossKills++;
   var reward=10;
   if(ownedStart('greedy'))reward=Math.round(reward*1.25);
   if(shipPassive.goldMult)reward=Math.round(reward*shipPassive.goldMult);
   if(multiplierTime>0)reward*=2;
   grantKP(reward);
   runKills+=reward;
-  window.DS_MP.myKills++;
-  window.DS_MP.myKillCount++;
+  window.DS_MP.myKills++;window.DS_MP.myKillCount++;
   pushDamageNumber(cx,cy-40,Math.round(reward)+' KP','#ffc857');
-  if(!isGlobalGame){
+  if(!isNetworkGame){
     powerups.push({type:'quad',x:cx-90,y:cy,r:20,phase:0});
     powerups.push({type:'shield',x:cx-30,y:cy,r:20,phase:0});
     powerups.push({type:'rapid',x:cx+30,y:cy,r:20,phase:0});
@@ -1574,6 +1565,15 @@ function updateBosses(dt){
   for(var bi=bosses.length-1;bi>=0;bi--){
     var boss=bosses[bi];
     if(boss.spawnT>0){boss.spawnT-=dt;continue;}
+    if(boss._net&&!amHost()){
+      if(boss.hitFlash>0){boss.hitFlash-=dt;if(boss.hitFlash<0)boss.hitFlash=0;}
+      if(boss.hp<=0){
+        if(!boss._credited)killBoss(boss);
+        if(window.MP_damageGlobalBoss)window.MP_damageGlobalBoss(boss.id,999999);
+        bosses.splice(bi,1);
+      }
+      continue;
+    }
     boss.phase+=dt*boss.speed*0.02;
     var nx=boss.baseX+Math.sin(boss.phase)*boss.moveRange;
     if(nx<edgeLeft())nx=edgeLeft();
@@ -1610,8 +1610,9 @@ function updateBosses(dt){
     }
     if(rectsOverlap(player,boss))damagePlayer(35,{hp:0,hitFlash:0,x:player.x,y:player.y,width:1,height:1});
     if(boss.hp<=0){
-      if(isGlobalGame){
-        if(window.MP_damageGlobalBoss)window.MP_damageGlobalBoss(boss.id,boss.hp+999);
+      if(isNetworkGame&&boss.id){
+        if(!boss._credited)killBoss(boss);
+        if(window.MP_damageGlobalBoss)window.MP_damageGlobalBoss(boss.id,999999);
         bosses.splice(bi,1);
       }else{
         killBoss(boss);
@@ -1666,7 +1667,7 @@ function throttleCheck(){
 
 function spawnManager(dt){
   if(currentLevel.isFinal)return;
-  if(isGlobalGame&&(!window.DS_MP||!window.DS_MP.isGlobalHost))return;
+  if(isNetworkGame&&!amHost())return;
   var phase=getPhase(elapsed,currentLevel);
   var effMax=Math.max(3,phase.maxActive+activeCapDelta);
   var rate=currentLevel.enemiesPerSecond*spawnMultiplier*currentLevel.spawnRateMult;
@@ -1674,7 +1675,7 @@ function spawnManager(dt){
   if(isFinite(currentLevel.duration)&&elapsed>=currentLevel.duration-20)rate*=1.35;
   spawnAccum+=dt*rate;
   if(spawnAccum>1.5)spawnAccum=1.5;
-  if(spawnAccum>=1&&enemies.length<effMax){spawnAccum-=1;spawnEnemy();}
+  if(spawnAccum>=1){spawnAccum-=1;spawnEnemy();}
   var boundary=Math.floor(elapsed/10)*10;
   if(boundary>lastThrottleCheck&&boundary>0){lastThrottleCheck=boundary;throttleCheck();}
 }
@@ -1928,7 +1929,7 @@ function damagePlayer(amount,source){
     }
     var reflect=Math.round(amount*reflectPct);
     if(reflect>0){
-      if(isGlobalGame&&source.id&&window.MP_damageGlobalEnemy)window.MP_damageGlobalEnemy(source.id,reflect);
+      if(isNetworkGame&&source.id&&window.MP_damageGlobalEnemy)window.MP_damageGlobalEnemy(source.id,reflect);
       else{source.hp-=reflect;source.hitFlash=0.15;}
       spawnHitSpark(source.x+source.width/2,source.y+source.height/2,'#e0a4ff');
     }
@@ -1949,7 +1950,7 @@ function explodeAt(x,y,r,dmg){
     if(e.spawnT>0)continue;
     var dx=(e.x+e.width/2)-x,dy=(e.y+e.height/2)-y;
     if(dx*dx+dy*dy<r*r){
-      if(isGlobalGame&&e.id&&window.MP_damageGlobalEnemy)window.MP_damageGlobalEnemy(e.id,dmg);
+      if(isNetworkGame&&e.id&&window.MP_damageGlobalEnemy)window.MP_damageGlobalEnemy(e.id,dmg);
       else{e.hp-=dmg;e.hitFlash=0.15;}
       pushDamageNumber(e.x+e.width/2,e.y+e.height/2,Math.round(dmg),'#ffb060');
     }
@@ -1959,7 +1960,7 @@ function explodeAt(x,y,r,dmg){
     if(bo.spawnT>0)continue;
     var bdx=(bo.x+bo.width/2)-x,bdy=(bo.y+bo.height/2)-y;
     if(bdx*bdx+bdy*bdy<r*r){
-      if(isGlobalGame&&bo.id&&window.MP_damageGlobalBoss)window.MP_damageGlobalBoss(bo.id,dmg);
+      if(isNetworkGame&&bo.id&&window.MP_damageGlobalBoss)window.MP_damageGlobalBoss(bo.id,dmg);
       else{bo.hp-=dmg;bo.hitFlash=0.15;}
       pushDamageNumber(bo.x+bo.width/2,bo.y+bo.height/2,Math.round(dmg),'#ffb060');
     }
@@ -1970,13 +1971,13 @@ function killEnemy(e){
   var cx=e.x+e.width/2,cy=e.y+e.height/2;
   spawnHitSpark(cx,cy,e.color);
   pushShockwave(cx,cy,e.width*1.4,'rgba(255,255,255,0.85)',0.3);
-  if(e.splits>0&&(!isGlobalGame||(window.DS_MP&&window.DS_MP.isGlobalHost))){
+  if(e.splits>0&&(!isNetworkGame||amHost())){
     for(var s=0;s<e.splits;s++){
       var childX=e.x+(s-(e.splits-1)/2)*46;
       spawnEnemyAt('blueSmall',childX,e.y);
     }
   }
-  if(!isGlobalGame){
+  if(!isNetworkGame){
     var dropRoll=Math.random();
     if(dropRoll<0.05*dropMultBonus)powerups.push({type:Math.random()<0.5?'quad':'shield',x:cx,y:cy,r:20,phase:0});
     else if(dropRoll<0.075*dropMultBonus)powerups.push({type:Math.random()<0.5?'rapid':'pierce',x:cx,y:cy,r:20,phase:0});
@@ -2016,7 +2017,9 @@ function updateEnemies(dt){
     var e=enemies[i];
     if(e.spawnT>0)e.spawnT-=dt;
     else if(!freezeActive){
-      e.y+=e.speed*speedFactor*dt;
+      if(!isNetworkGame){
+        e.y+=e.speed*speedFactor*dt;
+      }
       if(e.orbit){
         e.orbitPhase+=dt*1.8*speedFactor;
         var nx=e.baseX+Math.sin(e.orbitPhase)*e.orbitRadius;
@@ -2040,31 +2043,38 @@ function updateEnemies(dt){
     if(e.hitFlash>0){e.hitFlash-=dt;if(e.hitFlash<0)e.hitFlash=0;}
     if(e.poisonTime>0&&e.spawnT<=0){
       e.poisonTime-=dt;
-      if(!isGlobalGame||(window.DS_MP&&window.DS_MP.isGlobalHost))e.hp-=e.poisonDPS*dt;
+      if(!isNetworkGame||amHost())e.hp-=e.poisonDPS*dt;
       if(Math.random()<0.2){
         pushParticle(e.x+e.width/2+(Math.random()-0.5)*e.width,e.y+e.height/2+(Math.random()-0.5)*e.height,0,-30,0.4,'#a8e63a',1.8);
       }
     }
     if(e.spawnT<=0&&!freezeActive&&e.shootType!=='none'&&e.shootType!=='heavenly'){
-      e.fireTimer-=dt*speedFactor;
-      if(e.fireTimer<=0){fireEnemy(e);e.fireTimer=1/e.fireRate;}
+      if(!isNetworkGame||amHost()){
+        e.fireTimer-=dt*speedFactor;
+        if(e.fireTimer<=0){fireEnemy(e);e.fireTimer=1/e.fireRate;}
+      }
     }
-    if(e.y+e.height>elBottom){enemies.splice(i,1);continue;}
+    if(e.y+e.height>elBottom){
+      if(isNetworkGame&&e.id&&window.MP_killGlobalEnemy)window.MP_killGlobalEnemy(e.id);
+      enemies.splice(i,1);
+      continue;
+    }
     if(e.spawnT<=0&&rectsOverlap(player,e)){
       damagePlayer(CONTACT_DAMAGE_FLAT,e);
       spawnHitSpark(e.x+e.width/2,e.y+e.height/2,e.color);
       pushShockwave(e.x+e.width/2,e.y+e.height/2,e.width*1.5,'rgba(255,120,120,0.85)',0.35);
       triggerShake(14,0.32);
       sfxHit();
-      if(isGlobalGame&&e.id&&window.MP_damageGlobalEnemy)window.MP_damageGlobalEnemy(e.id,999);
-      else{e.hp=0;}
-      if(!isGlobalGame)enemies.splice(i,1);
+      if(isNetworkGame&&e.id&&window.MP_damageGlobalEnemy)window.MP_damageGlobalEnemy(e.id,999999);
+      else e.hp=0;
       continue;
     }
     if(e.hp<=0){
       removeLaserFor(e);
-      if(isGlobalGame&&e.id&&window.MP_killGlobalEnemy)window.MP_killGlobalEnemy(e.id);
-      else{enemies.splice(i,1);sfxDeath();killEnemy(e);}
+      if(isNetworkGame&&e.id&&window.MP_killGlobalEnemy)window.MP_killGlobalEnemy(e.id);
+      enemies.splice(i,1);
+      sfxDeath();
+      killEnemy(e);
     }
   }
 }
@@ -2101,7 +2111,7 @@ function findNearestEnemy(x,y){
 function damageTarget(target,dmg,x,y){
   if(target.hp>0){
     if(wipeoutActive)dmg=target.maxHp*10;
-    if(isGlobalGame&&target.id&&window.MP_damageGlobalEnemy)window.MP_damageGlobalEnemy(target.id,dmg);
+    if(isNetworkGame&&target.id&&window.MP_damageGlobalEnemy)window.MP_damageGlobalEnemy(target.id,dmg);
     else target.hp-=dmg;
     target.hitFlash=0.15;
     spawnHitSpark(x,y,'#eaff8f');
@@ -2177,7 +2187,7 @@ function updatePlayerProjectiles(dt){
         if(bo.spawnT>0)continue;
         if(circleRectOverlap(p.x,p.y,p.r,bo)){
           var bdmg=wipeoutActive?Math.max(30,p.damage*4):p.damage;
-          if(isGlobalGame&&bo.id&&window.MP_damageGlobalBoss)window.MP_damageGlobalBoss(bo.id,bdmg);
+          if(isNetworkGame&&bo.id&&window.MP_damageGlobalBoss)window.MP_damageGlobalBoss(bo.id,bdmg);
           else bo.hp-=bdmg;
           bo.hitFlash=0.15;
           spawnHitSpark(p.x,p.y,'#eaff8f');
@@ -2452,7 +2462,7 @@ function updateChainLightning(dt){
     var dmg=30*(1+0.20*lv);
     var target=findNearestEnemy(player.x+player.width/2,player.y);
     if(target){
-      if(isGlobalGame&&target.id&&window.MP_damageGlobalEnemy)window.MP_damageGlobalEnemy(target.id,dmg);
+      if(isNetworkGame&&target.id&&window.MP_damageGlobalEnemy)window.MP_damageGlobalEnemy(target.id,dmg);
       else{target.hp-=dmg;target.hitFlash=0.15;}
       pushDamageNumber(target.x+target.width/2,target.y+target.height/2,Math.round(dmg),'#ffe066');
       spawnHitSpark(target.x+target.width/2,target.y+target.height/2,'#ffe066');
@@ -2536,7 +2546,7 @@ function updatePet(dt){
       petState.chainTimer=eff.chainInterval;
       var t=findNearestEnemy(player.x+player.width/2,player.y);
       if(t){
-        if(isGlobalGame&&t.id&&window.MP_damageGlobalEnemy)window.MP_damageGlobalEnemy(t.id,eff.chainDmg);
+        if(isNetworkGame&&t.id&&window.MP_damageGlobalEnemy)window.MP_damageGlobalEnemy(t.id,eff.chainDmg);
         else{t.hp-=eff.chainDmg;t.hitFlash=0.15;}
         pushDamageNumber(t.x+t.width/2,t.y+t.height/2,Math.round(eff.chainDmg),'#c86ae8');
         spawnHitSpark(t.x+t.width/2,t.y+t.height/2,'#c86ae8');
@@ -2779,14 +2789,10 @@ function drawBosses(){
       }
       if(bosses.length>1){
         ctx.save();
-        ctx.font='bold 14px Fredoka,sans-serif';
-        ctx.textAlign='center';
-        ctx.fillStyle='#fff';
-        ctx.strokeStyle='rgba(36,36,56,0.9)';
-        ctx.lineWidth=4;
+        ctx.font='bold 14px Fredoka,sans-serif';ctx.textAlign='center';
+        ctx.fillStyle='#fff';ctx.strokeStyle='rgba(36,36,56,0.9)';ctx.lineWidth=4;
         var label='#'+boss.bossNumber;
-        ctx.strokeText(label,cx,boss.y-6);
-        ctx.fillText(label,cx,boss.y-6);
+        ctx.strokeText(label,cx,boss.y-6);ctx.fillText(label,cx,boss.y-6);
         ctx.restore();
       }
     }
@@ -2798,8 +2804,7 @@ function drawProjectiles(){
   for(i=0;i<playerProjectiles.length;i++){
     p=playerProjectiles[i];
     img=p.sprite.canvas;
-    pox=p.sprite.cx;
-    poy=p.sprite.cy;
+    pox=p.sprite.cx;poy=p.sprite.cy;
     var gunUpgLv=p.gunUpgLv||0;
     if(wipeoutActive){ctx.globalAlpha=0.6;ctx.fillStyle='#ff6b4a';ctx.beginPath();ctx.arc(p.x,p.y,p.r*2.6,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
     if(quadTime>0){ctx.globalAlpha=0.6;ctx.fillStyle='#ffc857';ctx.beginPath();ctx.arc(p.x,p.y,p.r*2.2,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
@@ -3161,7 +3166,7 @@ function showWinModal(){
   if(winModal)winModal.classList.add('on');
   sfxVictory();
   if(currentLevel.isEndless){
-    if(runKills>save.endlessBest){save.endlessBest=runKills;}
+    if(runKills>save.endlessBest)save.endlessBest=runKills;
   }
   if(currentChallenge){
     var bestKey=currentChallenge;
@@ -3312,13 +3317,13 @@ function activateSkill(){
     for(var i=enemies.length-1;i>=0;i--){
       var e=enemies[i];
       if(e.spawnT>0)continue;
-      if(isGlobalGame&&e.id&&window.MP_damageGlobalEnemy)window.MP_damageGlobalEnemy(e.id,bdmg);
+      if(isNetworkGame&&e.id&&window.MP_damageGlobalEnemy)window.MP_damageGlobalEnemy(e.id,bdmg);
       else{e.hp-=bdmg;e.hitFlash=0.2;}
     }
     for(var bj=0;bj<bosses.length;bj++){
       var bo=bosses[bj];
       if(bo.spawnT>0)continue;
-      if(isGlobalGame&&bo.id&&window.MP_damageGlobalBoss)window.MP_damageGlobalBoss(bo.id,bdmg);
+      if(isNetworkGame&&bo.id&&window.MP_damageGlobalBoss)window.MP_damageGlobalBoss(bo.id,bdmg);
       else{bo.hp-=bdmg;bo.hitFlash=0.2;}
     }
     triggerShake(22,0.6);
@@ -3369,15 +3374,16 @@ function updateActiveSkill(dt){
   }
 }
 
-function syncGlobalEnemies(dt){
-  if(!isGlobalGame)return;
+function syncNetworkEnemies(dt){
+  if(!isNetworkGame)return;
   if(!window.DS_MP)return;
-  var cache=window.DS_MP.globalEnemiesCache||{};
   var now=Date.now();
+  var cache=window.DS_MP.globalEnemiesCache||{};
   var seen={};
   for(var id in cache){
     var g=cache[id];
     if(!g)continue;
+    if(g.hp<=0)continue;
     seen[id]=true;
     var local=null;
     for(var i=0;i<enemies.length;i++)if(enemies[i].id===id){local=enemies[i];break;}
@@ -3386,30 +3392,35 @@ function syncGlobalEnemies(dt){
       if(!def)continue;
       var w=BASE_SIZE*def.size;
       var lifeSec=(now-(g.spawnTime||now))/1000;
+      var curY=(g.startY!==undefined?g.startY:edgeTop())+lifeSec*(def.speed||0);
+      if(curY>edgeBottom()+80)continue;
       local={
-        id:id,type:g.type,
-        x:g.x,y:(g.startY!==undefined?g.startY:edgeTop())+lifeSec*def.speed,
-        width:w,height:w,hp:g.hp,maxHp:g.maxHp,damage:g.damage,
-        shootType:def.shootType,fireRate:def.fireRate,fireTimer:1/def.fireRate*(0.4+Math.random()*0.6),
+        id:id,type:g.type,x:g.x,y:curY,width:w,height:w,
+        hp:g.hp,maxHp:g.maxHp||g.hp,damage:g.damage||def.damage,
+        shootType:def.shootType,fireRate:def.fireRate,
+        fireTimer:1/def.fireRate*(0.4+Math.random()*0.6),
         color:def.color,dark:def.dark,speed:def.speed,projSpeed:def.projSpeed||0,
         spread:def.spread||0,orbit:def.orbit||false,splits:def.splits||0,
         orbitPhase:Math.random()*6.283,orbitRadius:30+Math.random()*60,
         baseX:g.x,spiralAngle:0,hitFlash:0,spawnT:0,
         poisonTime:0,poisonDPS:0,shape:g.shape||'square',shapeKp:1,
         heavenlyState:'ready',heavenlyTimer:2,heavenlyOrbs:8,orbAngle:Math.random()*6.283,
-        _globalStartY:(g.startY!==undefined?g.startY:edgeTop()),
-        _globalSpawnTime:g.spawnTime||now,
-        _isGlobal:true
+        isMiniBoss:!!g.isMiniBoss,
+        _netSpawnTime:g.spawnTime||now,
+        _netStartY:g.startY!==undefined?g.startY:edgeTop()
       };
       enemies.push(local);
     }else{
       local.hp=g.hp;
-      local.maxHp=g.maxHp;
+      local.maxHp=g.maxHp||local.maxHp;
       local.x=g.x;
+      var lifeSec2=(now-(g.spawnTime||now))/1000;
+      var def2=ENEMY_TYPES[g.type];
+      if(def2)local.y=(g.startY!==undefined?g.startY:edgeTop())+lifeSec2*(def2.speed||0);
     }
   }
-  for(var i=enemies.length-1;i>=0;i--){
-    if(enemies[i]._isGlobal&&!seen[enemies[i].id])enemies.splice(i,1);
+  for(var ei=enemies.length-1;ei>=0;ei--){
+    if(enemies[ei]._netSpawnTime&&!seen[enemies[ei].id])enemies.splice(ei,1);
   }
   var bossCache=window.DS_MP.globalBossesCache||{};
   var seenB={};
@@ -3420,25 +3431,36 @@ function syncGlobalEnemies(dt){
     var lb=null;
     for(var bi=0;bi<bosses.length;bi++)if(bosses[bi].id===bid){lb=bosses[bi];break;}
     if(!lb){
+      if(gb.hp<=0)continue;
       var bdef=BOSS_TYPES[gb.idx%BOSS_TYPES.length];
       if(!bdef)continue;
       var bw=BASE_SIZE*bdef.size;
-      bosses.push({
+      var nb={
         id:bid,idx:gb.idx%BOSS_TYPES.length,name:bdef.name,
-        x:gb.x,y:gb.y,width:bw,height:bw,hp:gb.hp,maxHp:gb.maxHp,
-        baseX:gb.x,moveRange:bdef.moveRange,phase:Math.random()*6.283,
-        speed:bdef.speed,attackCycle:bdef.cycle,attackIdx:0,
-        shootInterval:bdef.shootInterval,fireTimer:1.4,gatling:0,gatlingTimer:0,
-        spawnT:0,hitFlash:0,color:bdef.color,dark:bdef.dark,spiralAngle:0,
-        bossNumber:1,poisonTime:0,poisonDPS:0,_isGlobal:true
-      });
-      if(bosses.length===1){bossWrap.classList.add('on');bossName.textContent=bdef.name;}
+        x:gb.x,y:gb.y,width:bw,height:bw,hp:gb.hp,maxHp:gb.maxHp||gb.hp,
+        baseX:gb.baseX||gb.x,moveRange:gb.moveRange||bdef.moveRange,
+        phase:gb.phase||Math.random()*6.283,speed:gb.speed||bdef.speed,
+        attackCycle:bdef.cycle,attackIdx:0,shootInterval:bdef.shootInterval,
+        fireTimer:1.4,gatling:0,gatlingTimer:0,spawnT:0,hitFlash:0,
+        color:bdef.color,dark:bdef.dark,spiralAngle:0,
+        bossNumber:1,poisonTime:0,poisonDPS:0,_net:true
+      };
+      bosses.push(nb);
+      bossWrap.classList.add('on');
+      bossName.textContent=bdef.name;
     }else{
-      lb.hp=gb.hp;lb.maxHp=gb.maxHp;lb.x=gb.x;
+      lb.hp=gb.hp;
+      lb.maxHp=gb.maxHp||lb.maxHp;
+      lb.x=gb.x;
+      lb.baseX=gb.baseX||lb.baseX;
     }
   }
   for(var bi2=bosses.length-1;bi2>=0;bi2--){
-    if(bosses[bi2]._isGlobal&&!seenB[bosses[bi2].id])bosses.splice(bi2,1);
+    var lb2=bosses[bi2];
+    if(lb2._net&&!seenB[lb2.id]){
+      if(!lb2._credited)killBoss(lb2);
+      bosses.splice(bi2,1);
+    }
   }
   if(bosses.length===0)bossWrap.classList.remove('on');
 }
@@ -3482,24 +3504,24 @@ function loop(ts){
       if(window.DS_MP.onTickDead)window.DS_MP.onTickDead(dt);
     }else{
       elapsed+=dt;
-      if(isGlobalGame){
-        syncGlobalEnemies(dt);
+      if(isNetworkGame){
+        syncNetworkEnemies(dt);
       }
       if(!currentLevel.isFinal&&!currentLevel.isEndless){
-        if((!isGlobalGame||(window.DS_MP&&window.DS_MP.isGlobalHost))){
+        if(!isNetworkGame||amHost()){
           if(elapsed>=nextBossTime&&currentLevel.bossInterval<999){
             nextBossTime+=currentLevel.bossInterval;
             if(currentLevel.bossesCanStack||bosses.length===0)spawnBoss();
           }
           if(elapsed>=nextMiniBossTime){nextMiniBossTime+=25;spawnMiniBoss();}
-          if(elapsed>=SIDE_LASER_START_TIME&&obstacleLasers.length===0&&currentLevel.id!==0)spawnObstacleLasers();
+          if(currentLevel.id!==0&&elapsed>=SIDE_LASER_START_TIME&&obstacleLasers.length===0)spawnObstacleLasers();
         }
         if(bosses.length===0&&elapsed-lastWaveShownAt>=20&&elapsed>3){
           lastWaveShownAt=elapsed;
           showWaveBanner('WAVE '+Math.floor(elapsed/20));
         }
       }else if(currentLevel.isEndless){
-        if(!isGlobalGame||(window.DS_MP&&window.DS_MP.isGlobalHost)){
+        if(!isNetworkGame||amHost()){
           if(elapsed>=nextBossTime){nextBossTime+=currentLevel.bossInterval;spawnBoss();}
           if(elapsed>=nextMiniBossTime){nextMiniBossTime+=25;spawnMiniBoss();}
         }
@@ -3508,10 +3530,12 @@ function loop(ts){
           showWaveBanner('WAVE '+Math.floor(elapsed/20));
         }
       }else{
-        if(bosses.length===0&&elapsed>1&&!winShown&&(!isGlobalGame||(window.DS_MP&&window.DS_MP.isGlobalHost)))showWinModal();
+        if(bosses.length===0&&elapsed>1&&!winShown){
+          if(!isNetworkGame||amHost())showWinModal();
+        }
       }
       upgradeManager();
-      if(!isGlobalGame)spawnManager(dt);
+      spawnManager(dt);
       firePlayer(dt);
       updateActiveSkill(dt);
       updateChainLightning(dt);
@@ -3554,7 +3578,7 @@ function loop(ts){
         updateHud();
         endGame(false);
       }else if(!currentLevel.isEndless&&!currentLevel.isFinal&&isFinite(currentLevel.duration)&&elapsed>=currentLevel.duration&&!winShown){
-        if(!isGlobalGame||(window.DS_MP&&window.DS_MP.isGlobalHost))showWinModal();
+        if(!isNetworkGame||amHost())showWinModal();
       }
     }
   }else{
@@ -3875,12 +3899,28 @@ function renderLevels(){
         return;
       }
       sfxClick();
+      currentChallenge=null;
+      if(window.DS_MP.active||window.DS_MP.networkMode){
+        window.DS_MP.active=false;
+        window.DS_MP.networkMode=false;
+        window.DS_MP.globalMode=false;
+        window.DS_MP.dead=false;
+        window.DS_MP.isGlobalHost=false;
+      }
       startLevel(L,false);
     });
   }
   if(dom.endlessModeCard){
     dom.endlessModeCard.onclick=function(){
       initAudio();sfxClick();
+      currentChallenge=null;
+      if(window.DS_MP.active||window.DS_MP.networkMode){
+        window.DS_MP.active=false;
+        window.DS_MP.networkMode=false;
+        window.DS_MP.globalMode=false;
+        window.DS_MP.dead=false;
+        window.DS_MP.isGlobalHost=false;
+      }
       var L=null;
       for(var k=0;k<LEVELS.length;k++)if(LEVELS[k].isEndless){L=LEVELS[k];break;}
       if(L)startLevel(L,false);
@@ -3925,6 +3965,79 @@ function petSvgIcon(item,size){
   var spr=petSpriteCache[item.id];
   if(!spr)return ICONS[item.icon]||ICONS.star;
   return '<img src="'+spr.canvas.toDataURL()+'" style="width:'+size+'px;height:'+size+'px;">';
+}
+
+function renderShopPreview(dt){
+  if(!shopPreviewCtx||!shopPreviewCanvas)return;
+  var cw=shopPreviewCanvas.width,ch=shopPreviewCanvas.height;
+  if(cw<=0||ch<=0)return;
+  var g=shopPreviewCtx;
+  var grad=g.createLinearGradient(0,0,0,ch);
+  grad.addColorStop(0,'#bae6fd');
+  grad.addColorStop(0.6,'#e0f2fe');
+  grad.addColorStop(1,'#fffaf0');
+  g.fillStyle=grad;
+  g.fillRect(0,0,cw,ch);
+  g.fillStyle='rgba(255,255,255,0.5)';
+  for(var y=20;y<ch;y+=28)for(var x=20;x<cw;x+=28)g.fillRect(x,y,2,2);
+  var ship=findShip(save.selectedShip);
+  var shape=findShape(save.selectedShape);
+  var key=ship.id+'_'+shape.id;
+  var spriteSet=playerSpriteCache[key]||playerSpriteCache[ship.id+'_square']||playerSpriteCache['default_square'];
+  if(!spriteSet)return;
+  var cx=cw/2,cy=ch*0.65;
+  var targetCx=cw*0.5+(Math.sin(elapsedTotal*0.8)*cw*0.2);
+  var px=targetCx;
+  shopPreviewFiring+=dt;
+  if(shopPreviewFiring>=0.12){
+    shopPreviewFiring=0;
+    var sprite=playerProjSpriteCache[save.selectedGun]||playerProjSpriteCache.bullet;
+    if(!shopPreviewAnim)shopPreviewAnim=[];
+    shopPreviewAnim.push({x:px,y:cy-20,vy:-360,life:1.2,maxLife:1.2,sprite:sprite});
+    if(shopPreviewAnim.length>30)shopPreviewAnim.shift();
+  }
+  var gun=findGun(save.selectedGun);
+  var dmg=PLAYER_TIERS[5].dmg*gun.dmgMult;
+  g.save();
+  g.globalAlpha=0.9;
+  var glowShip=playerGlowCache[ship.id]||playerGlowCache['default'];
+  g.drawImage(glowShip.normal.canvas,px-glowShip.R*0.7,cy-glowShip.R*0.7,glowShip.R*1.4,glowShip.R*1.4);
+  g.restore();
+  var sprite2=spriteSet.normal;
+  var scale=0.75;
+  g.drawImage(sprite2.canvas,px-sprite2.canvas.width*scale/2,cy-sprite2.canvas.height*scale/2,sprite2.canvas.width*scale,sprite2.canvas.height*scale);
+  if(shopPreviewAnim){
+    for(var i=shopPreviewAnim.length-1;i>=0;i--){
+      var p=shopPreviewAnim[i];
+      p.life-=dt;
+      p.y+=p.vy*dt;
+      if(p.life<=0){shopPreviewAnim.splice(i,1);continue;}
+      var a=p.life/p.maxLife;
+      g.save();
+      g.globalAlpha=a;
+      g.drawImage(p.sprite.canvas,p.x-p.sprite.cx*0.7,p.y-p.sprite.cy*0.7,p.sprite.canvas.width*0.7,p.sprite.canvas.height*0.7);
+      g.restore();
+    }
+  }
+  if(save.selectedPet){
+    var pSpr=petSpriteCache[save.selectedPet];
+    if(pSpr){
+      g.save();
+      g.globalAlpha=0.9;
+      g.drawImage(pSpr.canvas,cw-60-pSpr.cx*0.7,ch-50-pSpr.cy*0.7,pSpr.canvas.width*0.7,pSpr.canvas.height*0.7);
+      g.restore();
+    }
+  }
+  g.save();
+  g.globalAlpha=0.85;
+  g.font='bold 11px Fredoka,sans-serif';
+  g.fillStyle='#4a4a63';
+  g.textAlign='left';
+  g.fillText(ship.name+' / '+shape.name,10,18);
+  g.textAlign='right';
+  g.fillStyle='#ff6b4a';
+  g.fillText('DMG '+dmg.toFixed(1),cw-10,18);
+  g.restore();
 }
 
 function renderShop(){
@@ -4503,9 +4616,17 @@ for(var cri=0;cri<challengeRows.length;cri++){
   challengeRows[cri].addEventListener('click',function(){
     initAudio();sfxClick();
     var ch=this.getAttribute('data-challenge');
-    currentChallenge=ch;
-    goScreen('level','levelSelect');
-    setTimeout(function(){startChallenge(ch);},600);
+    if(!ch)return;
+    if(window.DS_MP.active||window.DS_MP.networkMode){
+      window.DS_MP.active=false;
+      window.DS_MP.networkMode=false;
+      window.DS_MP.globalMode=false;
+      window.DS_MP.dead=false;
+      window.DS_MP.isGlobalHost=false;
+      window.DS_MP.playersCache={};
+    }
+    isNetworkGame=false;
+    startChallenge(ch);
   });
 }
 
