@@ -1,5 +1,6 @@
 (function(){
 'use strict';
+
 var SPIN_TIERS={
   normal:{
     id:'normal',
@@ -149,9 +150,10 @@ function applyReward(reward){
       res.tagClass='new';
     }else{
       res.name=shape.name;
-      res.desc='*Bentuk sudah dimiliki';
-      res.tag='SUDAH DIMILIKI';
-      res.tagClass='upgrade';
+      res.desc='Bentuk sudah dimiliki. Dikonversi jadi +200 KP';
+      DS().grantKP(200);
+      res.tag='KONVERSI KP';
+      res.tagClass='kp';
     }
     res.icon=shapeIcon(shape);
     return res;
