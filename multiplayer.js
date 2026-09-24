@@ -7,27 +7,29 @@ var CHAT_MAX_STORE=80;
 var CHAT_MAX_SHOW=60;
 var KF_MAX_ITEMS=5;
 var KF_LIFE=4000;
-var ENEMY_SYNC_HZ=8;
 var USER_SYNC_INTERVAL=8000;
+var ROOM_STALE_MS=6*3600*1000;
+var PLAYER_STALE_MS=30000;
 
 var mp={
   roomCode:null,myId:null,hostId:null,isHost:false,playersCache:{},
   roomRef:null,playerRef:null,chatRef:null,emojiRef:null,kfRef:null,
-  enemyRef:null,bossRef:null,enemyProjRef:null,
-  pollInterval:null,gameUpdateTimer:0,enemySyncTimer:0,
+  enemyRef:null,bossRef:null,
+  pollInterval:null,gameUpdateTimer:0,userSyncTimer:null,userRef:null,
   selectedMode:1,startRequested:false,finalSent:false,gameEnded:false,
+  prevRoomState:'lobby',
   lobbyX:0.5,lobbyDragging:false,inGameDead:false,reviveCountdown:0,
   lastWrittenKp:null,sendModalOpen:false,
   pfCtx:null,pfCanvas:null,pfAnim:null,pfLastW:0,pfLastH:0,pfLastDPR:0,
-  seenEmojis:{},seenKf:{},chatItems:[],chatLoaded:false,chatCounter:0,kfItems:[],
-  userRef:null,userSyncTimer:null,
+  seenEmojis:{},seenKf:{},chatItems:[],kfItems:[],
   globalMode:false,globalRef:null,globalPlayerRef:null,
   globalKillfeedRef:null,globalChatRef:null,globalStatsRef:null,
   globalEnemyRef:null,globalBossRef:null,
-  globalKillsTotal:0,globalPlayersOnline:0,
-  globalDead:false,globalReviveCountdown:0,
+  globalKillsTotal:0,globalPlayersOnline:0,globalPlayers:{},
+  globalDead:false,globalReviveCountdown:0,globalStarting:false,
   isGlobalHost:false,hostCheckTimer:null,
-  searchResults:[],userSearchCache:{}
+  roomListLoading:false,
+  waitingHostTimer:0
 };
 
 var MP_MODES=[
@@ -42,6 +44,10 @@ var MP_MODES=[
 function DS(){return window.DS;}
 function MPApi(){return window.DS_MP;}
 function PC(){return MPApi().playersCache;}
+function modeLabel(id){
+  for(var i=0;i<MP_MODES.length;i++)if(MP_MODES[i].id===id)return MP_MODES[i].label;
+  return 'MUDAH';
+}
 
 function initFirebase(){
   try{
@@ -60,7 +66,11 @@ function genRoomCode(){
   return s;
 }
 function genPlayerId(){return 'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);}
-function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function esc(s){
+  return String(s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
 function fmtK(n){
   if(n===undefined||n===null)return '0';
   n=Number(n)||0;
@@ -71,41 +81,81 @@ function fmtK(n){
   return String(n);
 }
 function clamp(v,a,b){return v<a?a:(v>b?b:v);}
-function now(){return Date.now();}
+function nowTs(){return Date.now();}
 
 function getUserProfile(){
-  var save=DS().save;
+  var s=DS().save;
   return {
-    id:save.globalId,name:(save.playerName||'PLAYER').toUpperCase(),
-    kills:save.kills,totalKills:save.totalKills,level:save.level,xp:save.xp,
-    trophies:save.trophies,ship:save.selectedShip,shape:save.selectedShape,
-    gun:save.selectedGun,pet:save.selectedPet||'',wins:save.mpWins||0,
-    lastSeen:now()
+    id:s.globalId,
+    name:(s.playerName||'PLAYER').toUpperCase(),
+    kills:s.kills||0,
+    totalKills:s.totalKills||0,
+    level:s.level||1,
+    xp:s.xp||0,
+    trophies:s.trophies||0,
+    ship:s.selectedShip,
+    shape:s.selectedShape,
+    gun:s.selectedGun,
+    pet:s.selectedPet||'',
+    wins:s.mpWins||0,
+    lastSeen:nowTs()
   };
 }
 
 function syncUserProfile(){
   if(!db)return;
-  var save=DS().save;
-  if(!save.globalId){
-    save.globalId='g_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
+  var s=DS().save;
+  if(!s.globalId){
+    s.globalId='g_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
     DS().persist();
   }
-  if(!mp.userRef)mp.userRef=db.ref('users/'+save.globalId);
+  if(!mp.userRef)mp.userRef=db.ref('users/'+s.globalId);
   mp.userRef.update(getUserProfile());
   if(!mp.userSyncTimer){
     mp.userSyncTimer=setInterval(function(){
       if(db&&DS().save.globalId){
         db.ref('users/'+DS().save.globalId).update({
-          kills:DS().save.kills,totalKills:DS().save.totalKills,
-          level:DS().save.level,xp:DS().save.xp,trophies:DS().save.trophies,
-          ship:DS().save.selectedShip,shape:DS().save.selectedShape,
-          gun:DS().save.selectedGun,pet:DS().save.selectedPet||'',
-          lastSeen:now()
+          name:(DS().save.playerName||'PLAYER').toUpperCase(),
+          kills:DS().save.kills,
+          totalKills:DS().save.totalKills,
+          level:DS().save.level,
+          xp:DS().save.xp,
+          trophies:DS().save.trophies,
+          ship:DS().save.selectedShip,
+          shape:DS().save.selectedShape,
+          gun:DS().save.selectedGun,
+          pet:DS().save.selectedPet||'',
+          lastSeen:nowTs()
         });
       }
     },USER_SYNC_INTERVAL);
   }
+}
+
+function getGlobalLevel(){
+  var base=DS().LEVELS[1];
+  return {
+    id:'global_arena',
+    name:'GLOBAL ARENA',
+    chapter:99,
+    unlockCost:0,
+    cardClass:'endless',
+    duration:Infinity,
+    theme:base.theme,
+    stageLength:base.stageLength,
+    enemiesPerSecond:base.enemiesPerSecond,
+    baseMaxActive:base.baseMaxActive,
+    maxActiveGrowth:base.maxActiveGrowth,
+    maxActiveCap:base.maxActiveCap,
+    hpMult:base.hpMult*1.15,
+    dmgMult:base.dmgMult*1.15,
+    healFreqMult:base.healFreqMult,
+    throttleRatio:99,
+    bossInterval:22,
+    isEndless:true,
+    bossesCanStack:true,
+    spawnRateMult:1.4
+  };
 }
 
 function createGroup(){
@@ -113,29 +163,53 @@ function createGroup(){
   if(name.length<3){DS().showToast('Nama minimal 3 karakter','error');return;}
   if(name.length>10){DS().showToast('Nama maksimal 10 karakter','error');return;}
   if(!db){DS().showToast('Database belum siap','error');return;}
-  DS().save.playerName=name;DS().persist();
+  DS().save.playerName=name;
+  DS().persist();
   syncUserProfile();
   var code=genRoomCode();
   var myId=genPlayerId();
-  mp.myId=myId;mp.isHost=true;mp.roomCode=code;mp.selectedMode=1;
-  mp.lastWrittenKp=null;mp.lobbyX=0.5;mp.gameEnded=false;mp.globalMode=false;
+  mp.myId=myId;
+  mp.isHost=true;
+  mp.roomCode=code;
+  mp.selectedMode=1;
+  mp.lastWrittenKp=null;
+  mp.lobbyX=0.5;
+  mp.gameEnded=false;
+  mp.globalMode=false;
+  mp.prevRoomState='lobby';
+  mp.startRequested=false;
+  mp.finalSent=false;
   var ref=db.ref('rooms/'+code);
   ref.once('value',function(snap){
     if(snap.exists()){createGroup();return;}
     var me={
-      id:myId,name:name,ship:DS().save.selectedShip,shape:DS().save.selectedShape,
-      gun:DS().save.selectedGun,skill:DS().save.selectedSkill||'',pet:DS().save.selectedPet||'',
-      alive:true,kills:0,kp:DS().save.kills,level:DS().save.level,xp:DS().save.xp,
-      joinedAt:now(),lastSeen:now(),lobbyX:0.5,posX:0.5,posHp:1
+      id:myId,name:name,
+      ship:DS().save.selectedShip,
+      shape:DS().save.selectedShape,
+      gun:DS().save.selectedGun,
+      skill:DS().save.selectedSkill||'',
+      pet:DS().save.selectedPet||'',
+      alive:true,kills:0,
+      kp:DS().save.kills,
+      level:DS().save.level,
+      xp:DS().save.xp,
+      joinedAt:nowTs(),lastSeen:nowTs(),
+      lobbyX:0.5,posX:0.5,posHp:1
     };
-    var data={code:code,hostId:myId,state:'lobby',mode:1,createdAt:now(),startAt:0,players:{}};
+    var data={
+      code:code,hostId:myId,
+      state:'lobby',mode:1,
+      createdAt:nowTs(),startAt:0,
+      players:{}
+    };
     data.players[myId]=me;
     ref.set(data,function(err){
       if(err){DS().showToast('Gagal buat grup','error');return;}
       mp.hostId=myId;
       attachListeners(code,myId,true);
       DS().showScreen('mpLobby');
-      document.getElementById('mpRoomCode').textContent=code;
+      var codeEl=document.getElementById('mpRoomCode');
+      if(codeEl)codeEl.textContent=code;
       renderLobby();
       DS().sfxMP();
     });
@@ -148,33 +222,74 @@ function joinGroup(){
   if(name.length>10){DS().showToast('Nama maksimal 10 karakter','error');return;}
   var code=(document.getElementById('mpCodeInput').value||'').trim().toUpperCase();
   if(code.length!==6){DS().showToast('Kode grup harus 6 karakter','error');return;}
+  joinGroupByCode(code,name);
+}
+
+function joinGroupByCode(code,nameInput){
   if(!db){DS().showToast('Database belum siap','error');return;}
-  DS().save.playerName=name;DS().persist();
+  var name=(nameInput||'').trim().toUpperCase();
+  if(name.length<3){DS().showToast('Nama minimal 3 karakter','error');return;}
+  if(name.length>10){DS().showToast('Nama maksimal 10 karakter','error');return;}
+  DS().save.playerName=name;
+  DS().persist();
   syncUserProfile();
   var ref=db.ref('rooms/'+code);
   ref.once('value',function(snap){
     if(!snap.exists()){DS().showToast('Grup tidak ditemukan','error');return;}
     var data=snap.val();
-    if(data.state&&data.state!=='lobby'){DS().showToast('Grup sudah mulai bermain','error');return;}
-    var players=data.players||{},names=[],cnt=0;
+    if(!data){DS().showToast('Grup tidak valid','error');return;}
+    if(data.state==='playing'){DS().showToast('Grup sedang bermain','error');return;}
+    var players=data.players||{};
+    var hostId=data.hostId;
+    if(hostId&&!players[hostId]){
+      DS().showToast('Host grup sudah keluar','error');
+      ref.remove();
+      return;
+    }
+    var names=[],cnt=0;
     for(var k in players){names.push((players[k].name||'').toUpperCase());cnt++;}
     if(names.indexOf(name)>=0){DS().showToast('Nama sudah dipakai','error');return;}
     if(cnt>=MAX_PLAYERS){DS().showToast('Grup sudah penuh','error');return;}
     var myId=genPlayerId();
-    mp.myId=myId;mp.isHost=false;mp.hostId=data.hostId||null;mp.roomCode=code;
-    mp.selectedMode=data.mode||1;mp.lastWrittenKp=null;mp.lobbyX=0.5;
-    mp.gameEnded=false;mp.globalMode=false;
+    mp.myId=myId;
+    mp.isHost=false;
+    mp.hostId=hostId;
+    mp.roomCode=code;
+    mp.selectedMode=data.mode||1;
+    mp.lastWrittenKp=null;
+    mp.lobbyX=0.5;
+    mp.gameEnded=false;
+    mp.globalMode=false;
+    mp.prevRoomState=data.state||'lobby';
+    mp.startRequested=false;
+    mp.finalSent=false;
     var me={
-      id:myId,name:name,ship:DS().save.selectedShip,shape:DS().save.selectedShape,
-      gun:DS().save.selectedGun,skill:DS().save.selectedSkill||'',pet:DS().save.selectedPet||'',
-      alive:true,kills:0,kp:DS().save.kills,level:DS().save.level,xp:DS().save.xp,
-      joinedAt:now(),lastSeen:now(),lobbyX:0.5,posX:0.5,posHp:1
+      id:myId,name:name,
+      ship:DS().save.selectedShip,
+      shape:DS().save.selectedShape,
+      gun:DS().save.selectedGun,
+      skill:DS().save.selectedSkill||'',
+      pet:DS().save.selectedPet||'',
+      alive:true,kills:0,
+      kp:DS().save.kills,
+      level:DS().save.level,
+      xp:DS().save.xp,
+      joinedAt:nowTs(),lastSeen:nowTs(),
+      lobbyX:0.5,posX:0.5,posHp:1
     };
-    ref.child('players/'+myId).set(me,function(err){
+    var updates={};
+    updates['players/'+myId]=me;
+    if(data.state==='ended'||data.state==='lobby'){
+      updates['state']='lobby';
+      updates['startAt']=0;
+      mp.prevRoomState='lobby';
+    }
+    ref.update(updates,function(err){
       if(err){DS().showToast('Gagal masuk grup','error');return;}
       attachListeners(code,myId,false);
       DS().showScreen('mpLobby');
-      document.getElementById('mpRoomCode').textContent=code;
+      var codeEl=document.getElementById('mpRoomCode');
+      if(codeEl)codeEl.textContent=code;
       renderLobby();
       DS().sfxMP();
     });
@@ -182,8 +297,11 @@ function joinGroup(){
 }
 
 function attachListeners(code,myId,isHost){
-  mp.roomCode=code;mp.myId=myId;mp.isHost=isHost;
-  MPApi().myId=myId;MPApi().isHost=isHost;
+  mp.roomCode=code;
+  mp.myId=myId;
+  mp.isHost=isHost;
+  MPApi().myId=myId;
+  MPApi().isHost=isHost;
   MPApi().isGlobalHost=isHost;
   MPApi().globalMode=false;
   MPApi().networkMode=true;
@@ -195,11 +313,15 @@ function attachListeners(code,myId,isHost){
   detachAll();
   mp.roomRef=db.ref('rooms/'+code);
   mp.playerRef=db.ref('rooms/'+code+'/players/'+myId);
-  MPApi().roomRef=mp.roomRef;MPApi().playerRef=mp.playerRef;
+  MPApi().roomRef=mp.roomRef;
+  MPApi().playerRef=mp.playerRef;
   mp.enemyRef=mp.roomRef.child('enemies');
   mp.bossRef=mp.roomRef.child('bosses');
   mp.playerRef.child('lastSeen').onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
   mp.playerRef.onDisconnect().remove();
+  if(isHost){
+    mp.roomRef.onDisconnect().remove();
+  }
   mp.roomRef.on('value',function(snap){
     var data=snap.val();
     if(!data){DS().showToast('Grup dibubarkan','error');leaveGroup();return;}
@@ -210,19 +332,31 @@ function attachListeners(code,myId,isHost){
     MPApi().isGlobalHost=(data.hostId===myId);
     if(data.mode!==undefined)mp.selectedMode=data.mode;
     if(!players[myId]){DS().showToast('Kamu dikeluarkan dari grup','error');leaveGroup();return;}
+    if(data.hostId&&!players[data.hostId]){
+      DS().showToast('Host keluar dari grup','error');
+      leaveGroup();
+      return;
+    }
     var myData=players[myId];
     if(myData.kp!==undefined&&myData.kp!==mp.lastWrittenKp){
       DS().save.kills=myData.kp;
       mp.lastWrittenKp=myData.kp;
-      DS().refreshHeaderKills();DS().refreshProfile();DS().updateMenuCard();
+      DS().refreshHeaderKills();
+      DS().refreshProfile();
+      DS().updateMenuCard();
+    }
+    var curState=data.state||'lobby';
+    if(curState!==mp.prevRoomState){
+      if(mp.prevRoomState==='lobby'&&curState==='playing'){
+        mp.waitingHostTimer=0;
+        if(!mp.startRequested){mp.startRequested=true;startGame();}
+      }
+      if(mp.prevRoomState==='playing'&&curState==='ended'){
+        if(!mp.finalSent){mp.finalSent=true;onRoomEnded();}
+      }
+      mp.prevRoomState=curState;
     }
     var st=DS().getAppState();
-    if(data.state==='playing'&&st!=='playingMP'){
-      if(!mp.startRequested){mp.startRequested=true;startGame();}
-    }
-    if(data.state==='ended'&&st==='playingMP'){
-      if(!mp.finalSent){mp.finalSent=true;onRoomEnded();}
-    }
     if(st==='mpLobbyMenu')renderLobby();
     if(st==='playingMP')updateTopStats();
   });
@@ -232,7 +366,8 @@ function attachListeners(code,myId,isHost){
   mp.kfRef.on('value',function(snap){var d=snap.val();if(d)handleRemoteKillFeed(d);});
   mp.chatRef=mp.roomRef.child('chat');
   mp.chatRef.limitToLast(CHAT_MAX_STORE).on('child_added',function(snap){
-    var d=snap.val();if(!d)return;
+    var d=snap.val();
+    if(!d)return;
     var key=snap.key;
     if(mp.seenEmojis['c_'+key])return;
     mp.seenEmojis['c_'+key]=true;
@@ -247,7 +382,7 @@ function attachListeners(code,myId,isHost){
     if(window.DS_MP)window.DS_MP.globalBossesCache=d;
   });
   mp.pollInterval=setInterval(function(){
-    if(mp.playerRef)mp.playerRef.child('lastSeen').set(now());
+    if(mp.playerRef)mp.playerRef.child('lastSeen').set(nowTs());
   },5000);
 }
 
@@ -270,29 +405,12 @@ function detachGlobal(){
   if(mp.globalEnemyRef){try{mp.globalEnemyRef.off();}catch(e){}mp.globalEnemyRef=null;}
   if(mp.globalBossRef){try{mp.globalBossRef.off();}catch(e){}mp.globalBossRef=null;}
   if(mp.hostCheckTimer){clearInterval(mp.hostCheckTimer);mp.hostCheckTimer=null;}
-  mp.globalKillsTotal=0;mp.globalPlayersOnline=0;
+  mp.globalKillsTotal=0;
+  mp.globalPlayersOnline=0;
+  mp.globalPlayers={};
 }
 
-function leaveGroup(){
-  if(mp.globalMode){leaveGlobal();return;}
-  if(mp.roomRef&&mp.myId&&mp.roomCode){
-    try{db.ref('rooms/'+mp.roomCode+'/players/'+mp.myId).remove();}catch(e){}
-  }
-  detachAll();
-  mp.roomCode=null;mp.myId=null;mp.hostId=null;mp.isHost=false;
-  MPApi().playersCache={};
-  mp.startRequested=false;mp.finalSent=false;mp.gameEnded=false;
-  mp.selectedMode=1;mp.lastWrittenKp=null;
-  mp.inGameDead=false;mp.reviveCountdown=0;
-  mp.chatItems=[];mp.chatLoaded=false;mp.chatCounter=0;mp.kfItems=[];
-  mp.seenEmojis={};mp.seenKf={};
-  MPApi().active=false;MPApi().dead=false;MPApi().myId=null;
-  MPApi().roomRef=null;MPApi().playerRef=null;MPApi().isHost=false;
-  MPApi().networkMode=false;MPApi().isGlobalHost=false;
-  if(window.DS_MP){
-    window.DS_MP.globalEnemiesCache={};
-    window.DS_MP.globalBossesCache={};
-  }
+function resetLobbyUI(){
   var mr=document.getElementById('mpMiniRow');if(mr)mr.innerHTML='';
   var mpl=document.getElementById('mpPlayers');if(mpl)mpl.innerHTML='';
   var em=document.getElementById('mpEmojiLayer');if(em)em.innerHTML='';
@@ -305,6 +423,52 @@ function leaveGroup(){
   var kf=document.getElementById('killFeed');if(kf){kf.innerHTML='';kf.classList.remove('on');}
   var lb=document.getElementById('mpLevelBadge');if(lb)lb.classList.remove('on');
   var gs=document.getElementById('mpGlobalStats');if(gs)gs.classList.remove('on');
+  var rb=document.getElementById('mpReviveBox');if(rb)rb.classList.remove('on');
+}
+
+function leaveGroup(){
+  if(mp.globalMode){leaveGlobal();return;}
+  if(mp.roomRef&&mp.myId&&mp.roomCode){
+    try{
+      if(mp.isHost){
+        db.ref('rooms/'+mp.roomCode).remove();
+      }else{
+        db.ref('rooms/'+mp.roomCode+'/players/'+mp.myId).remove();
+      }
+    }catch(e){}
+  }
+  detachAll();
+  mp.roomCode=null;
+  mp.myId=null;
+  mp.hostId=null;
+  mp.isHost=false;
+  MPApi().playersCache={};
+  mp.startRequested=false;
+  mp.finalSent=false;
+  mp.gameEnded=false;
+  mp.prevRoomState='lobby';
+  mp.selectedMode=1;
+  mp.lastWrittenKp=null;
+  mp.inGameDead=false;
+  mp.reviveCountdown=0;
+  mp.chatItems=[];
+  mp.kfItems=[];
+  mp.seenEmojis={};
+  mp.seenKf={};
+  mp.waitingHostTimer=0;
+  MPApi().active=false;
+  MPApi().dead=false;
+  MPApi().myId=null;
+  MPApi().roomRef=null;
+  MPApi().playerRef=null;
+  MPApi().isHost=false;
+  MPApi().isGlobalHost=false;
+  MPApi().networkMode=false;
+  if(window.DS_MP){
+    window.DS_MP.globalEnemiesCache={};
+    window.DS_MP.globalBossesCache={};
+  }
+  resetLobbyUI();
 }
 
 function leaveGlobal(){
@@ -313,21 +477,28 @@ function leaveGlobal(){
   }
   detachGlobal();
   mp.globalMode=false;
-  MPApi().active=false;MPApi().dead=false;MPApi().globalMode=false;
-  MPApi().networkMode=false;MPApi().isGlobalHost=false;
+  MPApi().active=false;
+  MPApi().dead=false;
+  MPApi().globalMode=false;
+  MPApi().networkMode=false;
+  MPApi().isGlobalHost=false;
   MPApi().playersCache={};
-  mp.chatItems=[];mp.kfItems=[];mp.seenEmojis={};mp.seenKf={};
-  mp.startRequested=false;mp.gameEnded=false;mp.finalSent=false;
-  mp.globalDead=false;mp.globalReviveCountdown=0;mp.isGlobalHost=false;
+  mp.chatItems=[];
+  mp.kfItems=[];
+  mp.seenEmojis={};
+  mp.seenKf={};
+  mp.startRequested=false;
+  mp.gameEnded=false;
+  mp.finalSent=false;
+  mp.globalDead=false;
+  mp.globalReviveCountdown=0;
+  mp.globalStarting=false;
+  mp.isGlobalHost=false;
   if(window.DS_MP){
     window.DS_MP.globalEnemiesCache={};
     window.DS_MP.globalBossesCache={};
   }
-  var kf=document.getElementById('killFeed');if(kf){kf.innerHTML='';kf.classList.remove('on');}
-  var gs=document.getElementById('mpGlobalStats');if(gs)gs.classList.remove('on');
-  var ts=document.getElementById('mpTopStats');if(ts)ts.classList.remove('on');
-  var lb=document.getElementById('mpLevelBadge');if(lb)lb.classList.remove('on');
-  var em=document.getElementById('mpEmojiLayer');if(em)em.innerHTML='';
+  resetLobbyUI();
 }
 
 function renderLobby(){
@@ -412,8 +583,11 @@ function drawCardShip(cv,pl){
 function initPlayfield(){
   var cv=document.getElementById('mpPlayfieldCanvas');
   if(!cv)return;
-  mp.pfCanvas=cv;mp.pfCtx=cv.getContext('2d');
-  mp.pfLastW=0;mp.pfLastH=0;mp.pfLastDPR=0;
+  mp.pfCanvas=cv;
+  mp.pfCtx=cv.getContext('2d');
+  mp.pfLastW=0;
+  mp.pfLastH=0;
+  mp.pfLastDPR=0;
   cv.addEventListener('touchstart',pfTouchStart,{passive:false});
   cv.addEventListener('touchmove',pfTouchMove,{passive:false});
   cv.addEventListener('touchend',function(){mp.lobbyDragging=false;});
@@ -428,8 +602,10 @@ function pfTouchMove(ev){if(!mp.lobbyDragging)return;ev.preventDefault();pfUpdat
 function pfMouseDown(ev){mp.lobbyDragging=true;pfUpdateFromX(ev.clientX);}
 function pfMouseMove(ev){if(!mp.lobbyDragging)return;pfUpdateFromX(ev.clientX);}
 function pfUpdateFromX(clientX){
-  var cv=mp.pfCanvas;if(!cv)return;
-  var rect=cv.getBoundingClientRect();if(rect.width<=0)return;
+  var cv=mp.pfCanvas;
+  if(!cv)return;
+  var rect=cv.getBoundingClientRect();
+  if(rect.width<=0)return;
   var rel=(clientX-rect.left)/rect.width;
   mp.lobbyX=clamp(rel,0.05,0.95);
   if(mp.globalMode&&mp.globalPlayerRef)mp.globalPlayerRef.child('lobbyX').set(mp.lobbyX);
@@ -457,7 +633,8 @@ function pfLoop(){
   for(var k in PC())players.push(PC()[k]);
   players.sort(function(a,b){return (a.joinedAt||0)-(b.joinedAt||0);});
   var sz=Math.min(cw*0.20,ch*0.55);
-  if(sz<34)sz=34;if(sz>74)sz=74;
+  if(sz<34)sz=34;
+  if(sz>74)sz=74;
   var myId=mp.globalMode?DS().save.globalId:mp.myId;
   for(var i=0;i<players.length;i++){
     var pl=players[i];
@@ -471,8 +648,13 @@ function pfLoop(){
     var bob=Math.sin(t*0.003+i*1.3)*4;
     var alpha=pl.alive===false?0.35:1;
     if(isMe){
-      ctx.save();ctx.strokeStyle='rgba(255,200,87,0.9)';ctx.lineWidth=2;
-      ctx.beginPath();ctx.arc(cx,cy+bob,sz*0.78,0,Math.PI*2);ctx.stroke();ctx.restore();
+      ctx.save();
+      ctx.strokeStyle='rgba(255,200,87,0.9)';
+      ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.arc(cx,cy+bob,sz*0.78,0,Math.PI*2);
+      ctx.stroke();
+      ctx.restore();
     }
     var ship=DS().findShip(pl.ship||'default');
     var shape=DS().findShape(pl.shape||'square');
@@ -485,17 +667,21 @@ function pfLoop(){
     var dw=spr.width*scale,dh=spr.height*scale;
     var glow=DS().playerGlowCache()[ship.id];
     if(glow){
-      ctx.save();ctx.globalAlpha=alpha*0.55;
+      ctx.save();
+      ctx.globalAlpha=alpha*0.55;
       var gs=sz*1.5;
       ctx.drawImage(glow.normal.canvas,cx-gs/2,cy+bob-gs/2,gs,gs);
       ctx.restore();
     }
-    ctx.save();ctx.globalAlpha=alpha;
+    ctx.save();
+    ctx.globalAlpha=alpha;
     ctx.drawImage(spr,cx-dw/2,cy+bob-dh/2,dw,dh);
     ctx.restore();
     ctx.save();
-    ctx.font='bold 11px Fredoka,sans-serif';ctx.textAlign='center';
-    ctx.lineWidth=3.5;ctx.strokeStyle='rgba(36,36,56,0.9)';
+    ctx.font='bold 11px Fredoka,sans-serif';
+    ctx.textAlign='center';
+    ctx.lineWidth=3.5;
+    ctx.strokeStyle='rgba(36,36,56,0.9)';
     ctx.fillStyle=isMe?'#ffc857':'#ffffff';
     var label=(pl.name||'-').toUpperCase();
     ctx.strokeText(label,cx,cy+bob+dh/2+16);
@@ -537,7 +723,12 @@ function sendChat(){
   var text=(input.value||'').trim();
   if(!text)return;
   if(text.length>100)text=text.slice(0,100);
-  var msg={id:mp.globalMode?DS().save.globalId:mp.myId,name:(DS().save.playerName||'PLAYER').toUpperCase(),text:text,ts:now()};
+  var msg={
+    id:mp.globalMode?DS().save.globalId:mp.myId,
+    name:(DS().save.playerName||'PLAYER').toUpperCase(),
+    text:text,
+    ts:nowTs()
+  };
   if(mp.globalMode&&mp.globalChatRef)mp.globalChatRef.push(msg);
   else if(mp.chatRef)mp.chatRef.push(msg);
   input.value='';
@@ -556,13 +747,17 @@ function showFlyingEmoji(emojiChar,posX){
   el.style.top=(H*0.55)+'px';
   el.style.transform='translate(-50%,-50%)';
   layer.appendChild(el);
-  setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},2300);
+  setTimeout(function(){
+    if(el.parentNode)el.parentNode.removeChild(el);
+  },2300);
 }
 function sendEmoji(emojiChar){
   var data={
     id:mp.globalMode?DS().save.globalId:mp.myId,
     name:(DS().save.playerName||'PLAYER'),
-    emoji:emojiChar,posX:mp.lobbyX,ts:now(),
+    emoji:emojiChar,
+    posX:mp.lobbyX,
+    ts:nowTs(),
     nonce:Math.random().toString(36).slice(2,7)
   };
   if(mp.globalMode&&mp.globalRef)mp.globalRef.child('lastEmoji').set(data);
@@ -572,7 +767,7 @@ function sendEmoji(emojiChar){
 }
 function handleRemoteEmoji(d){
   if(!d)return;
-  if(now()-d.ts>8000)return;
+  if(nowTs()-d.ts>8000)return;
   var key=(d.id||'')+'_'+(d.ts||0)+'_'+(d.nonce||'');
   if(mp.seenEmojis[key])return;
   mp.seenEmojis[key]=true;
@@ -589,18 +784,21 @@ function broadcastKill(targetName){
     killerId:mp.globalMode?DS().save.globalId:mp.myId,
     killerName:(me&&me.name)||(DS().save.playerName||'PLAYER'),
     targetName:targetName||'Musuh',
-    ts:now(),nonce:Math.random().toString(36).slice(2,7)
+    ts:nowTs(),
+    nonce:Math.random().toString(36).slice(2,7)
   };
   if(mp.globalMode&&mp.globalKillfeedRef){
     mp.globalKillfeedRef.set(data);
-    if(mp.globalStatsRef)mp.globalStatsRef.child('totalKills').transaction(function(cur){return (cur||0)+1;});
+    if(mp.globalStatsRef){
+      mp.globalStatsRef.child('totalKills').transaction(function(cur){return (cur||0)+1;});
+    }
   }else if(mp.roomRef){
     mp.roomRef.child('killfeed').set(data);
   }
 }
 function handleRemoteKillFeed(d){
   if(!d)return;
-  if(now()-d.ts>6000)return;
+  if(nowTs()-d.ts>6000)return;
   var key=(d.killerId||'')+'_'+(d.ts||0)+'_'+(d.nonce||'');
   if(mp.seenKf[key])return;
   mp.seenKf[key]=true;
@@ -619,7 +817,8 @@ function addKillFeed(killer,target){
   el.appendChild(item);
   mp.kfItems.push(item);
   while(el.children.length>KF_MAX_ITEMS){
-    var old=el.firstChild;el.removeChild(old);
+    var old=el.firstChild;
+    el.removeChild(old);
     if(mp.kfItems.length)mp.kfItems.shift();
   }
   setTimeout(function(){
@@ -639,28 +838,42 @@ function addKillFeed(killer,target){
 function spawnGlobalEnemy(e){
   if(!db||!e||!e.id)return;
   if(!MPApi().isGlobalHost)return;
-  var base=mp.globalMode?'global_arena':'rooms/'+mp.roomCode;
+  var base=mp.globalMode?'global_arena':('rooms/'+mp.roomCode);
   db.ref(base+'/enemies/'+e.id).set({
-    id:e.id,type:e.type,x:e.x,startY:e.y,spawnTime:e.spawnTime||now(),
-    hp:e.hp,maxHp:e.maxHp,damage:e.damage,shape:e.shape||'square',
-    isMiniBoss:!!e.isMiniBoss,speed:e.speed||0
+    id:e.id,
+    type:e.type,
+    x:e.x,
+    startY:e.y,
+    spawnTime:e.spawnTime||nowTs(),
+    hp:e.hp,
+    maxHp:e.maxHp,
+    damage:e.damage,
+    shape:e.shape||'square',
+    isMiniBoss:!!e.isMiniBoss,
+    speed:e.speed||0
   });
 }
-
 function spawnGlobalBoss(b){
   if(!db||!b||!b.id)return;
   if(!MPApi().isGlobalHost)return;
-  var base=mp.globalMode?'global_arena':'rooms/'+mp.roomCode;
+  var base=mp.globalMode?'global_arena':('rooms/'+mp.roomCode);
   db.ref(base+'/bosses/'+b.id).set({
-    id:b.id,idx:b.idx,x:b.x,y:b.y,hp:b.hp,maxHp:b.maxHp,
-    spawnTime:now(),speed:b.speed||20,
-    baseX:b.baseX,moveRange:b.moveRange,phase:b.phase||0
+    id:b.id,
+    idx:b.idx,
+    x:b.x,
+    y:b.y,
+    hp:b.hp,
+    maxHp:b.maxHp,
+    spawnTime:nowTs(),
+    speed:b.speed||20,
+    baseX:b.baseX,
+    moveRange:b.moveRange,
+    phase:b.phase||0
   });
 }
-
 function damageGlobalEnemy(id,dmg){
   if(!db||!id)return;
-  var base=mp.globalMode?'global_arena':'rooms/'+mp.roomCode;
+  var base=mp.globalMode?'global_arena':('rooms/'+mp.roomCode);
   db.ref(base+'/enemies/'+id+'/hp').transaction(function(cur){
     if(cur===null)return null;
     var nv=cur-dmg;
@@ -668,10 +881,9 @@ function damageGlobalEnemy(id,dmg){
     return nv;
   });
 }
-
 function damageGlobalBoss(id,dmg){
   if(!db||!id)return;
-  var base=mp.globalMode?'global_arena':'rooms/'+mp.roomCode;
+  var base=mp.globalMode?'global_arena':('rooms/'+mp.roomCode);
   db.ref(base+'/bosses/'+id+'/hp').transaction(function(cur){
     if(cur===null)return null;
     var nv=cur-dmg;
@@ -679,10 +891,9 @@ function damageGlobalBoss(id,dmg){
     return nv;
   });
 }
-
 function killGlobalEnemy(id){
   if(!db||!id)return;
-  var base=mp.globalMode?'global_arena':'rooms/'+mp.roomCode;
+  var base=mp.globalMode?'global_arena':('rooms/'+mp.roomCode);
   db.ref(base+'/enemies/'+id).remove();
 }
 
@@ -690,12 +901,18 @@ function enterGlobalMode(){
   if(!db){DS().showToast('Database belum siap','error');return;}
   var name=(document.getElementById('mpNameInput').value||'').trim().toUpperCase();
   if(name.length<3){DS().showToast('Isi nama minimal 3 karakter dulu','error');return;}
-  DS().save.playerName=name;DS().persist();
+  DS().save.playerName=name;
+  DS().persist();
   syncUserProfile();
   var myId=DS().save.globalId;
-  mp.globalMode=true;mp.myId=myId;
-  mp.globalDead=false;mp.globalReviveCountdown=0;
-  mp.gameEnded=false;mp.finalSent=false;mp.startRequested=true;
+  mp.globalMode=true;
+  mp.myId=myId;
+  mp.globalDead=false;
+  mp.globalReviveCountdown=0;
+  mp.gameEnded=false;
+  mp.finalSent=false;
+  mp.startRequested=true;
+  mp.globalStarting=false;
   mp.globalRef=db.ref('global_arena');
   mp.globalPlayerRef=db.ref('global_arena/players/'+myId);
   mp.globalKillfeedRef=db.ref('global_arena/killfeed');
@@ -703,16 +920,32 @@ function enterGlobalMode(){
   mp.globalStatsRef=db.ref('global_arena/stats');
   mp.globalEnemyRef=db.ref('global_arena/enemies');
   mp.globalBossRef=db.ref('global_arena/bosses');
-  MPApi().active=true;MPApi().globalMode=true;MPApi().networkMode=true;
-  MPApi().myId=myId;MPApi().isHost=false;MPApi().dead=false;
+  MPApi().active=true;
+  MPApi().globalMode=true;
+  MPApi().networkMode=true;
+  MPApi().myId=myId;
+  MPApi().isHost=false;
+  MPApi().dead=false;
   MPApi().roomCode=null;
   mp.lastWrittenKp=null;
   var me={
-    id:myId,name:name,ship:DS().save.selectedShip,shape:DS().save.selectedShape,
-    gun:DS().save.selectedGun,pet:DS().save.selectedPet||'',
-    skill:DS().save.selectedSkill||'',alive:true,kills:0,kp:DS().save.kills,
-    level:DS().save.level,xp:DS().save.xp,joinedAt:now(),lastSeen:now(),
-    lobbyX:0.5,posX:0.5,posHp:1
+    id:myId,
+    name:name,
+    ship:DS().save.selectedShip,
+    shape:DS().save.selectedShape,
+    gun:DS().save.selectedGun,
+    pet:DS().save.selectedPet||'',
+    skill:DS().save.selectedSkill||'',
+    alive:true,
+    kills:0,
+    kp:DS().save.kills,
+    level:DS().save.level,
+    xp:DS().save.xp,
+    joinedAt:nowTs(),
+    lastSeen:nowTs(),
+    lobbyX:0.5,
+    posX:0.5,
+    posHp:1
   };
   mp.globalPlayerRef.set(me,function(err){
     if(err){DS().showToast('Gagal masuk mode global','error');leaveGlobal();return;}
@@ -730,11 +963,14 @@ function checkGlobalHost(){
   var players=PC();
   var candidates=[];
   for(var k in players){
-    if(now()-(players[k].lastSeen||0)<30000){
+    if(nowTs()-(players[k].lastSeen||0)<PLAYER_STALE_MS){
       candidates.push({id:k,joined:players[k].joinedAt||0});
     }
   }
-  candidates.sort(function(a,b){return a.joined-b.joined;});
+  candidates.sort(function(a,b){
+    if(a.joined!==b.joined)return a.joined-b.joined;
+    return a.id<b.id?-1:(a.id>b.id?1:0);
+  });
   var hostId=candidates.length>0?candidates[0].id:null;
   var amHost=(hostId===DS().save.globalId);
   if(amHost!==mp.isGlobalHost){
@@ -749,8 +985,12 @@ function attachGlobalListeners(myId){
     mp.globalPlayersOnline=0;
     var cache={};
     for(var k in d){
-      if(now()-(d[k].lastSeen||0)<30000){cache[k]=d[k];mp.globalPlayersOnline++;}
+      if(nowTs()-(d[k].lastSeen||0)<PLAYER_STALE_MS){
+        cache[k]=d[k];
+        mp.globalPlayersOnline++;
+      }
     }
+    mp.globalPlayers=cache;
     MPApi().playersCache=cache;
     checkGlobalHost();
     var st=DS().getAppState();
@@ -758,10 +998,17 @@ function attachGlobalListeners(myId){
     if(st==='playingMP')updateTopStats();
     updateGlobalStatsBar();
   });
-  mp.globalKillfeedRef.on('value',function(snap){var d=snap.val();if(d)handleRemoteKillFeed(d);});
-  mp.globalRef.child('lastEmoji').on('value',function(snap){var d=snap.val();if(d)handleRemoteEmoji(d);});
+  mp.globalKillfeedRef.on('value',function(snap){
+    var d=snap.val();
+    if(d)handleRemoteKillFeed(d);
+  });
+  mp.globalRef.child('lastEmoji').on('value',function(snap){
+    var d=snap.val();
+    if(d)handleRemoteEmoji(d);
+  });
   mp.globalChatRef.limitToLast(CHAT_MAX_STORE).on('child_added',function(snap){
-    var d=snap.val();if(!d)return;
+    var d=snap.val();
+    if(!d)return;
     var key=snap.key;
     if(mp.seenEmojis['gc_'+key])return;
     mp.seenEmojis['gc_'+key]=true;
@@ -781,10 +1028,12 @@ function attachGlobalListeners(myId){
     if(window.DS_MP)window.DS_MP.globalBossesCache=d;
   });
   mp.globalPlayerRef.onDisconnect().remove();
+  if(mp.pollInterval){clearInterval(mp.pollInterval);}
   mp.pollInterval=setInterval(function(){
-    if(mp.globalPlayerRef)mp.globalPlayerRef.child('lastSeen').set(now());
+    if(mp.globalPlayerRef)mp.globalPlayerRef.child('lastSeen').set(nowTs());
   },5000);
-  mp.hostCheckTimer=setInterval(checkGlobalHost,4000);
+  if(mp.hostCheckTimer)clearInterval(mp.hostCheckTimer);
+  mp.hostCheckTimer=setInterval(checkGlobalHost,5000);
 }
 
 function updateGlobalStatsBar(){
@@ -793,7 +1042,10 @@ function updateGlobalStatsBar(){
   var playerEl=document.getElementById('mpGlobalPlayers');
   if(killEl)killEl.textContent=fmtK(mp.globalKillsTotal);
   if(playerEl)playerEl.textContent=mp.globalPlayersOnline;
-  if(el){if(mp.globalMode)el.classList.add('on');else el.classList.remove('on');}
+  if(el){
+    if(mp.globalMode)el.classList.add('on');
+    else el.classList.remove('on');
+  }
 }
 
 function renderGlobalLobby(){
@@ -816,7 +1068,9 @@ function renderGlobalLobby(){
     html+='</div>';
     shown++;
   }
-  if(players.length>maxShow)html+='<div class="mp-waiting">+'+(players.length-maxShow)+' pemain lain online</div>';
+  if(players.length>maxShow){
+    html+='<div class="mp-waiting">+'+(players.length-maxShow)+' pemain lain online</div>';
+  }
   var el=document.getElementById('mpPlayers');
   if(el)el.innerHTML=html;
   var canvases=el?el.querySelectorAll('canvas'):[];
@@ -829,11 +1083,14 @@ function renderGlobalLobby(){
   var wait=document.getElementById('mpWaiting');
   if(wait)wait.textContent=mp.globalPlayersOnline+' pemain online di server global';
   var startBtn=document.getElementById('mpStartBtn');
-  if(startBtn){startBtn.disabled=false;startBtn.textContent='MULAI GLOBAL';}
+  if(startBtn){
+    startBtn.disabled=!!mp.globalStarting;
+    startBtn.textContent=mp.globalStarting?'MEMULAI...':'MULAI GLOBAL';
+  }
   var mt=document.getElementById('mpModeTitle');
   if(mt)mt.textContent='MODE GLOBAL AKTIF';
   var mg=document.getElementById('mpModeGrid');
-  if(mg)mg.innerHTML='<div style="grid-column:1/-1;text-align:center;font-size:11px;color:#4a4a63;padding:8px;">Semua pemain bermain bersamaan. Musuh & kill dibagi global.</div>';
+  if(mg)mg.innerHTML='<div style="grid-column:1/-1;text-align:center;font-size:11px;color:#4a4a63;padding:8px;">Semua pemain bermain bersamaan. Arena tanpa batas waktu.</div>';
   renderChat();
 }
 
@@ -844,14 +1101,24 @@ function startGame(){
   for(var i=0;i<MP_MODES.length;i++){
     if(MP_MODES[i].id===mp.selectedMode){lvl=DS().LEVELS[MP_MODES[i].level];break;}
   }
-  MPApi().active=true;MPApi().dead=false;MPApi().myId=mp.myId;
-  MPApi().roomRef=mp.roomRef;MPApi().playerRef=mp.playerRef;
-  MPApi().isHost=mp.isHost;MPApi().isGlobalHost=mp.isHost;
-  MPApi().networkMode=true;MPApi().globalMode=false;
-  MPApi().myKills=0;MPApi().myKillCount=0;
-  mp.startRequested=true;mp.gameUpdateTimer=0;
-  mp.inGameDead=false;mp.reviveCountdown=0;
-  mp.lastWrittenKp=DS().save.kills;mp.gameEnded=false;mp.finalSent=false;
+  MPApi().active=true;
+  MPApi().dead=false;
+  MPApi().myId=mp.myId;
+  MPApi().roomRef=mp.roomRef;
+  MPApi().playerRef=mp.playerRef;
+  MPApi().isHost=mp.isHost;
+  MPApi().isGlobalHost=mp.isHost;
+  MPApi().networkMode=true;
+  MPApi().globalMode=false;
+  MPApi().myKills=0;
+  MPApi().myKillCount=0;
+  mp.startRequested=true;
+  mp.gameUpdateTimer=0;
+  mp.inGameDead=false;
+  mp.reviveCountdown=0;
+  mp.lastWrittenKp=DS().save.kills;
+  mp.gameEnded=false;
+  mp.finalSent=false;
   mp.kfItems=[];
   if(window.DS_MP){
     window.DS_MP.globalEnemiesCache={};
@@ -860,7 +1127,6 @@ function startGame(){
   setupGameHooks();
   var roomRef=mp.roomRef;
   var players=PC();
-  var startAt=now()+600;
   var updates={};
   for(var pid in players){
     updates['players/'+pid+'/kills']=0;
@@ -868,7 +1134,7 @@ function startGame(){
     updates['players/'+pid+'/posHp']=1;
   }
   updates['mode']=mp.selectedMode;
-  updates['startAt']=startAt;
+  updates['startAt']=nowTs()+600;
   roomRef.update(updates);
   var kf=document.getElementById('killFeed');
   if(kf){kf.innerHTML='';kf.classList.add('on');}
@@ -886,13 +1152,23 @@ function startGame(){
 }
 
 function startGlobalGame(){
-  var lvl=DS().LEVELS[1];
-  MPApi().active=true;MPApi().dead=false;MPApi().myId=DS().save.globalId;
-  MPApi().globalMode=true;MPApi().networkMode=true;
-  MPApi().myKills=0;MPApi().myKillCount=0;
-  mp.startRequested=true;mp.gameUpdateTimer=0;
-  mp.globalDead=false;mp.globalReviveCountdown=0;
-  mp.lastWrittenKp=DS().save.kills;mp.gameEnded=false;mp.finalSent=false;
+  if(mp.globalStarting)return;
+  mp.globalStarting=true;
+  var lvl=getGlobalLevel();
+  MPApi().active=true;
+  MPApi().dead=false;
+  MPApi().myId=DS().save.globalId;
+  MPApi().globalMode=true;
+  MPApi().networkMode=true;
+  MPApi().myKills=0;
+  MPApi().myKillCount=0;
+  mp.startRequested=true;
+  mp.gameUpdateTimer=0;
+  mp.globalDead=false;
+  mp.globalReviveCountdown=0;
+  mp.lastWrittenKp=DS().save.kills;
+  mp.gameEnded=false;
+  mp.finalSent=false;
   mp.kfItems=[];
   if(window.DS_MP){
     window.DS_MP.globalEnemiesCache={};
@@ -905,7 +1181,11 @@ function startGlobalGame(){
   if(lb)lb.classList.add('on');
   var ts=document.getElementById('mpTopStats');
   if(ts)ts.classList.add('on');
-  setTimeout(function(){DS().startLevel(lvl,true);DS().updateMPLevelBadge();},60);
+  setTimeout(function(){
+    DS().startLevel(lvl,true);
+    DS().updateMPLevelBadge();
+    mp.globalStarting=false;
+  },60);
   setTimeout(updateTopStats,700);
   setTimeout(updateTopStats,1800);
   DS().showToast('Mode Global dimulai! Bertahan & kumpulkan kill.','success',3000);
@@ -937,7 +1217,9 @@ function onLocalDeath(){
   if(mp.globalMode){
     if(mp.globalDead)return;
     if(mp.gameEnded)return;
-    mp.globalDead=true;MPApi().dead=true;mp.globalReviveCountdown=5;
+    mp.globalDead=true;
+    MPApi().dead=true;
+    mp.globalReviveCountdown=5;
     if(mp.globalPlayerRef)mp.globalPlayerRef.child('alive').set(false);
     var box=document.getElementById('mpReviveBox');
     var cnt=document.getElementById('mpReviveCount');
@@ -948,7 +1230,9 @@ function onLocalDeath(){
   }
   if(mp.inGameDead)return;
   if(mp.gameEnded)return;
-  mp.inGameDead=true;MPApi().dead=true;mp.reviveCountdown=5;
+  mp.inGameDead=true;
+  MPApi().dead=true;
+  mp.reviveCountdown=5;
   if(mp.playerRef)mp.playerRef.child('alive').set(false);
   var box=document.getElementById('mpReviveBox');
   var cnt=document.getElementById('mpReviveCount');
@@ -975,7 +1259,9 @@ function tickDead(dt){
 
 function reviveLocal(){
   if(mp.globalMode){
-    mp.globalDead=false;MPApi().dead=false;mp.globalReviveCountdown=0;
+    mp.globalDead=false;
+    MPApi().dead=false;
+    mp.globalReviveCountdown=0;
     if(mp.globalPlayerRef)mp.globalPlayerRef.child('alive').set(true);
     var box=document.getElementById('mpReviveBox');
     if(box)box.classList.remove('on');
@@ -984,7 +1270,9 @@ function reviveLocal(){
     DS().sfxRevive();
     return;
   }
-  mp.inGameDead=false;MPApi().dead=false;mp.reviveCountdown=0;
+  mp.inGameDead=false;
+  MPApi().dead=false;
+  mp.reviveCountdown=0;
   if(mp.playerRef)mp.playerRef.child('alive').set(true);
   var box=document.getElementById('mpReviveBox');
   if(box)box.classList.remove('on');
@@ -1007,7 +1295,8 @@ function onLocalWin(){
 function onRoomEnded(){
   DS().setAppState('ended');
   MPApi().dead=false;
-  mp.inGameDead=false;mp.reviveCountdown=0;
+  mp.inGameDead=false;
+  mp.reviveCountdown=0;
   var p=DS().getPlayer();
   if(p)p.hp=p.maxHp;
   var ts=document.getElementById('mpTopStats');if(ts)ts.classList.remove('on');
@@ -1016,12 +1305,27 @@ function onRoomEnded(){
   if(mp.playerRef)mp.playerRef.child('alive').set(true);
   var sorted=sortPlayersByKills();
   var myRank=0;
-  for(var i=0;i<sorted.length;i++){if(sorted[i].id===mp.myId){myRank=i+1;break;}}
+  for(var i=0;i<sorted.length;i++){
+    if(sorted[i].id===mp.myId){myRank=i+1;break;}
+  }
   var rewardText='';
-  if(myRank===1){DS().save.trophies=(DS().save.trophies||0)+1;rewardText='JUARA 1 - Trophy Tournament Legend!';DS().showToast('Kamu dapat Trophy Tournament Legend!','success',3600);}
-  else if(myRank===2){DS().grantKP(500);rewardText='Juara 2 - +500 KP';DS().showToast('Kamu dapat +500 KP (Juara 2)!','success',3200);}
-  else if(myRank===3){DS().grantKP(250);rewardText='Juara 3 - +250 KP';DS().showToast('Kamu dapat +250 KP (Juara 3)!','success',3200);}
-  else if(myRank>=4&&myRank<=6){DS().grantKP(100);rewardText='Juara '+myRank+' - +100 KP';DS().showToast('Kamu dapat +100 KP','success',2800);}
+  if(myRank===1){
+    DS().save.trophies=(DS().save.trophies||0)+1;
+    rewardText='JUARA 1 - Trophy Tournament Legend!';
+    DS().showToast('Kamu dapat Trophy Tournament Legend!','success',3600);
+  }else if(myRank===2){
+    DS().grantKP(500);
+    rewardText='Juara 2 - +500 KP';
+    DS().showToast('Kamu dapat +500 KP (Juara 2)!','success',3200);
+  }else if(myRank===3){
+    DS().grantKP(250);
+    rewardText='Juara 3 - +250 KP';
+    DS().showToast('Kamu dapat +250 KP (Juara 3)!','success',3200);
+  }else if(myRank>=4&&myRank<=6){
+    DS().grantKP(100);
+    rewardText='Juara '+myRank+' - +100 KP';
+    DS().showToast('Kamu dapat +100 KP','success',2800);
+  }
   DS().save.mpWins=(DS().save.mpWins||0)+1;
   DS().checkAchievements();
   DS().persist();
@@ -1049,14 +1353,23 @@ function onRoomEnded(){
   if(sub)sub.textContent=rewardText||'Semua pemain di-revive!';
   if(cel)cel.classList.add('on');
   DS().sfxVictory();
+  var wasHost=mp.isHost;
+  var roomRefRef=mp.roomRef;
+  mp.startRequested=false;
+  mp.finalSent=false;
+  mp.gameEnded=false;
+  mp.prevRoomState='lobby';
   setTimeout(function(){
     if(cel)cel.classList.remove('on');
     DS().showScreen('mpLobby');
     DS().setAppState('mpLobbyMenu');
     showMpResults(sorted,myRank);
-    mp.startRequested=false;mp.finalSent=false;mp.gameEnded=false;
     MPApi().active=false;
-    DS().refreshProfile();DS().updateMenuCard();
+    if(wasHost&&roomRefRef){
+      try{roomRefRef.update({state:'lobby',startAt:0});}catch(e){}
+    }
+    DS().refreshProfile();
+    DS().updateMenuCard();
     renderLobby();
   },3600);
 }
@@ -1104,7 +1417,10 @@ function updateTopStats(){
   var el=document.getElementById('mpStatsBody');
   if(!el)return;
   var players=sortPlayersByKills();
-  if(players.length===0){el.innerHTML='<div style="font-size:11px;color:#8a8aa3;">Menunggu data...</div>';return;}
+  if(players.length===0){
+    el.innerHTML='<div style="font-size:11px;color:#8a8aa3;">Menunggu data...</div>';
+    return;
+  }
   var maxKills=1;
   for(var m=0;m<players.length;m++)if((players[m].kills||0)>maxKills)maxKills=players[m].kills;
   var html='';
@@ -1122,7 +1438,9 @@ function updateTopStats(){
     html+='<div class="mts-kill">'+kp+'</div>';
     html+='</div>';
   }
-  if(players.length>limit)html+='<div style="font-size:9px;color:#8a8aa3;text-align:center;margin-top:4px;">+'+(players.length-limit)+' pemain lain</div>';
+  if(players.length>limit){
+    html+='<div style="font-size:9px;color:#8a8aa3;text-align:center;margin-top:4px;">+'+(players.length-limit)+' pemain lain</div>';
+  }
   el.innerHTML=html;
 }
 
@@ -1209,7 +1527,7 @@ function gameSyncTick(dt){
     gun:DS().save.selectedGun,
     pet:DS().save.selectedPet||'',
     skill:DS().save.selectedSkill||'',
-    lastSeen:now()
+    lastSeen:nowTs()
   });
   DS().updateMPLevelBadge();
 }
@@ -1267,7 +1585,9 @@ function doSendKP(targetId){
   var tgt=PC()[targetId];
   DS().showToast('Kirim '+fmtK(amt)+' KP ke '+(tgt?(tgt.name||'-'):'-'),'success');
   DS().sfxGift();
-  DS().refreshHeaderKills();DS().refreshProfile();DS().updateMenuCard();
+  DS().refreshHeaderKills();
+  DS().refreshProfile();
+  DS().updateMenuCard();
 }
 
 function kickPlayer(targetId){
@@ -1280,20 +1600,105 @@ function kickPlayer(targetId){
   });
 }
 
+window.MP_renderRoomList=function(){
+  var el=document.getElementById('mpRoomList');
+  if(!el)return;
+  if(!db){el.innerHTML='<div class="mp-room-empty">Database belum siap</div>';return;}
+  if(mp.roomListLoading)return;
+  mp.roomListLoading=true;
+  el.innerHTML='<div class="mp-room-empty">Memuat grup...</div>';
+  var cutoff=nowTs()-ROOM_STALE_MS;
+  db.ref('rooms').once('value').then(function(snap){
+    mp.roomListLoading=false;
+    var rooms=[];
+    snap.forEach(function(child){
+      var d=child.val();
+      if(!d)return;
+      var players=d.players||{};
+      var pcount=0;
+      var anyAlive=false;
+      for(var k in players){
+        pcount++;
+        if(nowTs()-(players[k].lastSeen||0)<PLAYER_STALE_MS)anyAlive=true;
+      }
+      if(pcount===0)return;
+      if(d.hostId&&!players[d.hostId])return;
+      var created=d.createdAt||0;
+      if(created&&created<cutoff)return;
+      if(!anyAlive&&(nowTs()-created)>10*60*1000)return;
+      rooms.push({
+        code:child.key,
+        state:d.state||'lobby',
+        mode:d.mode||1,
+        players:pcount,
+        hostId:d.hostId||'',
+        createdAt:created
+      });
+    });
+    rooms.sort(function(a,b){return b.createdAt-a.createdAt;});
+    if(rooms.length===0){
+      el.innerHTML='<div class="mp-room-empty">Belum ada grup aktif. Buat grup baru dulu!</div>';
+      return;
+    }
+    var html='';
+    for(var i=0;i<rooms.length;i++){
+      var r=rooms[i];
+      var joinable=(r.state==='lobby'||r.state==='ended')&&r.players<MAX_PLAYERS;
+      var label='';
+      if(r.players>=MAX_PLAYERS)label='PENUH';
+      else if(r.state==='playing')label='SIBUK';
+      else label='GABUNG';
+      var disabled=joinable?'':' disabled';
+      html+='<div class="mp-room-row">';
+      html+='<div class="mp-room-code">'+esc(r.code)+'</div>';
+      html+='<div class="mp-room-info">';
+      html+='<div class="mp-room-name">'+r.players+'/'+MAX_PLAYERS+' pemain · Mode '+modeLabel(r.mode)+'</div>';
+      html+='<div class="mp-room-meta">'+(r.state==='lobby'?'Menunggu':(r.state==='playing'?'Sedang bermain':(r.state==='ended'?'Baru selesai':'Tersedia')))+'</div>';
+      html+='</div>';
+      html+='<button class="mp-room-join" data-join-room="'+esc(r.code)+'"'+disabled+'>'+label+'</button>';
+      html+='</div>';
+    }
+    el.innerHTML=html;
+    var btns=el.querySelectorAll('[data-join-room]');
+    for(var b=0;b<btns.length;b++){
+      btns[b].addEventListener('click',function(){
+        var code=this.getAttribute('data-join-room');
+        if(!code)return;
+        DS().initAudio();
+        DS().sfxClick();
+        var nameIn=document.getElementById('mpNameInput');
+        var nm=nameIn?(nameIn.value||'').trim().toUpperCase():'';
+        if(nm.length<3){DS().showToast('Isi nama dulu di kolom atas','error');return;}
+        joinGroupByCode(code,nm);
+      });
+    }
+  }).catch(function(){
+    mp.roomListLoading=false;
+    el.innerHTML='<div class="mp-room-empty">Gagal memuat grup</div>';
+  });
+};
+
 function renderLeaderboard(){
   var list=document.getElementById('leaderList');
   if(!list)return;
   list.innerHTML='<div style="text-align:center;padding:40px;color:#8a8aa3;font-weight:600;font-size:12px;">Memuat peringkat...</div>';
-  if(!db)return;
+  if(!db){
+    list.innerHTML='<div style="text-align:center;padding:40px;color:#c93a3a;font-weight:600;font-size:12px;">Database belum siap</div>';
+    return;
+  }
   db.ref('users').once('value').then(function(snap){
     var users=[];
     snap.forEach(function(child){
       var d=child.val();
       if(!d)return;
       if(!d.id)d.id=child.key;
+      if(!d.name||String(d.name).length<1)return;
       users.push(d);
     });
-    users.sort(function(a,b){return (b.kills||0)-(a.kills||0);});
+    users.sort(function(a,b){
+      var ka=Number(a.kills)||0,kb=Number(b.kills)||0;
+      return kb-ka;
+    });
     users=users.slice(0,100);
     var html='';
     var myId=DS().save.globalId;
@@ -1323,7 +1728,9 @@ function renderLeaderboard(){
       html+=btnHtml;
       html+='</div>';
     }
-    if(users.length===0)html='<div style="text-align:center;padding:40px;color:#8a8aa3;font-weight:600;font-size:12px;">Belum ada pemain terdaftar</div>';
+    if(users.length===0){
+      html='<div style="text-align:center;padding:40px;color:#8a8aa3;font-weight:600;font-size:12px;">Belum ada pemain terdaftar</div>';
+    }
     list.innerHTML=html;
     bindFriendButtons(list);
   }).catch(function(){
@@ -1351,11 +1758,11 @@ function addFriend(uid,uname,btn){
   var myId=DS().save.globalId;
   var myName=(DS().save.playerName||'PLAYER').toUpperCase();
   var updates={};
-  updates['friend_requests/'+uid+'/'+myId]={id:myId,name:myName,ts:now()};
-  updates['friend_sent/'+myId+'/'+uid]={id:uid,name:uname||'-',ts:now()};
+  updates['friend_requests/'+uid+'/'+myId]={id:myId,name:myName,ts:nowTs()};
+  updates['friend_sent/'+myId+'/'+uid]={id:uid,name:uname||'-',ts:nowTs()};
   db.ref().update(updates,function(err){
     if(err){DS().showToast('Gagal kirim permintaan','error');return;}
-    DS().save.friendSent[uid]={id:uid,name:uname,ts:now()};
+    DS().save.friendSent[uid]={id:uid,name:uname,ts:nowTs()};
     DS().persist();
     if(btn){btn.textContent='PENDING';btn.classList.add('pending');btn.disabled=true;}
     DS().showToast('Permintaan teman dikirim ke '+uname,'success');
@@ -1367,13 +1774,13 @@ function acceptFriend(uid,uname){
   if(!db||!uid)return;
   var myId=DS().save.globalId;
   var updates={};
-  updates['friends/'+myId+'/'+uid]={id:uid,name:uname,ts:now()};
-  updates['friends/'+uid+'/'+myId]={id:myId,name:(DS().save.playerName||'PLAYER').toUpperCase(),ts:now()};
+  updates['friends/'+myId+'/'+uid]={id:uid,name:uname,ts:nowTs()};
+  updates['friends/'+uid+'/'+myId]={id:myId,name:(DS().save.playerName||'PLAYER').toUpperCase(),ts:nowTs()};
   updates['friend_requests/'+myId+'/'+uid]=null;
   updates['friend_sent/'+uid+'/'+myId]=null;
   db.ref().update(updates,function(err){
     if(err){DS().showToast('Gagal terima teman','error');return;}
-    DS().save.friends[uid]={id:uid,name:uname,ts:now()};
+    DS().save.friends[uid]={id:uid,name:uname,ts:nowTs()};
     delete DS().save.friendRequests[uid];
     DS().persist();
     DS().checkAchievements();
@@ -1433,7 +1840,10 @@ function searchUsers(){
       if(nm.indexOf(q)>=0)users.push(u);
       if(users.length>=30)break;
     }
-    users.sort(function(a,b){return (b.kills||0)-(a.kills||0);});
+    users.sort(function(a,b){
+      var ka=Number(a.kills)||0,kb=Number(b.kills)||0;
+      return kb-ka;
+    });
     var html='';
     if(users.length===0){
       html='<div style="text-align:center;padding:24px;color:#8a8aa3;font-weight:600;font-size:12px;">Tidak ditemukan</div>';
@@ -1522,7 +1932,7 @@ function renderFriends(){
           var u=us.val();
           if(!u)u={id:fid,name:'-',kills:0,level:1,lastSeen:0};
           u.id=fid;
-          DS().save.friends[fid]={id:fid,name:u.name,ts:now()};
+          DS().save.friends[fid]={id:fid,name:u.name,ts:nowTs()};
           rows.push(u);
           loaded++;
           if(loaded===fids.length)renderFriendRows(rows,friendList);
@@ -1538,11 +1948,14 @@ function renderFriends(){
 
 function renderFriendRows(rows,list){
   if(!list)return;
-  rows.sort(function(a,b){return (b.kills||0)-(a.kills||0);});
+  rows.sort(function(a,b){
+    var ka=Number(a.kills)||0,kb=Number(b.kills)||0;
+    return kb-ka;
+  });
   var html='';
   for(var i=0;i<rows.length;i++){
     var u=rows[i];
-    var online=(now()-(u.lastSeen||0))<60000;
+    var online=(nowTs()-(u.lastSeen||0))<60000;
     html+='<div class="leader-row friend">';
     html+='<div class="leader-rank" style="color:'+(online?'#3ddc97':'#8a8aa3')+';font-size:20px;">&bull;</div>';
     html+='<div class="leader-info">';
@@ -1564,11 +1977,39 @@ function renderFriendRows(rows,list){
 
 function bindUI(){
   var createBtn=document.getElementById('mpCreateBtn');
-  if(createBtn)createBtn.addEventListener('click',function(){DS().initAudio();DS().sfxClick();createGroup();});
+  if(createBtn)createBtn.addEventListener('click',function(){
+    DS().initAudio();DS().sfxClick();createGroup();
+  });
   var joinBtn=document.getElementById('mpJoinBtn');
-  if(joinBtn)joinBtn.addEventListener('click',function(){DS().initAudio();DS().sfxClick();joinGroup();});
+  if(joinBtn)joinBtn.addEventListener('click',function(){
+    DS().initAudio();DS().sfxClick();joinGroup();
+  });
   var globalBtn=document.getElementById('mpGlobalBtn');
-  if(globalBtn)globalBtn.addEventListener('click',function(){DS().initAudio();DS().sfxClick();enterGlobalMode();});
+  if(globalBtn)globalBtn.addEventListener('click',function(){
+    DS().initAudio();DS().sfxClick();enterGlobalMode();
+  });
+  var searchBtn=document.getElementById('mpSearchBtn');
+  if(searchBtn)searchBtn.addEventListener('click',function(){
+    DS().initAudio();DS().sfxClick();MP_renderRoomList();
+  });
+  var refreshBtn=document.getElementById('mpRoomRefresh');
+  if(refreshBtn)refreshBtn.addEventListener('click',function(){
+    DS().initAudio();DS().sfxClick();MP_renderRoomList();
+  });
+  var searchInput=document.getElementById('mpSearchInput');
+  if(searchInput){
+    searchInput.addEventListener('input',function(){
+      this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
+    });
+    searchInput.addEventListener('keydown',function(ev){
+      ev.stopPropagation();
+      if(ev.key==='Enter'||ev.keyCode===13){
+        ev.preventDefault();
+        DS().initAudio();
+        MP_renderRoomList();
+      }
+    });
+  }
   var nameIn=document.getElementById('mpNameInput');
   if(nameIn){
     nameIn.addEventListener('input',function(){
@@ -1585,16 +2026,24 @@ function bindUI(){
     });
   }
   var back=document.getElementById('mpBack');
-  if(back)back.addEventListener('click',function(){DS().initAudio();DS().sfxClick();DS().goScreen('menu','menu');});
+  if(back)back.addEventListener('click',function(){
+    DS().initAudio();DS().sfxClick();DS().goScreen('menu','menu');
+  });
   var lobBack=document.getElementById('mpLobbyBack');
   if(lobBack)lobBack.addEventListener('click',function(){
     DS().initAudio();DS().sfxClick();
-    DS().showConfirm('Keluar dari grup?',function(){leaveGroup();DS().goScreen('menu','menu');});
+    DS().showConfirm('Keluar dari grup?',function(){
+      leaveGroup();
+      DS().goScreen('menu','menu');
+    });
   });
   var leave2=document.getElementById('mpLeaveBtn2');
   if(leave2)leave2.addEventListener('click',function(){
     DS().initAudio();DS().sfxClick();
-    DS().showConfirm('Keluar dari grup?',function(){leaveGroup();DS().goScreen('menu','menu');});
+    DS().showConfirm('Keluar dari grup?',function(){
+      leaveGroup();
+      DS().goScreen('menu','menu');
+    });
   });
   var leaveB=document.getElementById('mpLeaveBtn');
   if(leaveB)leaveB.addEventListener('click',function(){
@@ -1608,7 +2057,12 @@ function bindUI(){
   });
   var startBtn=document.getElementById('mpStartBtn');
   if(startBtn)startBtn.addEventListener('click',function(){
-    if(mp.globalMode){DS().initAudio();DS().sfxClick();startGlobalGame();return;}
+    if(mp.globalMode){
+      DS().initAudio();
+      DS().sfxClick();
+      startGlobalGame();
+      return;
+    }
     if(!mp.isHost)return;
     var cnt=0;
     for(var k in PC())cnt++;
@@ -1659,20 +2113,32 @@ function bindUI(){
     });
   }
   var chatSend=document.getElementById('mpChatSend');
-  if(chatSend)chatSend.addEventListener('click',function(){DS().initAudio();sendChat();});
+  if(chatSend)chatSend.addEventListener('click',function(){
+    DS().initAudio();sendChat();
+  });
   var chatInput=document.getElementById('mpChatInput');
   if(chatInput){
     chatInput.addEventListener('keydown',function(ev){
       ev.stopPropagation();
-      if(ev.key==='Enter'||ev.keyCode===13){ev.preventDefault();DS().initAudio();sendChat();}
+      if(ev.key==='Enter'||ev.keyCode===13){
+        ev.preventDefault();
+        DS().initAudio();
+        sendChat();
+      }
     });
   }
   var giftBtn=document.getElementById('mpLobbyGiftBtn');
-  if(giftBtn)giftBtn.addEventListener('click',function(){DS().initAudio();DS().sfxClick();openSendModal();});
+  if(giftBtn)giftBtn.addEventListener('click',function(){
+    DS().initAudio();DS().sfxClick();openSendModal();
+  });
   var spClose=document.getElementById('mpSendClose');
-  if(spClose)spClose.addEventListener('click',function(){DS().sfxClick();closeSendModal();});
+  if(spClose)spClose.addEventListener('click',function(){
+    DS().sfxClick();closeSendModal();
+  });
   var spModal=document.getElementById('mpSendPointsModal');
-  if(spModal)spModal.addEventListener('click',function(ev){if(ev.target===spModal)closeSendModal();});
+  if(spModal)spModal.addEventListener('click',function(ev){
+    if(ev.target===spModal)closeSendModal();
+  });
   var spList=document.getElementById('mpSendPlayerList');
   if(spList){
     spList.addEventListener('click',function(ev){
@@ -1683,15 +2149,40 @@ function bindUI(){
       if(tid)doSendKP(tid);
     });
   }
-  var searchBtn=document.getElementById('friendSearchBtn');
-  if(searchBtn)searchBtn.addEventListener('click',function(){DS().initAudio();DS().sfxClick();searchUsers();});
-  var searchInput=document.getElementById('friendSearchInput');
-  if(searchInput){
-    searchInput.addEventListener('keydown',function(ev){
+  var fsBtn=document.getElementById('friendSearchBtn');
+  if(fsBtn)fsBtn.addEventListener('click',function(){
+    DS().initAudio();DS().sfxClick();searchUsers();
+  });
+  var fsInput=document.getElementById('friendSearchInput');
+  if(fsInput){
+    fsInput.addEventListener('keydown',function(ev){
       ev.stopPropagation();
-      if(ev.key==='Enter'||ev.keyCode===13){ev.preventDefault();DS().initAudio();searchUsers();}
+      if(ev.key==='Enter'||ev.keyCode===13){
+        ev.preventDefault();
+        DS().initAudio();
+        searchUsers();
+      }
     });
   }
+}
+
+function waitingHostWatchdog(){
+  setInterval(function(){
+    if(mp.globalMode){mp.waitingHostTimer=0;return;}
+    if(!MPApi().active){mp.waitingHostTimer=0;return;}
+    if(DS().getAppState()!=='waitingHost'){mp.waitingHostTimer=0;return;}
+    mp.waitingHostTimer++;
+    if(mp.waitingHostTimer>=30){
+      mp.waitingHostTimer=0;
+      DS().showToast('Host tidak merespons. Kembali ke lobby.','info',3000);
+      DS().setAppState('mpLobbyMenu');
+      DS().showScreen('mpLobby');
+      MPApi().active=false;
+      mp.startRequested=false;
+      mp.prevRoomState='lobby';
+      renderLobby();
+    }
+  },1000);
 }
 
 function mainLoop(ts){
@@ -1706,7 +2197,8 @@ function mainLoop(ts){
 window.MP_refreshSelfPreview=function(){
   var cv=document.getElementById('mpSelfPreview');
   if(!cv)return;
-  cv.width=160;cv.height=160;
+  cv.width=160;
+  cv.height=160;
   var ctx=cv.getContext('2d');
   ctx.clearRect(0,0,cv.width,cv.height);
   var ship=DS().findShip(DS().save.selectedShip);
@@ -1729,6 +2221,7 @@ function boot(){
   initFirebase();
   bindUI();
   initPlayfield();
+  waitingHostWatchdog();
   var nameIn=document.getElementById('mpNameInput');
   if(nameIn&&DS().save.playerName)nameIn.value=DS().save.playerName;
   if(!DS().save.mpGifts)DS().save.mpGifts=0;
@@ -1747,7 +2240,7 @@ function boot(){
     window.DS_MP.networkMode=false;
     window.DS_MP.globalMode=false;
   }
-  syncUserProfile();
+  if(DS().save.playerName&&DS().save.playerName.length>=3)syncUserProfile();
   requestAnimationFrame(mainLoop);
 }
 
