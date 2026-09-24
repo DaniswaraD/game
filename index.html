@@ -44,7 +44,7 @@ svg{display:block;}
 @keyframes hullPulse{0%,100%{opacity:1;}50%{opacity:.5;}}
 .timer-num{font-size:26px;font-weight:700;color:#242438;line-height:1;text-shadow:0 2px 0 #fff;}
 .stat-line{font-size:11px;color:#4a4a63;font-weight:600;letter-spacing:.3px;}
-.kill-line{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#242438;background:#ffffff;border:2px solid #242438;border-radius:20px;padding:3px 10px;box-shadow:0 2px 6px rgba(36,36,56,.12);pointer-events:auto;cursor:pointer;user-select:none;-webkit-user-select:none;transition:transform .1s;}
+.kill-line{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#242438;background:#ffffff;border:2px solid #242438;border-radius:20px;padding:3px 10px;box-shadow:0 2px 6px rgba(36,36,56,.12);pointer-events:auto;cursor:pointer;user-select:none;-webkit-user-select:none;}
 .kill-line svg{width:14px;height:14px;fill:#ff6b4a;pointer-events:none;}
 .kill-line span{pointer-events:none;}
 .pu-row{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
@@ -56,6 +56,10 @@ svg{display:block;}
 .pu-tag.multiplier{background:linear-gradient(180deg,#ffe480,#ffb020);color:#3a1e00;border:2px solid #fff;}
 .pu-tag.ship{background:linear-gradient(180deg,#fff0b8,#ffc857);color:#4a3605;border:2px solid #fff;}
 .pu-tag.psn{background:linear-gradient(180deg,#d8ff80,#8abf20);color:#2a3a05;border:2px solid #fff;}
+.pu-tag.pet{background:linear-gradient(180deg,#c8f0ff,#67c7f0);color:#0c4a6e;border:2px solid #fff;}
+#pauseBtn{position:fixed;top:calc(14px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:44px;height:44px;border-radius:50%;background:#ffffff;border:2px solid #242438;box-shadow:0 3px 0 #242438;display:none;z-index:6;align-items:center;justify-content:center;padding:0;}
+#pauseBtn.on{display:flex;}
+#pauseBtn svg{width:20px;height:20px;fill:#242438;}
 #comboHud{position:fixed;top:96px;left:0;right:0;text-align:center;pointer-events:none;z-index:5;font-weight:700;font-size:38px;letter-spacing:2px;color:#fff;text-shadow:0 0 22px rgba(255,107,74,.9),0 3px 0 rgba(36,36,56,.55),0 6px 14px rgba(0,0,0,.25);opacity:0;transform:scale(.7);transition:opacity .18s,transform .18s;}
 #comboHud.on{opacity:1;transform:scale(1);}
 #comboHud .mult{color:#ffc857;}
@@ -94,6 +98,31 @@ svg{display:block;}
 .confirm-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #242438;}
 .confirm-btn.no{background:#ffffff;color:#242438;}
 .confirm-btn.yes{background:linear-gradient(180deg,#a8f0cd,#3ddc97);color:#053b26;}
+#pauseModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(36,36,56,.75);z-index:160;padding:24px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+#pauseModal.on{display:flex;animation:confirmFade .2s ease-out;}
+.pause-box{background:#ffffff;border:2px solid #242438;border-radius:20px;padding:24px 20px;max-width:380px;width:100%;box-shadow:0 20px 50px rgba(36,36,56,.4);animation:confirmPop .3s cubic-bezier(.22,1.12,.36,1.06);display:flex;flex-direction:column;gap:12px;}
+.pause-title{font-size:22px;font-weight:700;letter-spacing:4px;color:#ff6b4a;text-align:center;margin-bottom:6px;text-transform:uppercase;}
+.pause-btn{padding:14px;font-weight:700;font-size:14px;letter-spacing:2px;border:2px solid #242438;border-radius:14px;box-shadow:0 4px 0 #242438;transition:transform .1s,box-shadow .1s;}
+.pause-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #242438;}
+.pause-btn.resume{background:linear-gradient(180deg,#a8f0cd,#3ddc97);color:#053b26;}
+.pause-btn.quit{background:linear-gradient(180deg,#ffc8c8,#ff8585);color:#5a0e0e;}
+.pause-btn.ghost{background:#ffffff;color:#242438;}
+#winModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,rgba(255,200,87,.9),rgba(255,107,74,.85) 50%,rgba(155,107,255,.9));z-index:190;padding:20px;text-align:center;}
+#winModal.on{display:flex;animation:confirmFade .35s ease-out;}
+.win-box{background:#ffffff;border:3px solid #242438;border-radius:24px;padding:28px 22px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);animation:winPop .55s cubic-bezier(.22,1.12,.36,1.06);position:relative;overflow:hidden;}
+@keyframes winPop{0%{transform:scale(.5) rotate(-8deg);opacity:0;}60%{transform:scale(1.05) rotate(2deg);opacity:1;}100%{transform:scale(1) rotate(0);opacity:1;}}
+.win-title{font-size:34px;font-weight:700;letter-spacing:3px;color:#ff6b4a;text-shadow:0 3px 0 #242438;margin-bottom:8px;}
+.win-sub{font-size:12px;letter-spacing:2px;color:#8a8aa3;font-weight:700;text-transform:uppercase;margin-bottom:16px;}
+.win-stats{background:#fffaf0;border:2px solid #242438;border-radius:14px;padding:14px;margin-bottom:16px;display:flex;flex-direction:column;gap:8px;}
+.win-stat-row{display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:#242438;}
+.win-stat-row .lbl{color:#8a8aa3;letter-spacing:1px;font-size:11px;text-transform:uppercase;}
+.win-stat-row .val{color:#ff6b4a;}
+.win-bonus{background:linear-gradient(180deg,#ffe4a3,#ffc857);border:2px solid #242438;border-radius:12px;padding:10px;font-size:12px;font-weight:700;color:#4a3605;margin-bottom:14px;letter-spacing:.5px;}
+.win-btn{padding:14px 20px;font-weight:700;font-size:14px;letter-spacing:2px;border:2px solid #242438;border-radius:14px;box-shadow:0 4px 0 #242438;width:100%;transition:transform .1s,box-shadow .1s;}
+.win-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #242438;}
+.win-btn.primary{background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#242438;margin-bottom:8px;}
+.win-btn.ghost{background:#ffffff;color:#242438;}
+.win-confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
 #skillBtn{position:fixed;bottom:120px;right:22px;width:82px;height:82px;border-radius:50%;border:3px solid #242438;background:linear-gradient(180deg,#ffc857,#ff6b4a);display:none;z-index:6;padding:0;overflow:hidden;box-shadow:0 6px 0 #242438,0 12px 24px rgba(255,107,74,.4);margin-bottom:env(safe-area-inset-bottom);transition:transform .1s;}
 #skillBtn.on{display:block;}
 #skillBtn:active{transform:translateY(3px);box-shadow:0 3px 0 #242438,0 6px 12px rgba(255,107,74,.4);}
@@ -116,7 +145,6 @@ svg{display:block;}
 .scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:8px 14px calc(24px + env(safe-area-inset-bottom));touch-action:pan-y;}
 .inner{width:100%;max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
 .section-title{font-size:11px;font-weight:700;letter-spacing:3px;color:#4a4a63;text-transform:uppercase;padding:6px 4px 2px;opacity:.9;}
-
 .menu-wrap{flex:1;overflow-y:auto;padding:calc(14px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));position:relative;display:flex;flex-direction:column;gap:16px;z-index:1;}
 .menu-deco{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
 .menu-deco-item{position:absolute;border-radius:50%;opacity:.35;filter:blur(.3px);}
@@ -124,8 +152,6 @@ svg{display:block;}
 .menu-deco-item.b{width:180px;height:180px;bottom:-70px;right:-60px;background:radial-gradient(circle,#9b6bff,transparent 70%);}
 .menu-deco-item.c{width:100px;height:100px;top:42%;right:-50px;background:radial-gradient(circle,#3ddc97,transparent 70%);}
 .menu-deco-item.d{width:120px;height:120px;bottom:18%;left:-55px;background:radial-gradient(circle,#ff6b4a,transparent 70%);}
-.menu-deco-shape{position:absolute;pointer-events:none;opacity:.55;animation:decoFloat 6s ease-in-out infinite;}
-
 .menu-header{display:flex;align-items:stretch;gap:10px;position:relative;z-index:1;}
 .user-chip{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:12px 14px;background:linear-gradient(160deg,#ffffff,#f0f9ff 55%,#fffaf0);border:2px solid #242438;border-radius:20px;box-shadow:0 5px 0 #242438,0 10px 24px rgba(36,36,56,.14);}
 .user-avatar{width:58px;height:58px;flex-shrink:0;background:linear-gradient(180deg,#bae6fd,#e0f2fe);border:2px solid #242438;border-radius:16px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
@@ -136,30 +162,27 @@ svg{display:block;}
 .user-badge{font-size:9.5px;font-weight:700;letter-spacing:.8px;padding:3px 8px;border:1.5px solid #242438;border-radius:9px;display:inline-flex;align-items:center;gap:3px;}
 .user-badge.lvl{background:linear-gradient(180deg,#fff5d6,#ffe4a3);color:#4a3605;}
 .user-badge.tro{background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#4a3605;}
-.user-badge svg{width:11px;height:11px;fill:#4a3605;}
+.user-badge.rank{background:linear-gradient(180deg,#d4beff,#9b6bff);color:#fff;}
+.user-badge svg{width:11px;height:11px;fill:currentColor;}
 .gear-btn{width:54px;flex-shrink:0;background:linear-gradient(180deg,#ffffff,#f0f9ff);border:2px solid #242438;border-radius:20px;box-shadow:0 5px 0 #242438,0 10px 24px rgba(36,36,56,.14);display:flex;align-items:center;justify-content:center;transition:transform .1s,box-shadow .1s;color:#242438;}
 .gear-btn svg{width:24px;height:24px;fill:#242438;}
 .gear-btn:active{transform:translateY(4px);box-shadow:0 1px 0 #242438;}
-
 .menu-xp{position:relative;z-index:1;display:flex;align-items:center;gap:10px;padding:10px 14px;background:#ffffff;border:2px solid #242438;border-radius:16px;box-shadow:0 3px 0 #242438;}
 .menu-xp-label{font-size:10px;font-weight:700;letter-spacing:2px;color:#8a8aa3;text-transform:uppercase;flex-shrink:0;}
 .menu-xp-track{flex:1;height:14px;background:#f0f0f4;border:2px solid #242438;border-radius:9px;overflow:hidden;position:relative;}
 .menu-xp-fill{height:100%;width:0%;background:linear-gradient(90deg,#ffc857,#ff6b4a);transition:width .3s ease;}
 .menu-xp-text{font-size:10.5px;font-weight:700;color:#4a4a63;min-width:64px;text-align:right;letter-spacing:.4px;flex-shrink:0;}
-
 .menu-brand{position:relative;z-index:1;text-align:center;padding:12px 0 4px;}
 .brand-title{font-size:clamp(38px,11vw,54px);font-weight:700;line-height:.9;color:#ffffff;letter-spacing:1px;position:relative;display:inline-block;text-shadow:0 4px 0 #ff6b4a,0 8px 0 #242438,0 14px 24px rgba(36,36,56,.25);}
 .brand-title .dot{color:#ffc857;}
 .brand-title .dot2{color:#3ddc97;}
 .brand-sub{font-size:10px;letter-spacing:5px;color:#8a8aa3;font-weight:700;text-transform:uppercase;margin-top:10px;}
-
 .menu-cta-wrap{position:relative;z-index:1;display:flex;gap:10px;padding:0 2px;}
 .menu-main{flex:1;padding:18px 22px;background:linear-gradient(180deg,#ffe4a3,#ffc857);border:3px solid #242438;border-radius:20px;box-shadow:0 7px 0 #242438,0 14px 28px rgba(255,200,87,.45);font-size:19px;font-weight:700;letter-spacing:3px;color:#242438;display:flex;align-items:center;justify-content:center;gap:12px;position:relative;transition:transform .1s,box-shadow .1s;overflow:hidden;}
 .menu-main:active{transform:translateY(4px);box-shadow:0 3px 0 #242438,0 6px 12px rgba(255,200,87,.35);}
 .menu-main .mm-play{width:26px;height:26px;flex-shrink:0;fill:#242438;}
 .menu-main::after{content:'';position:absolute;inset:-5px;border:3px solid rgba(255,200,87,.75);border-radius:25px;pointer-events:none;animation:menuMainRing 2s ease-out infinite;}
 @keyframes menuMainRing{0%{transform:scale(1);opacity:.9;}70%{transform:scale(1.06);opacity:0;}100%{transform:scale(1.06);opacity:0;}}
-
 .menu-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
 .menu-tile{position:relative;padding:14px 8px 12px;background:#ffffff;border:2px solid #242438;border-radius:16px;box-shadow:0 4px 0 #242438;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:96px;justify-content:center;transition:transform .1s,box-shadow .1s;overflow:hidden;}
 .menu-tile:active{transform:translateY(3px);box-shadow:0 1px 0 #242438;}
@@ -170,21 +193,16 @@ svg{display:block;}
 .menu-tile.t-ach::before{background:linear-gradient(90deg,#ffe4a3,#ffc857);}
 .menu-tile.t-stats::before{background:linear-gradient(90deg,#d4beff,#9b6bff);}
 .menu-tile.t-help::before{background:linear-gradient(90deg,#bde9fb,#67c7f0);}
+.menu-tile.t-leader::before{background:linear-gradient(90deg,#ffc857,#9b6bff);}
+.menu-tile.t-friends::before{background:linear-gradient(90deg,#67c7f0,#3ddc97);}
+.menu-tile.t-challenge::before{background:linear-gradient(90deg,#ff6b4a,#ff77a9);}
 .menu-tile .tile-icon{width:30px;height:30px;padding:6px;border-radius:10px;background:#fffaf0;border:1.5px solid #242438;box-sizing:content-box;}
-.menu-tile.t-spin .tile-icon{background:linear-gradient(180deg,#fff5d6,#ffe4a3);}
-.menu-tile.t-shop .tile-icon{background:linear-gradient(180deg,#e8fbf1,#a8f0cd);}
-.menu-tile.t-mp .tile-icon{background:linear-gradient(180deg,#ffe4f0,#ffc8dc);}
-.menu-tile.t-ach .tile-icon{background:linear-gradient(180deg,#fff5d6,#ffe4a3);}
-.menu-tile.t-stats .tile-icon{background:linear-gradient(180deg,#ede4ff,#d4beff);}
-.menu-tile.t-help .tile-icon{background:linear-gradient(180deg,#e0f2ff,#bde9fb);}
 .menu-tile .tile-icon svg{width:100%;height:100%;fill:#242438;}
 .tile-title{font-size:11.5px;font-weight:700;letter-spacing:.6px;color:#242438;}
 .tile-sub{font-size:9px;font-weight:600;color:#8a8aa3;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;padding:0 2px;}
 .tile-badge{position:absolute;top:6px;right:6px;width:10px;height:10px;border-radius:50%;background:#ff6b4a;border:1.5px solid #242438;box-shadow:0 0 8px rgba(255,107,74,.9);animation:tileBadgePulse 1.4s ease-in-out infinite;}
 @keyframes tileBadgePulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.15);opacity:.85;}}
-
 .menu-footer{position:relative;z-index:1;text-align:center;font-size:10px;letter-spacing:2px;color:#8a8aa3;font-weight:600;padding:6px 0 2px;text-transform:uppercase;}
-
 @media (max-width:360px){
   .user-avatar{width:48px;height:48px;}
   .user-avatar canvas{width:42px;height:42px;}
@@ -194,7 +212,6 @@ svg{display:block;}
   .menu-tile .tile-icon{width:24px;height:24px;padding:5px;}
   .tile-title{font-size:10.5px;}
 }
-
 .profile-card{background:#ffffff;border:2px solid #242438;border-radius:16px;padding:12px 8px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;box-shadow:0 4px 10px rgba(36,36,56,.12);}
 .pstat{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;}
 .pstat svg{width:18px;height:18px;fill:#ff6b4a;}
@@ -203,8 +220,8 @@ svg{display:block;}
 .pstat.amber svg{fill:#ffc857;}
 .pstat .lbl{font-size:8.5px;letter-spacing:1.5px;color:#8a8aa3;font-weight:700;text-transform:uppercase;margin-top:2px;text-align:center;line-height:1.1;}
 .pstat .val{font-size:14px;font-weight:700;color:#242438;letter-spacing:.3px;}
-.chapter-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:#ffffff;border:2px solid #242438;border-radius:14px;padding:5px;box-shadow:0 2px 6px rgba(36,36,56,.12);}
-.chapter-tab{padding:9px 4px;font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#8a8aa3;background:transparent;border-radius:10px;transition:all .15s;}
+.chapter-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;background:#ffffff;border:2px solid #242438;border-radius:14px;padding:5px;box-shadow:0 2px 6px rgba(36,36,56,.12);}
+.chapter-tab{padding:9px 3px;font-size:10px;font-weight:700;letter-spacing:.4px;color:#8a8aa3;background:transparent;border-radius:10px;transition:all .15s;}
 .chapter-tab.on{background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#242438;box-shadow:0 2px 6px rgba(36,36,56,.12);}
 .chapter-tab.locked{opacity:.45;}
 .levels-grid{display:grid;grid-template-columns:1fr;gap:10px;}
@@ -219,11 +236,15 @@ svg{display:block;}
 .level-card.doom::before{background:linear-gradient(180deg,#000,#8a0000,#000);}
 .level-card.rrror::before{background:linear-gradient(180deg,#000,#ff0000,#000);}
 .level-card.final::before{background:linear-gradient(180deg,#ff0055,#ffcc00,#9b6bff,#ff0055);}
+.level-card.endless::before{background:linear-gradient(180deg,#3ddc97,#ffc857,#ff6b4a,#3ddc97);}
+.level-card.challenge::before{background:linear-gradient(180deg,#ff6b4a,#ff77a9,#9b6bff);}
 .level-card.nightmare{background:linear-gradient(180deg,#ffe9f0,#ffffff);}
 .level-card.impossible{background:linear-gradient(180deg,#f4e8ff,#ffffff);}
 .level-card.doom{background:linear-gradient(180deg,#2a0000,#ffffff);}
 .level-card.rrror{background:linear-gradient(180deg,#3a0000,#ffffff);}
 .level-card.final{background:linear-gradient(180deg,#fff0d0,#ffffff);}
+.level-card.endless{background:linear-gradient(180deg,#e8fbf1,#ffffff);}
+.level-card.challenge{background:linear-gradient(180deg,#ffe4f0,#ffffff);}
 .level-card.locked{background:linear-gradient(180deg,#e0e0e6,#c8c8d0);filter:saturate(.4);}
 .level-card.locked::before{background:#8a8aa3;}
 .level-card:active{transform:translateY(3px);box-shadow:0 1px 0 #242438,0 4px 8px rgba(36,36,56,.15);}
@@ -235,8 +256,9 @@ svg{display:block;}
 .lc-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:1.5px;padding:3px 7px;margin-top:6px;border-radius:6px;background:#a8f0cd;color:#053b26;border:1.5px solid #242438;}
 .lc-badge.gold{background:#ffe4a3;color:#4a3605;}
 .lc-badge.pink{background:#ffb3d9;color:#5a0e2e;}
-.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;background:#ffffff;border:2px solid #242438;border-radius:14px;padding:5px;box-shadow:0 2px 6px rgba(36,36,56,.12);}
-.tab{padding:9px 4px;font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#8a8aa3;background:transparent;border-radius:10px;transition:all .15s;}
+.lc-badge.purple{background:#d4beff;color:#2a0f5a;}
+.tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;background:#ffffff;border:2px solid #242438;border-radius:14px;padding:5px;box-shadow:0 2px 6px rgba(36,36,56,.12);}
+.tab{padding:9px 3px;font-size:9.5px;font-weight:700;letter-spacing:.4px;color:#8a8aa3;background:transparent;border-radius:10px;transition:all .15s;}
 .tab.on{background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#242438;box-shadow:0 2px 6px rgba(36,36,56,.12);}
 .shop-display{position:relative;width:100%;border:2px solid #242438;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#bae6fd,#e0f2fe 60%,#fffaf0);box-shadow:0 4px 0 #242438,0 10px 20px rgba(36,36,56,.12);}
 #shopPreview{display:block;width:100%;height:150px;position:relative;}
@@ -365,6 +387,9 @@ svg{display:block;}
 .screen.on .menu-tile:nth-child(4){animation-delay:.17s;}
 .screen.on .menu-tile:nth-child(5){animation-delay:.21s;}
 .screen.on .menu-tile:nth-child(6){animation-delay:.25s;}
+.screen.on .menu-tile:nth-child(7){animation-delay:.29s;}
+.screen.on .menu-tile:nth-child(8){animation-delay:.33s;}
+.screen.on .menu-tile:nth-child(9){animation-delay:.37s;}
 @keyframes profilePop{0%{transform:scale(.9);opacity:0;}100%{transform:scale(1);opacity:1;}}
 .profile-card{animation:profilePop .5s ease-out backwards;}
 @keyframes titleSlide{from{opacity:0;transform:translateX(-14px);}to{opacity:1;transform:translateX(0);}}
@@ -379,6 +404,7 @@ svg{display:block;}
 .mp-btn.join{background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#242438;}
 .mp-btn.start{background:linear-gradient(180deg,#ffb3d9,#ff77a9);color:#5a0e2e;}
 .mp-btn.leave{background:linear-gradient(180deg,#ffc8c8,#ff8585);color:#5a0e0e;}
+.mp-btn.global{background:linear-gradient(180deg,#d4beff,#9b6bff);color:#fff;}
 .mp-btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:0 2px 0 #b8b8c8;}
 .mp-lobby{background:#ffffff;border:2px solid #242438;border-radius:16px;padding:16px;box-shadow:0 4px 0 #242438;position:relative;}
 .mp-lobby-code{font-size:11px;letter-spacing:2px;color:#4a4a63;text-align:center;font-weight:700;}
@@ -479,16 +505,12 @@ svg{display:block;}
 .lo-spinner{width:60px;height:60px;border-radius:50%;border:5px solid #ffc857;border-top-color:#ff6b4a;border-right-color:#ff6b4a;animation:loSpin 1s linear infinite;}
 @keyframes loSpin{to{transform:rotate(360deg);}}
 .lo-text{font-size:12px;font-weight:700;color:#4a4a63;letter-spacing:4px;text-transform:uppercase;}
-
 #spinScreen .spin-wrap{flex:1;overflow-y:auto;padding:12px 14px calc(24px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:14px;}
 .spin-title-block{text-align:center;padding:6px 0 8px;}
 .spin-big-title{font-size:30px;font-weight:700;color:#ff6b4a;letter-spacing:5px;text-shadow:0 3px 0 #242438,0 6px 14px rgba(36,36,56,.2);}
 .spin-sub-title{font-size:10.5px;font-weight:600;color:#8a8aa3;letter-spacing:3px;margin-top:6px;text-transform:uppercase;}
 .spin-tier-list{display:flex;flex-direction:column;gap:12px;}
 .spin-tier{position:relative;padding:16px;background:#fff;border:2px solid #242438;border-radius:18px;box-shadow:0 5px 0 #242438,0 10px 20px rgba(36,36,56,.12);overflow:hidden;animation:slideUpFade .5s cubic-bezier(.22,1.12,.36,1.06) backwards;}
-.spin-tier.tier-normal{animation-delay:.05s;}
-.spin-tier.tier-premium{animation-delay:.12s;}
-.spin-tier.tier-highend{animation-delay:.19s;}
 .spin-tier::before{content:'';position:absolute;inset:0;opacity:.12;pointer-events:none;}
 .spin-tier.tier-normal::before{background:linear-gradient(135deg,#3ddc97,#67c7f0);}
 .spin-tier.tier-premium::before{background:linear-gradient(135deg,#ffc857,#ff6b4a);}
@@ -513,7 +535,6 @@ svg{display:block;}
 .spin-inventory-title{font-size:10px;letter-spacing:2px;font-weight:700;color:#4a4a63;text-transform:uppercase;text-align:center;margin-bottom:8px;}
 .spin-inventory-note{font-size:10.5px;color:#8a8aa3;text-align:center;font-weight:600;line-height:1.5;}
 .spin-inventory-note b{color:#ff6b4a;}
-
 #spinResultModal{position:fixed;inset:0;background:rgba(36,36,56,.75);display:none;align-items:center;justify-content:center;z-index:300;padding:20px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
 #spinResultModal.on{display:flex;animation:confirmFade .25s ease-out;}
 .spin-result-box{width:100%;max-width:380px;background:#fff;border:3px solid #242438;border-radius:22px;padding:24px 20px;box-shadow:0 20px 50px rgba(0,0,0,.5);text-align:center;position:relative;overflow:hidden;animation:spinResultPop .5s cubic-bezier(.22,1.12,.36,1.06);}
@@ -533,7 +554,6 @@ svg{display:block;}
 .spin-result-tag.kp{background:#ffe4a3;color:#4a3605;}
 .spin-result-btn{width:100%;padding:14px;border-radius:13px;border:2px solid #242438;font-weight:700;font-size:13.5px;letter-spacing:2px;background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#242438;box-shadow:0 4px 0 #242438;}
 .spin-result-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #242438;}
-
 #mpSendPointsModal{position:fixed;inset:0;background:rgba(36,36,56,.65);display:none;align-items:center;justify-content:center;z-index:250;padding:20px;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
 #mpSendPointsModal.on{display:flex;animation:confirmFade .2s ease-out;}
 .mp-send-box{background:#ffffff;border:2px solid #242438;border-radius:18px;padding:20px;max-width:440px;width:100%;box-shadow:0 20px 50px rgba(36,36,56,.5);animation:confirmPop .3s cubic-bezier(.22,1.12,.36,1.06);}
@@ -558,6 +578,77 @@ svg{display:block;}
 .mp-celeb-title{font-size:clamp(34px,10vw,58px);font-weight:700;letter-spacing:4px;color:#fff;text-shadow:0 4px 0 #242438,0 8px 20px rgba(0,0,0,.4),0 0 40px rgba(255,200,87,.9);margin-bottom:12px;animation:popIn .55s ease-out;}
 .mp-celeb-sub{font-size:14px;font-weight:700;letter-spacing:2px;color:#fff;background:rgba(36,36,56,.5);border:2px solid #fff;border-radius:14px;padding:10px 20px;max-width:340px;text-shadow:0 2px 4px rgba(0,0,0,.5);}
 .mp-celeb-confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.leader-row{display:flex;align-items:center;gap:10px;padding:12px;background:#ffffff;border:2px solid #242438;border-radius:14px;box-shadow:0 2px 6px rgba(36,36,56,.12);}
+.leader-row.me{background:linear-gradient(90deg,#fff5d6,#ffffff);border-color:#ffc857;box-shadow:0 0 0 3px rgba(255,200,87,.35),0 2px 6px rgba(36,36,56,.12);}
+.leader-row.friend{background:linear-gradient(90deg,#e8fbf1,#ffffff);border-color:#3ddc97;}
+.leader-rank{font-size:15px;font-weight:700;min-width:34px;text-align:center;color:#8a8aa3;letter-spacing:.5px;}
+.leader-rank.top1{color:#ffc857;text-shadow:0 2px 0 rgba(36,36,56,.15);}
+.leader-rank.top2{color:#b8c4cc;}
+.leader-rank.top3{color:#d68a3c;}
+.leader-info{flex:1;min-width:0;}
+.leader-name{font-size:13px;font-weight:700;color:#242438;letter-spacing:.3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.leader-meta{font-size:10.5px;color:#8a8aa3;font-weight:600;letter-spacing:.3px;margin-top:2px;}
+.leader-kp{font-size:14px;font-weight:700;color:#ff6b4a;min-width:70px;text-align:right;}
+.leader-friend-btn{padding:6px 10px;font-size:10px;font-weight:700;letter-spacing:.5px;border:2px solid #242438;border-radius:9px;box-shadow:0 2px 0 #242438;background:linear-gradient(180deg,#a8f0cd,#3ddc97);color:#053b26;flex-shrink:0;}
+.leader-friend-btn.added{background:linear-gradient(180deg,#d4beff,#9b6bff);color:#fff;}
+.leader-friend-btn.pending{background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#4a3605;}
+.friend-search{display:flex;gap:8px;align-items:center;padding:10px;background:#ffffff;border:2px solid #242438;border-radius:14px;box-shadow:0 2px 6px rgba(36,36,56,.12);}
+.friend-search input{flex:1;height:44px;padding:0 12px;font-size:13px;font-weight:700;letter-spacing:1px;background:#fffaf0;border:2px solid #242438;border-radius:11px;outline:none;color:#242438;text-transform:uppercase;min-width:0;-webkit-user-select:text;user-select:text;}
+.friend-search button{height:44px;padding:0 16px;background:linear-gradient(180deg,#ffe4a3,#ffc857);border:2px solid #242438;border-radius:11px;font-size:12px;font-weight:700;letter-spacing:1px;color:#4a3605;box-shadow:0 3px 0 #242438;flex-shrink:0;}
+.friend-search button:active{transform:translateY(2px);box-shadow:0 1px 0 #242438;}
+.challenge-row{display:flex;gap:10px;padding:14px;background:#ffffff;border:2px solid #242438;border-radius:16px;box-shadow:0 4px 0 #242438,0 6px 14px rgba(36,36,56,.1);align-items:center;cursor:pointer;transition:transform .1s,box-shadow .1s;}
+.challenge-row:active{transform:translateY(3px);box-shadow:0 1px 0 #242438;}
+.challenge-icon{width:52px;height:52px;flex-shrink:0;border-radius:14px;display:flex;align-items:center;justify-content:center;border:2px solid #242438;box-shadow:0 2px 0 #242438;}
+.challenge-icon svg{width:26px;height:26px;fill:#242438;}
+.challenge-icon.nohit{background:linear-gradient(180deg,#bde9fb,#67c7f0);}
+.challenge-icon.pistol{background:linear-gradient(180deg,#ffe4a3,#ffc857);}
+.challenge-icon.speed{background:linear-gradient(180deg,#ffb3d9,#ff77a9);}
+.challenge-icon.bossrush{background:linear-gradient(180deg,#d4beff,#9b6bff);}
+.challenge-info{flex:1;min-width:0;}
+.challenge-name{font-size:14px;font-weight:700;color:#242438;letter-spacing:.3px;}
+.challenge-desc{font-size:11px;color:#4a4a63;font-weight:600;margin-top:3px;line-height:1.35;}
+.challenge-best{font-size:10.5px;color:#ff6b4a;font-weight:700;letter-spacing:.3px;margin-top:4px;}
+.challenge-arrow{font-size:22px;color:#8a8aa3;font-weight:700;flex-shrink:0;}
+.pet-card{display:flex;gap:10px;padding:12px;background:#ffffff;border:2px solid #242438;border-radius:14px;box-shadow:0 2px 6px rgba(36,36,56,.12);align-items:center;}
+.pet-card.owned{border-color:#3ddc97;background:linear-gradient(90deg,#e8fbf1,#ffffff);}
+.pet-card.selected{border-color:#ffc857;background:linear-gradient(90deg,#fff5d6,#ffffff);box-shadow:0 0 0 3px rgba(255,200,87,.35),0 2px 6px rgba(36,36,56,.12);}
+.pet-card.chapter-lock{background:linear-gradient(90deg,#e0e0e6,#f0f0f4);opacity:.75;}
+.pet-icon{width:52px;height:52px;flex-shrink:0;border-radius:12px;border:2px solid #242438;display:flex;align-items:center;justify-content:center;background:#fffaf0;}
+.pet-icon canvas{display:block;width:44px;height:44px;}
+.pet-info{flex:1;min-width:0;}
+.pet-name{font-size:13px;font-weight:700;color:#242438;letter-spacing:.3px;}
+.pet-desc{font-size:11px;color:#4a4a63;font-weight:500;line-height:1.35;margin-top:2px;}
+.pet-meta{font-size:10.5px;color:#ff6b4a;font-weight:700;letter-spacing:.3px;margin-top:3px;}
+.pet-action{display:flex;flex-direction:column;align-items:stretch;gap:5px;flex-shrink:0;min-width:84px;}
+.pet-tag{font-size:9px;font-weight:700;letter-spacing:1.5px;padding:2px 6px;border-radius:6px;text-align:center;}
+.pet-tag.helper{background:#bde9fb;color:#0c4a6e;border:1.5px solid #242438;}
+.pet-tag.attacker{background:#ffc8dc;color:#5a0e2e;border:1.5px solid #242438;}
+.pet-tag.buffer{background:#ffe4a3;color:#4a3605;border:1.5px solid #242438;}
+.pet-tag.tank{background:#a8f0cd;color:#053b26;border:1.5px solid #242438;}
+.pet-tag.mage{background:#d4beff;color:#2a0f5a;border:1.5px solid #242438;}
+.pet-hud{position:fixed;left:14px;bottom:calc(120px + env(safe-area-inset-bottom));z-index:5;pointer-events:none;display:none;flex-direction:column;gap:4px;align-items:flex-start;}
+.pet-hud.on{display:flex;}
+.pet-hud-inner{display:flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(255,255,255,.92);border:2px solid #242438;border-radius:12px;box-shadow:0 3px 0 rgba(36,36,56,.2);}
+.pet-hud-inner canvas{display:block;width:26px;height:26px;}
+.pet-hud-name{font-size:10px;font-weight:700;color:#242438;letter-spacing:.5px;}
+.pet-hud-lv{font-size:9px;font-weight:700;color:#ff6b4a;background:#fff5d6;border:1.5px solid #242438;border-radius:6px;padding:0 5px;letter-spacing:.5px;}
+.bgm-toggle{display:flex;align-items:center;gap:10px;padding:12px;background:#ffffff;border:2px solid #242438;border-radius:14px;box-shadow:0 2px 6px rgba(36,36,56,.12);}
+.bgm-toggle-info{flex:1;}
+.bgm-toggle-name{font-size:13px;font-weight:700;color:#242438;}
+.bgm-toggle-desc{font-size:11px;color:#4a4a63;font-weight:500;margin-top:2px;}
+.bgm-switch{width:60px;height:32px;background:#e0e0e6;border:2px solid #242438;border-radius:20px;position:relative;cursor:pointer;transition:background .2s;box-shadow:0 2px 0 #242438;}
+.bgm-switch.on{background:linear-gradient(180deg,#a8f0cd,#3ddc97);}
+.bgm-switch::after{content:'';position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:#ffffff;border:2px solid #242438;transition:transform .2s;}
+.bgm-switch.on::after{transform:translateX(28px);}
+.global-badge{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(180deg,#d4beff,#9b6bff);color:#fff;font-size:9px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:8px;border:1.5px solid #242438;}
+.global-badge svg{width:10px;height:10px;fill:#fff;}
+.mp-global-hint{background:linear-gradient(180deg,#f4e8ff,#e0d0ff);border:2px solid #242438;border-radius:14px;padding:12px;font-size:11px;font-weight:600;color:#4a1a8a;line-height:1.5;display:flex;gap:8px;align-items:flex-start;}
+.mp-global-hint svg{width:18px;height:18px;fill:#9b6bff;flex-shrink:0;margin-top:1px;}
+#mpGlobalStats{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.95);border:2px solid #242438;border-radius:14px;padding:6px 14px;font-size:10.5px;font-weight:700;color:#242438;z-index:7;display:none;box-shadow:0 3px 0 rgba(36,36,56,.2);letter-spacing:.5px;}
+#mpGlobalStats.on{display:flex;gap:12px;align-items:center;}
+#mpGlobalStats .gs-item{display:flex;align-items:center;gap:4px;}
+#mpGlobalStats .gs-item svg{width:12px;height:12px;}
+#mpGlobalStats .gs-val{color:#ff6b4a;}
 </style>
 </head>
 <body>
@@ -582,6 +673,16 @@ svg{display:block;}
     </div>
   </div>
 </div>
+<button id="pauseBtn" aria-label="Pause"><svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg></button>
+<div id="petHud" class="pet-hud">
+  <div class="pet-hud-inner">
+    <canvas id="petHudCanvas" width="52" height="52"></canvas>
+    <div>
+      <div class="pet-hud-name" id="petHudName">PET</div>
+      <div class="pet-hud-lv" id="petHudLv">LV 1</div>
+    </div>
+  </div>
+</div>
 <div id="mpLevelBadge">
   <div class="mlb-label">LEVEL</div>
   <div class="mlb-level" id="mpLevelNum">LV 1</div>
@@ -596,7 +697,31 @@ svg{display:block;}
 <div id="killFeed"></div>
 <div id="achToast"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.5l-6.3 4.3 2.3-7.2-6-4.4h7.6z"/></svg><div><div class="ach-toast-title">Pencapaian</div><div class="ach-toast-name" id="achToastName">-</div></div></div>
 <div id="toastContainer"></div>
+<div id="mpGlobalStats">
+  <div class="gs-item"><svg viewBox="0 0 24 24" fill="#ff6b4a"><path d="M12 2C7.03 2 3 6.03 3 11c0 2.4 1 4.6 2.5 6.2V21c0 .55.45 1 1 1h11c.55 0 1-.45 1-1v-3.8C20 15.6 21 13.4 21 11c0-4.97-4.03-9-9-9z"/></svg><span class="gs-val" id="mpGlobalKills">0</span></div>
+  <div class="gs-item"><svg viewBox="0 0 24 24" fill="#9b6bff"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span class="gs-val" id="mpGlobalPlayers">0</span></div>
+</div>
 <div id="confirmModal"><div class="confirm-box"><div class="confirm-msg" id="confirmMsg"></div><div class="confirm-btns"><button class="confirm-btn no" id="confirmNo">TIDAK</button><button class="confirm-btn yes" id="confirmYes">YA</button></div></div></div>
+<div id="pauseModal"><div class="pause-box">
+  <div class="pause-title">PAUSE</div>
+  <button class="pause-btn resume" id="pauseResume">LANJUTKAN</button>
+  <button class="pause-btn ghost" id="pauseRestart">ULANG TINGKAT</button>
+  <button class="pause-btn quit" id="pauseQuit">KELUAR</button>
+</div></div>
+<div id="winModal"><div class="win-box">
+  <div class="win-confetti" id="winConfetti"></div>
+  <div class="win-title">MENANG!</div>
+  <div class="win-sub" id="winSub">Tingkat Selesai</div>
+  <div class="win-stats">
+    <div class="win-stat-row"><span class="lbl">Poin</span><span class="val" id="winKp">0</span></div>
+    <div class="win-stat-row"><span class="lbl">Musuh</span><span class="val" id="winKills">0</span></div>
+    <div class="win-stat-row"><span class="lbl">Waktu</span><span class="val" id="winTime">0s</span></div>
+    <div class="win-stat-row"><span class="lbl">Tanpa Luka</span><span class="val" id="winNoHit">-</span></div>
+  </div>
+  <div class="win-bonus" id="winBonus">+0 Bonus</div>
+  <button class="win-btn primary" id="winContinue">LANJUT</button>
+  <button class="win-btn ghost" id="winToLevel">PILIH TINGKAT</button>
+</div></div>
 <button id="skillBtn">
   <svg class="fireIcon" viewBox="0 0 24 24"><path d="M13.5 1.5c0 3-1.5 4-1.5 6.5 0 1.1.9 2 2 2s2-.9 2-2c0-.4-.1-.7-.3-1 .8 1 1.3 2.4 1.3 3.9 0 3.4-2.7 6.1-6 6.1s-6-2.7-6-6.1c0-3 1.8-5.3 3.5-7 .5-.5 1-1 1.5-1.6.5-.6 1.3-1.6 1.5-2.3.1.5.1 1 .1 1.5z"/></svg>
   <div id="skillCd"></div>
@@ -630,7 +755,6 @@ svg{display:block;}
       <div class="menu-deco-item c"></div>
       <div class="menu-deco-item d"></div>
     </div>
-
     <div class="menu-header">
       <div class="user-chip">
         <div class="user-avatar"><canvas id="menuShipPreview" width="120" height="120"></canvas></div>
@@ -638,6 +762,7 @@ svg{display:block;}
           <div class="user-name" id="menuPlayerName">PLAYER</div>
           <div class="user-badges">
             <span class="user-badge lvl" id="menuPlayerLevel">LV 1</span>
+            <span class="user-badge rank" id="menuRankBadge"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.5l-6.3 4.3 2.3-7.2-6-4.4h7.6z"/></svg><span id="menuRankText">#-</span></span>
             <span class="user-badge tro">
               <svg viewBox="0 0 24 24"><path d="M5 3h14v3h3v3c0 3.3-2.7 6-6 6h-1c-.5 2.4-2.5 4.3-5 4.9V21h4v2H6v-2h4v-1.1C7.5 19.3 5.5 17.4 5 15H4c-3.3 0-6-2.7-6-6V6h3V3z"/></svg>
               <span id="menuTrophyCount">0</span>
@@ -649,25 +774,21 @@ svg{display:block;}
         <svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9 4a9 9 0 01-.13 1.5l2.02 1.58-1.9 3.3-2.36-.95a8.86 8.86 0 01-2.6 1.5L15.7 21h-3.4l-.33-2.57a8.86 8.86 0 01-2.6-1.5l-2.36.95-1.9-3.3 2.02-1.58A9 9 0 017 12c0-.51.05-1.01.13-1.5L5.11 8.92l1.9-3.3 2.36.95a8.86 8.86 0 012.6-1.5L12.3 3h3.4l.33 2.57a8.86 8.86 0 012.6 1.5l2.36-.95 1.9 3.3-2.02 1.58c.08.49.13.99.13 1.5z"/></svg>
       </button>
     </div>
-
     <div class="menu-xp">
       <div class="menu-xp-label">XP</div>
       <div class="menu-xp-track"><div class="menu-xp-fill" id="menuXpFill"></div></div>
       <div class="menu-xp-text" id="menuXpText">0/10</div>
     </div>
-
     <div class="menu-brand">
       <div class="brand-title">DANIS<span class="dot">.</span>SHOOTER</div>
       <div class="brand-sub">Space Combat Arena</div>
     </div>
-
     <div class="menu-cta-wrap">
       <button class="menu-main" id="playBtn">
         <svg class="mm-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         <span>MULAI</span>
       </button>
     </div>
-
     <div class="menu-grid">
       <button class="menu-tile t-spin" id="navSpin">
         <span class="tile-badge" id="spinTileBadge" style="display:none;"></span>
@@ -691,6 +812,27 @@ svg{display:block;}
         <span class="tile-title">GRUP</span>
         <span class="tile-sub">MultiPlayer</span>
       </button>
+      <button class="menu-tile t-leader" id="navLeader">
+        <span class="tile-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.5l-6.3 4.3 2.3-7.2-6-4.4h7.6z"/></svg>
+        </span>
+        <span class="tile-title">PERINGKAT</span>
+        <span class="tile-sub">Global</span>
+      </button>
+      <button class="menu-tile t-friends" id="navFriends">
+        <span class="tile-icon">
+          <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        </span>
+        <span class="tile-title">TEMAN</span>
+        <span class="tile-sub">Sosial</span>
+      </button>
+      <button class="menu-tile t-challenge" id="navChallenge">
+        <span class="tile-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+        </span>
+        <span class="tile-title">TANTANGAN</span>
+        <span class="tile-sub">Mode Khusus</span>
+      </button>
       <button class="menu-tile t-ach" id="navAch">
         <span class="tile-icon">
           <svg viewBox="0 0 24 24"><path d="M5 3h14v3h3v3c0 3.3-2.7 6-6 6h-1c-.5 2.4-2.5 4.3-5 4.9V21h4v2H6v-2h4v-1.1C7.5 19.3 5.5 17.4 5 15H4c-3.3 0-6-2.7-6-6V6h3V3z"/></svg>
@@ -713,8 +855,7 @@ svg{display:block;}
         <span class="tile-sub">Panduan</span>
       </button>
     </div>
-
-    <div class="menu-footer">v3.0 &middot; Tap for glory</div>
+    <div class="menu-footer">v4.0 &middot; Tap for glory</div>
   </div>
 </div>
 
@@ -732,9 +873,93 @@ svg{display:block;}
       <button class="chapter-tab on" data-chapter="1">BAB 1</button>
       <button class="chapter-tab locked" data-chapter="2">BAB 2</button>
       <button class="chapter-tab locked" data-chapter="3">BAB 3</button>
-      <button class="chapter-tab locked" data-chapter="4">FINAL</button>
+      <button class="chapter-tab locked" data-chapter="4">BAB 4</button>
+      <button class="chapter-tab locked" data-chapter="5">FINAL</button>
     </div>
     <div class="levels-grid" id="levelsGrid"></div>
+    <div class="section-title">Mode Khusus</div>
+    <div class="level-card endless" id="endlessModeCard">
+      <div class="lc-name">ENDLESS SURVIVAL</div>
+      <div class="lc-time">Bertahan tanpa batas waktu. Gelombang terus meningkat, skor tertinggi dicatat.</div>
+      <div class="lc-best"><svg viewBox="0 0 24 24"><path d="M12 2C7.03 2 3 6.03 3 11c0 2.4 1 4.6 2.5 6.2V21c0 .55.45 1 1 1h11c.55 0 1-.45 1-1v-3.8C20 15.6 21 13.4 21 11c0-4.97-4.03-9-9-9z"/></svg>Rekor: <span id="endlessBest">0</span></div>
+      <div class="lc-badge purple">TANPA BATAS</div>
+    </div>
+  </div></div>
+</div>
+
+<div class="screen" id="challengeScreen">
+  <div class="topbar"><button class="icon-btn" id="challengeBack"><svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>Kembali</button><div class="kill-chip"><svg viewBox="0 0 24 24"><path d="M12 2C7.03 2 3 6.03 3 11c0 2.4 1 4.6 2.5 6.2V21c0 .55.45 1 1 1h11c.55 0 1-.45 1-1v-3.8C20 15.6 21 13.4 21 11c0-4.97-4.03-9-9-9z"/></svg><span id="killsChallenge">0</span></div></div>
+  <div class="scroll-area"><div class="inner">
+    <div class="section-title">Mode Tantangan</div>
+    <div class="challenge-row" data-challenge="nohit">
+      <div class="challenge-icon nohit"><svg viewBox="0 0 24 24"><path d="M12 2L3 6v6c0 5 4 8 9 10 5-2 9-5 9-10V6z"/></svg></div>
+      <div class="challenge-info">
+        <div class="challenge-name">NO HIT RUN</div>
+        <div class="challenge-desc">Selesaikan tingkat tanpa sekali pun terkena serangan.</div>
+        <div class="challenge-best">Terbaik: <span id="chNoHitBest">-</span></div>
+      </div>
+      <div class="challenge-arrow">&rsaquo;</div>
+    </div>
+    <div class="challenge-row" data-challenge="pistol">
+      <div class="challenge-icon pistol"><svg viewBox="0 0 24 24"><path d="M12 2l2 8v12h-4V10z"/></svg></div>
+      <div class="challenge-info">
+        <div class="challenge-name">HANYA PISTOL</div>
+        <div class="challenge-desc">Pakai senjata default saja. Upgrade tetap aktif.</div>
+        <div class="challenge-best">Terbaik: <span id="chPistolBest">-</span></div>
+      </div>
+      <div class="challenge-arrow">&rsaquo;</div>
+    </div>
+    <div class="challenge-row" data-challenge="speed">
+      <div class="challenge-icon speed"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 5v5.4l4 2.3-1 1.7-5-3V7z"/></svg></div>
+      <div class="challenge-info">
+        <div class="challenge-name">SPEEDRUN</div>
+        <div class="challenge-desc">Selesaikan tingkat secepat mungkin. Waktu terbaik dicatat.</div>
+        <div class="challenge-best">Terbaik: <span id="chSpeedBest">-</span></div>
+      </div>
+      <div class="challenge-arrow">&rsaquo;</div>
+    </div>
+    <div class="challenge-row" data-challenge="bossrush">
+      <div class="challenge-icon bossrush"><svg viewBox="0 0 24 24"><path d="M12 2l3 4 5-1-2 5 3 3-3 3 2 5-5-1-3 4-3-4-5 1 2-5-3-3 3-3-2-5 5 1z"/></svg></div>
+      <div class="challenge-info">
+        <div class="challenge-name">BOSS RUSH</div>
+        <div class="challenge-desc">Hadapi semua boss berurutan tanpa musuh biasa.</div>
+        <div class="challenge-best">Terbaik: <span id="chBossBest">-</span></div>
+      </div>
+      <div class="challenge-arrow">&rsaquo;</div>
+    </div>
+  </div></div>
+</div>
+
+<div class="screen" id="leaderScreen">
+  <div class="topbar"><button class="icon-btn" id="leaderBack"><svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>Kembali</button><div class="kill-chip"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.5l-6.3 4.3 2.3-7.2-6-4.4h7.6z"/></svg>GLOBAL</div></div>
+  <div class="scroll-area"><div class="inner">
+    <div class="section-title">Peringkat Global</div>
+    <div class="shop-list" id="leaderList">
+      <div style="text-align:center;padding:40px;color:#8a8aa3;font-weight:600;font-size:12px;">Memuat peringkat...</div>
+    </div>
+  </div></div>
+</div>
+
+<div class="screen" id="friendsScreen">
+  <div class="topbar"><button class="icon-btn" id="friendsBack"><svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>Kembali</button><div class="kill-chip"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span id="friendCount">0</span></div></div>
+  <div class="scroll-area"><div class="inner">
+    <div class="section-title">Cari Pemain</div>
+    <div class="friend-search">
+      <input type="text" id="friendSearchInput" maxlength="10" placeholder="NAMA PEMAIN" autocomplete="off" spellcheck="false">
+      <button id="friendSearchBtn">CARI</button>
+    </div>
+    <div class="section-title">Hasil Pencarian</div>
+    <div class="shop-list" id="friendSearchResult">
+      <div style="text-align:center;padding:24px;color:#8a8aa3;font-weight:600;font-size:12px;">Cari pemain dengan nama untuk menambahkan teman</div>
+    </div>
+    <div class="section-title">Permintaan Teman</div>
+    <div class="shop-list" id="friendRequests">
+      <div style="text-align:center;padding:24px;color:#8a8aa3;font-weight:600;font-size:12px;">Tidak ada permintaan</div>
+    </div>
+    <div class="section-title">Daftar Teman</div>
+    <div class="shop-list" id="friendList">
+      <div style="text-align:center;padding:24px;color:#8a8aa3;font-weight:600;font-size:12px;">Belum ada teman</div>
+    </div>
   </div></div>
 </div>
 
@@ -747,6 +972,7 @@ svg{display:block;}
       <button class="tab" data-tab="ship">KAPAL</button>
       <button class="tab" data-tab="shape">BENTUK</button>
       <button class="tab" data-tab="skill">SKILL</button>
+      <button class="tab" data-tab="pet">PET</button>
       <button class="tab" data-tab="start">BONUS</button>
     </div>
     <div class="shop-list" id="shopList"></div>
@@ -781,12 +1007,21 @@ svg{display:block;}
       <div class="stat-block"><div class="sb-lbl">COMBO TERTINGGI</div><div class="sb-val" id="stCombo">x1</div></div>
       <div class="stat-block"><div class="sb-lbl">LENCANA</div><div class="sb-val" id="stAch">0/0</div></div>
       <div class="stat-block"><div class="sb-lbl">TROPHY TOURNAMENT</div><div class="sb-val" id="stTrophy">0</div></div>
+      <div class="stat-block"><div class="sb-lbl">ENDLESS TERTINGGI</div><div class="sb-val" id="stEndless">0</div></div>
       <div class="stat-block wide"><div class="sb-lbl">KOLEKSI DIMILIKI</div><div class="sb-val" id="stCollection">0 / 0</div></div>
       <div class="stat-block wide"><div class="sb-lbl">TINGKAT SELESAI</div><div class="sb-val" id="stCleared">0 / 10</div></div>
     </div>
     <div class="section-title">Pengaturan</div>
     <div class="shop-row"><div class="shop-info"><div class="shop-name">Volume Suara</div><div class="shop-desc">Atur suara tembakan dan ledakan</div></div><input type="range" class="slider" id="volSlider" min="0" max="100" value="80"></div>
+    <div class="shop-row"><div class="shop-info"><div class="shop-name">Volume Musik</div><div class="shop-desc">Atur musik latar belakang</div></div><input type="range" class="slider" id="bgmSlider" min="0" max="100" value="50"></div>
     <div class="shop-row"><div class="shop-info"><div class="shop-name">Guncangan</div><div class="shop-desc">Getaran layar saat ledakan</div></div><input type="range" class="slider" id="shakeSlider" min="0" max="100" value="100"></div>
+    <div class="bgm-toggle">
+      <div class="bgm-toggle-info">
+        <div class="bgm-toggle-name">Musik Latar</div>
+        <div class="bgm-toggle-desc">Aktifkan BGM selama bermain</div>
+      </div>
+      <div class="bgm-switch on" id="bgmSwitch"></div>
+    </div>
     <button class="danger-btn" id="resetAll">HAPUS SEMUA PROGRES</button>
     <div class="section-title">Status Penyimpanan</div>
     <div class="shop-row"><div class="shop-info"><div class="shop-name" id="storageStatus">Memeriksa...</div><div class="shop-desc" id="storageDesc">LocalStorage untuk auto-save</div></div></div>
@@ -797,11 +1032,14 @@ svg{display:block;}
 <div class="screen" id="helpScreen">
   <div class="topbar"><button class="icon-btn" id="helpBack"><svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>Kembali</button></div>
   <div class="scroll-area"><div class="inner">
-    <div class="help-block"><h3>Kontrol</h3><ul><li>Geser untuk gerakkan kapal</li><li>Tembakan otomatis</li><li>Tombol kanan bawah untuk aktifkan skill</li></ul></div>
-    <div class="help-block"><h3>Bab & Tingkat</h3><ul><li>Bab 1: Tutorial, Mudah, Sedang</li><li>Bab 2: Sulit, Ahli, Nightmare</li><li>Bab 3: Impossible, Doom, 4RROR</li><li>Final Boss: semua boss bertumpuk</li></ul></div>
+    <div class="help-block"><h3>Kontrol</h3><ul><li>Geser untuk gerakkan kapal</li><li>Tembakan otomatis</li><li>Tombol kanan bawah untuk aktifkan skill</li><li>Tombol pause di tengah atas</li></ul></div>
+    <div class="help-block"><h3>Bab & Tingkat</h3><ul><li>Bab 1: Tutorial, Mudah, Sedang</li><li>Bab 2: Sulit, Ahli, Nightmare</li><li>Bab 3: Impossible, Doom, 4RROR</li><li>Bab 4: Chaos, Vortex, Nova (baru)</li><li>Final Boss: semua boss bertumpuk</li></ul></div>
+    <div class="help-block"><h3>Mode Khusus</h3><ul><li>Endless Survival: bertahan tanpa batas, gelombang makin ganas</li><li>No Hit Run: tanpa terkena serangan</li><li>Hanya Pistol: pakai senjata default saja</li><li>Speedrun: selesaikan secepat mungkin</li><li>Boss Rush: hadapi semua boss berurutan</li></ul></div>
+    <div class="help-block"><h3>Pet / Drone</h3><p>Beli pet di toko tab PET. Pet otomatis membantu menyerang, memberi buff, atau menyembuhkan. Semua pet bisa diupgrade hingga level 5.</p></div>
     <div class="help-block"><h3>Spin</h3><p>Ada 3 tipe spin: Normal (25 KP), Premium (500 KP), High-End (15.000 KP). Dapatkan KP, kapal, bentuk, atau senjata.</p></div>
     <div class="help-block"><h3>Level & XP</h3><p>Setiap 1 KP yang didapat setara 1 XP. Naik level untuk membuka gelar baru. Maksimum level 999.</p></div>
-    <div class="help-block"><h3>Multiplayer</h3><p>Grup maksimal 6 pemain. Host pilih mode, kick pemain, kirim poin di lobby, dan chat bareng. Juara 1 dapat Trophy Tournament Legend.</p></div>
+    <div class="help-block"><h3>Peringkat & Teman</h3><p>Lihat peringkat global pemain. Cari pemain dengan nama dan tambahkan sebagai teman. Bandingkan skor.</p></div>
+    <div class="help-block"><h3>Multiplayer Global</h3><p>Bermain bersama pemain lain. Musuh muncul dan dibunuh secara global — semua pemain melihat musuh yang sama. Karakter pemain lain terlihat di layar.</p></div>
     <div class="help-block"><h3>Item di Layar</h3><ul><li>Gelembung hijau: tambah HP</li><li>Gelembung putih: tembakan ganda</li><li>Bintang kuning: damage 4x</li><li>Perisai biru: kurangi damage 90%</li><li>Bunga pink: tembak lebih cepat</li><li>Kristal ungu: tembus semua musuh</li><li>Bola emas x2: gandakan KP 3 detik</li><li>Bom gelap: kurangi 20 HP</li></ul></div>
   </div></div>
 </div>
@@ -906,15 +1144,23 @@ svg{display:block;}
         <div class="mp-role" id="mpSelfTag">PLAYER</div>
       </div>
     </div>
-    <div class="section-title">Grup</div>
+    <div class="section-title">Grup Privat</div>
     <div class="mp-code-box">
       <button class="mp-btn create" id="mpCreateBtn">BUAT GRUP BARU</button>
       <div style="font-size:11px;letter-spacing:2px;color:#4a4a63;font-weight:700;text-align:center;margin-top:6px;text-transform:uppercase;">Atau</div>
       <input type="text" class="mp-code-input" id="mpCodeInput" maxlength="6" placeholder="KODE" autocomplete="off" autocapitalize="characters">
       <button class="mp-btn join" id="mpJoinBtn">MASUK GRUP</button>
     </div>
+    <div class="section-title">Mode Global</div>
+    <div class="mp-code-box">
+      <div class="mp-global-hint">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm6.9 6h-2.95a15.65 15.65 0 00-1.38-3.56A8.03 8.03 0 0118.9 8zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2s.06 1.34.14 2zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56A7.99 7.99 0 015.08 16zm2.95-8H5.08a7.99 7.99 0 014.33-3.56A15.65 15.65 0 008.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2s.07-1.35.16-2h4.68c.09.65.16 1.32.16 2s-.07 1.34-.16 2zm.25 5.56A15.65 15.65 0 0016 16h2.95a8.03 8.03 0 01-4.36 3.56zM19.74 14h-3.38c.08-.66.14-1.32.14-2s-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2z"/></svg>
+        <div>Main bersama <b>seluruh pemain online</b>. Musuh muncul & dibunuh secara global. Karakter pemain lain terlihat di layar.</div>
+      </div>
+      <button class="mp-btn global" id="mpGlobalBtn">MASUK MODE GLOBAL</button>
+    </div>
     <div class="section-title">Info</div>
-    <div class="help-block"><p style="font-size:12px;">Grup maksimal 6 pemain. Minimal 2 pemain untuk mulai. Host pilih mode, kick pemain, dan kirim poin. Ada chat & emoji di lobby.</p></div>
+    <div class="help-block"><p style="font-size:12px;">Grup privat maksimal 6 pemain. Mode global: semua pemain server ikut serta, musuh & kill dibagi rata. Ada chat & emoji di lobby.</p></div>
   </div></div>
 </div>
 
@@ -981,5 +1227,9 @@ svg{display:block;}
 <script src="game.js"></script>
 <script src="multiplayer.js"></script>
 <script src="addings.js"></script>
+<script src="pets.js"></script>
+<script src="friends.js"></script>
+<script src="leaderboard.js"></script>
+<script src="challenges.js"></script>
 </body>
 </html>
