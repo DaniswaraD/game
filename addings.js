@@ -149,9 +149,10 @@ function applyReward(reward){
       res.tag='BENTUK BARU';
       res.tagClass='new';
     }else{
+      var refundS=200;
+      DS().grantKP(refundS);
       res.name=shape.name;
-      res.desc='Bentuk sudah dimiliki. Dikonversi jadi +200 KP';
-      DS().grantKP(200);
+      res.desc='Bentuk sudah dimiliki. Dikonversi jadi +'+refundS+' KP';
       res.tag='KONVERSI KP';
       res.tagClass='kp';
     }
@@ -257,6 +258,7 @@ function doSpin(tierId){
       DS().refreshHeaderKills();
       DS().refreshProfile();
       DS().updateMenuCard();
+      if(DS().pushProfileToFirebase)DS().pushProfileToFirebase();
       if(window.AD_spinRender)window.AD_spinRender();
       showResult(res);
       rolling=false;
