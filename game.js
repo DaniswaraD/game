@@ -111,6 +111,7 @@ function validateSave(){
   if(!save.friendRequests||typeof save.friendRequests!=='object')save.friendRequests={};
   if(!save.friendSent||typeof save.friendSent!=='object')save.friendSent={};
   if(!save.globalId)save.globalId='g_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
+  if(typeof save.playerName!=='string')save.playerName='';
 }
 
 function persist(){
@@ -716,6 +717,7 @@ var mpBadgeXpText='';
 var winShown=false;
 var enemyIdCounter=0;
 var isNetworkGame=false;
+var onboardingActive=true;
 
 window.DS_MP=window.DS_MP||{
   active:false,dead:false,globalMode:false,networkMode:false,isGlobalHost:false,isHost:false,
@@ -731,9 +733,32 @@ function amHost(){
   if(!window.DS_MP)return false;
   return !!(window.DS_MP.isGlobalHost||window.DS_MP.isHost);
 }
-function netBase(){
-  if(!window.DS_MP)return '';
-  return window.DS_MP.globalMode?'global_arena':('rooms/'+(window.DS_MP.roomCode||''));
+
+function pushProfileToFirebase(){
+  try{
+    if(typeof firebase==='undefined')return;
+    var cfg=window.FIREBASE_CONFIG||{};
+    if(!cfg.databaseURL)return;
+    if(!firebase.apps.length)firebase.initializeApp(cfg);
+    var db=firebase.database();
+    var s=save;
+    if(!s.globalId)return;
+    db.ref('users/'+s.globalId).update({
+      id:s.globalId,
+      name:(s.playerName||'PLAYER').toUpperCase(),
+      kills:s.kills||0,
+      totalKills:s.totalKills||0,
+      level:s.level||1,
+      xp:s.xp||0,
+      trophies:s.trophies||0,
+      ship:s.selectedShip,
+      shape:s.selectedShape,
+      gun:s.selectedGun,
+      pet:s.selectedPet||'',
+      wins:s.mpWins||0,
+      lastSeen:Date.now()
+    });
+  }catch(e){}
 }
 
 function lightenHex(hex,amt){
@@ -1667,6 +1692,7 @@ function throttleCheck(){
 
 function spawnManager(dt){
   if(currentLevel.isFinal)return;
+  if(winShown)return;
   if(isNetworkGame&&!amHost())return;
   var phase=getPhase(elapsed,currentLevel);
   var effMax=Math.max(3,phase.maxActive+activeCapDelta);
@@ -1788,6 +1814,7 @@ function showStreak(text){
 }
 
 function firePlayer(dt){
+  if(winShown)return;
   var mult=boostTime>0?2:1;
   if(rapidTime>0)mult*=2;
   if(activeSkillId==='gatling'){var gl=getUpgradeLevel('skill','gatling');mult*=(3.5+0.5*gl);}
@@ -3122,6 +3149,7 @@ function checkAchievements(){
 function showWinModal(){
   if(winShown)return;
   winShown=true;
+  if(isNetworkGame&&!amHost())return;
   var elapsedSec=Math.ceil(elapsed);
   var isEndless=currentLevel.isEndless;
   var bonus=0;
@@ -3377,7 +3405,7 @@ function updateActiveSkill(dt){
 function syncNetworkEnemies(dt){
   if(!isNetworkGame)return;
   if(!window.DS_MP)return;
-  var now=Date.now();
+  var nowTs=Date.now();
   var cache=window.DS_MP.globalEnemiesCache||{};
   var seen={};
   for(var id in cache){
@@ -3391,7 +3419,7 @@ function syncNetworkEnemies(dt){
       var def=ENEMY_TYPES[g.type];
       if(!def)continue;
       var w=BASE_SIZE*def.size;
-      var lifeSec=(now-(g.spawnTime||now))/1000;
+      var lifeSec=(nowTs-(g.spawnTime||nowTs))/1000;
       var curY=(g.startY!==undefined?g.startY:edgeTop())+lifeSec*(def.speed||0);
       if(curY>edgeBottom()+80)continue;
       local={
@@ -3406,7 +3434,7 @@ function syncNetworkEnemies(dt){
         poisonTime:0,poisonDPS:0,shape:g.shape||'square',shapeKp:1,
         heavenlyState:'ready',heavenlyTimer:2,heavenlyOrbs:8,orbAngle:Math.random()*6.283,
         isMiniBoss:!!g.isMiniBoss,
-        _netSpawnTime:g.spawnTime||now,
+        _netSpawnTime:g.spawnTime||nowTs,
         _netStartY:g.startY!==undefined?g.startY:edgeTop()
       };
       enemies.push(local);
@@ -3414,7 +3442,7 @@ function syncNetworkEnemies(dt){
       local.hp=g.hp;
       local.maxHp=g.maxHp||local.maxHp;
       local.x=g.x;
-      var lifeSec2=(now-(g.spawnTime||now))/1000;
+      var lifeSec2=(nowTs-(g.spawnTime||nowTs))/1000;
       var def2=ENEMY_TYPES[g.type];
       if(def2)local.y=(g.startY!==undefined?g.startY:edgeTop())+lifeSec2*(def2.speed||0);
     }
@@ -3508,30 +3536,28 @@ function loop(ts){
         syncNetworkEnemies(dt);
       }
       if(!currentLevel.isFinal&&!currentLevel.isEndless){
-        if(!isNetworkGame||amHost()){
-          if(elapsed>=nextBossTime&&currentLevel.bossInterval<999){
-            nextBossTime+=currentLevel.bossInterval;
-            if(currentLevel.bossesCanStack||bosses.length===0)spawnBoss();
+        if(!winShown){
+          if(!isNetworkGame||amHost()){
+            if(elapsed>=nextBossTime&&currentLevel.bossInterval<999){
+              nextBossTime+=currentLevel.bossInterval;
+              if(currentLevel.bossesCanStack||bosses.length===0)spawnBoss();
+            }
+            if(elapsed>=nextMiniBossTime){nextMiniBossTime+=25;spawnMiniBoss();}
+            if(currentLevel.id!==0&&elapsed>=SIDE_LASER_START_TIME&&obstacleLasers.length===0)spawnObstacleLasers();
           }
-          if(elapsed>=nextMiniBossTime){nextMiniBossTime+=25;spawnMiniBoss();}
-          if(currentLevel.id!==0&&elapsed>=SIDE_LASER_START_TIME&&obstacleLasers.length===0)spawnObstacleLasers();
-        }
-        if(bosses.length===0&&elapsed-lastWaveShownAt>=20&&elapsed>3){
-          lastWaveShownAt=elapsed;
-          showWaveBanner('WAVE '+Math.floor(elapsed/20));
+          if(bosses.length===0&&elapsed-lastWaveShownAt>=20&&elapsed>3){
+            lastWaveShownAt=elapsed;
+            showWaveBanner('WAVE '+Math.floor(elapsed/20));
+          }
         }
       }else if(currentLevel.isEndless){
-        if(!isNetworkGame||amHost()){
+        if(!winShown&&(!isNetworkGame||amHost())){
           if(elapsed>=nextBossTime){nextBossTime+=currentLevel.bossInterval;spawnBoss();}
           if(elapsed>=nextMiniBossTime){nextMiniBossTime+=25;spawnMiniBoss();}
         }
         if(bosses.length===0&&elapsed-lastWaveShownAt>=20&&elapsed>3){
           lastWaveShownAt=elapsed;
           showWaveBanner('WAVE '+Math.floor(elapsed/20));
-        }
-      }else{
-        if(bosses.length===0&&elapsed>1&&!winShown){
-          if(!isNetworkGame||amHost())showWinModal();
         }
       }
       upgradeManager();
@@ -3578,9 +3604,18 @@ function loop(ts){
         updateHud();
         endGame(false);
       }else if(!currentLevel.isEndless&&!currentLevel.isFinal&&isFinite(currentLevel.duration)&&elapsed>=currentLevel.duration&&!winShown){
-        if(!isNetworkGame||amHost())showWinModal();
+        if(!isNetworkGame||amHost()){
+          showWinModal();
+        }else{
+          winShown=true;
+          appState='waitingHost';
+          showWaveBanner('MENUNGGU HOST...',true);
+        }
       }
     }
+  }else if(appState==='waitingHost'){
+    updateParticles(dt);
+    updateShockwaves(dt);
   }else{
     updateParticles(dt);
     updateShockwaves(dt);
@@ -3594,7 +3629,7 @@ function loop(ts){
   }
   ctx.drawImage(bgCanvas,0,0);
   drawAmbient();
-  if(appState==='playing'||appState==='playingMP'||appState==='ended'||appState==='paused'){
+  if(appState==='playing'||appState==='playingMP'||appState==='ended'||appState==='paused'||appState==='waitingHost'){
     drawHealBubbles();
     drawBoostBubbles();
     drawBombBubbles();
@@ -3734,7 +3769,11 @@ var dom={
   chNoHitBest:document.getElementById('chNoHitBest'),chPistolBest:document.getElementById('chPistolBest'),
   chSpeedBest:document.getElementById('chSpeedBest'),chBossBest:document.getElementById('chBossBest'),
   mpGlobalKills:document.getElementById('mpGlobalKills'),mpGlobalPlayers:document.getElementById('mpGlobalPlayers'),
-  mpGlobalStats:document.getElementById('mpGlobalStats')
+  mpGlobalStats:document.getElementById('mpGlobalStats'),
+  onboardModal:document.getElementById('nameOnboardingModal'),
+  onboardInput:document.getElementById('onboardNameInput'),
+  onboardSaveBtn:document.getElementById('onboardSaveBtn'),
+  onboardHint:document.getElementById('onboardHint')
 };
 
 var hpFill=dom.hpFill,timerText=dom.timerText,lvlText=dom.lvlText,gameKills=dom.gameKills;
@@ -3906,7 +3945,9 @@ function renderLevels(){
         window.DS_MP.globalMode=false;
         window.DS_MP.dead=false;
         window.DS_MP.isGlobalHost=false;
+        window.DS_MP.isHost=false;
       }
+      isNetworkGame=false;
       startLevel(L,false);
     });
   }
@@ -3920,7 +3961,9 @@ function renderLevels(){
         window.DS_MP.globalMode=false;
         window.DS_MP.dead=false;
         window.DS_MP.isGlobalHost=false;
+        window.DS_MP.isHost=false;
       }
+      isNetworkGame=false;
       var L=null;
       for(var k=0;k<LEVELS.length;k++)if(LEVELS[k].isEndless){L=LEVELS[k];break;}
       if(L)startLevel(L,false);
@@ -4377,7 +4420,7 @@ function showScreen(name){
   else if(name==='help')dom.helpScreen.classList.add('on');
   else if(name==='voucher')dom.voucherScreen.classList.add('on');
   else if(name==='spin'){if(dom.spinScreen)dom.spinScreen.classList.add('on');refreshHeaderKills();if(window.AD_spinRender)window.AD_spinRender();}
-  else if(name==='mp'){dom.mpScreen.classList.add('on');if(window.MP_refreshSelfPreview)window.MP_refreshSelfPreview();}
+  else if(name==='mp'){dom.mpScreen.classList.add('on');if(window.MP_refreshSelfPreview)window.MP_refreshSelfPreview();if(window.MP_renderRoomList)window.MP_renderRoomList();}
   else if(name==='mpLobby'){dom.mpLobbyScreen.classList.add('on');if(appState!=='mpLobbyMenu')appState='mpLobbyMenu';}
   else if(name==='challenge'){if(dom.challengeScreen)dom.challengeScreen.classList.add('on');refreshProfile();}
   else if(name==='leader'){if(dom.leaderScreen)dom.leaderScreen.classList.add('on');if(window.LB_renderLeaderboard)window.LB_renderLeaderboard();}
@@ -4493,6 +4536,51 @@ function closeVoucherScene(){
   },function(){appState='menu';});
 }
 
+function showOnboarding(){
+  onboardingActive=true;
+  if(dom.onboardModal)dom.onboardModal.classList.add('on');
+  if(dom.onboardInput){
+    dom.onboardInput.value=save.playerName||'';
+    updateOnboardHint();
+    setTimeout(function(){try{dom.onboardInput.focus();}catch(e){}},350);
+  }
+}
+function hideOnboarding(){
+  onboardingActive=false;
+  if(dom.onboardModal)dom.onboardModal.classList.remove('on');
+}
+function updateOnboardHint(){
+  if(!dom.onboardHint||!dom.onboardInput||!dom.onboardSaveBtn)return;
+  var v=(dom.onboardInput.value||'').trim().toUpperCase();
+  if(v.length===0){
+    dom.onboardHint.textContent='Minimal 3 karakter, maksimal 10';
+    dom.onboardHint.style.color='#8a8aa3';
+    dom.onboardSaveBtn.disabled=true;
+  }else if(v.length<3){
+    dom.onboardHint.textContent='Minimal 3 karakter (sekarang '+v.length+')';
+    dom.onboardHint.style.color='#c93a3a';
+    dom.onboardSaveBtn.disabled=true;
+  }else{
+    dom.onboardHint.textContent='Nama siap: '+v;
+    dom.onboardHint.style.color='#0e8a5f';
+    dom.onboardSaveBtn.disabled=false;
+  }
+}
+function submitOnboarding(){
+  if(!dom.onboardInput)return;
+  var nm=(dom.onboardInput.value||'').trim().toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,10);
+  if(nm.length<3){updateOnboardHint();return;}
+  save.playerName=nm;
+  if(!save.globalId)save.globalId='g_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(0,8);
+  persist();
+  pushProfileToFirebase();
+  hideOnboarding();
+  refreshAll();
+  updateMenuCard();
+  sfxUnlock();
+  showToast('Selamat datang, '+nm+'!','success',3000);
+}
+
 dom.killLine.addEventListener('click',function(ev){
   ev.stopPropagation();
   if(appState!=='playing')return;
@@ -4548,7 +4636,10 @@ if(winToLevelBtn)winToLevelBtn.addEventListener('click',function(){
   endGame(true);
 });
 
-document.getElementById('playBtn').addEventListener('click',function(){initAudio();sfxClick();goScreen('level','levelSelect');});
+document.getElementById('playBtn').addEventListener('click',function(){
+  if(onboardingActive){showToast('Isi nama dulu ya','info');return;}
+  initAudio();sfxClick();goScreen('level','levelSelect');
+});
 document.getElementById('navShop').addEventListener('click',function(){initAudio();sfxClick();goScreen('shop','shopMenu');});
 document.getElementById('navAch').addEventListener('click',function(){initAudio();sfxClick();goScreen('ach','achMenu');});
 document.getElementById('navStats').addEventListener('click',function(){initAudio();sfxClick();goScreen('stats','statsMenu');});
@@ -4623,6 +4714,7 @@ for(var cri=0;cri<challengeRows.length;cri++){
       window.DS_MP.globalMode=false;
       window.DS_MP.dead=false;
       window.DS_MP.isGlobalHost=false;
+      window.DS_MP.isHost=false;
       window.DS_MP.playersCache={};
     }
     isNetworkGame=false;
@@ -4657,7 +4749,19 @@ dom.resetAll.addEventListener('click',function(){
   });
 });
 
+if(dom.onboardInput){
+  dom.onboardInput.addEventListener('input',function(){
+    this.value=this.value.toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,10);
+    updateOnboardHint();
+  });
+  dom.onboardInput.addEventListener('keydown',function(ev){
+    if(ev.key==='Enter'||ev.keyCode===13){ev.preventDefault();initAudio();submitOnboarding();}
+  });
+}
+if(dom.onboardSaveBtn)dom.onboardSaveBtn.addEventListener('click',function(){initAudio();submitOnboarding();});
+
 setInterval(function(){if(killDirty)persist();},1500);
+setInterval(function(){if(!onboardingActive&&save.playerName&&save.playerName.length>=3)pushProfileToFirebase();},30000);
 window.addEventListener('beforeunload',function(){persist();});
 document.addEventListener('visibilitychange',function(){if(document.hidden){persist();stopBGM();}});
 window.addEventListener('pagehide',function(){persist();stopBGM();});
@@ -4686,7 +4790,10 @@ window.DS={
   playerGlowCache:function(){return playerGlowCache;},
   petSpriteCache:function(){return petSpriteCache;},
   startLevel:startLevel,showScreen:showScreen,goScreen:goScreen,
-  spawnConfetti:spawnConfetti,getUpgradeLevel:getUpgradeLevel
+  spawnConfetti:spawnConfetti,getUpgradeLevel:getUpgradeLevel,
+  pushProfileToFirebase:pushProfileToFirebase,
+  isOnboarding:function(){return onboardingActive;},
+  hasValidName:function(){return !!(save.playerName&&save.playerName.length>=3);}
 };
 
 window.MP_broadcastKill=null;
@@ -4707,6 +4814,10 @@ loadSave();
 if(!save.mpWins)save.mpWins=0;
 if(!save.mpGifts)save.mpGifts=0;
 if(!save.trophies)save.trophies=0;
+if(!save.globalId){
+  save.globalId='g_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
+  persist();
+}
 buildAllSprites();
 buildBackground();
 buildAmbientParticles();
@@ -4718,6 +4829,12 @@ refreshAll();
 updateMPLevelBadge();
 buildMenuDeco();
 if(dom.loadingOverlay)setTimeout(function(){dom.loadingOverlay.classList.add('hide');},600);
+if(save.playerName&&save.playerName.length>=3){
+  onboardingActive=false;
+  pushProfileToFirebase();
+}else{
+  setTimeout(showOnboarding,700);
+}
 requestAnimationFrame(loop);
 
 })();
