@@ -31,11 +31,6 @@ body{background:#e0f2fe !important;color:#242438 !important;}
 button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:none;font-weight:600;}
 input,select,textarea{font-family:inherit;color:inherit;}
 svg{display:block;}
-body.firebase-offline [data-need-net]{opacity:.35 !important;pointer-events:none !important;filter:grayscale(.9) !important;}
-body.firebase-offline .mp-code-box{position:relative;}
-body.firebase-offline .mp-code-box::after{content:'FIREBASE OFFLINE';position:absolute;top:8px;right:12px;font-size:9px;font-weight:700;letter-spacing:1.5px;color:#c93a3a;background:#ffe4e4;border:1.5px solid #c93a3a;border-radius:6px;padding:2px 6px;}
-#firebaseWarning{position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%) translateY(-200%);background:linear-gradient(180deg,#ffe4e4,#ffc8c8);border:2px solid #c93a3a;border-radius:12px;padding:8px 14px;font-size:11px;font-weight:700;color:#5a0e0e;letter-spacing:.5px;z-index:400;box-shadow:0 6px 18px rgba(201,58,58,.35);max-width:92vw;text-align:center;transition:transform .3s cubic-bezier(.22,1.12,.36,1.06);pointer-events:none;}
-#firebaseWarning.on{transform:translateX(-50%) translateY(0);}
 #hud{position:fixed;top:0;left:0;right:0;padding:10px 14px;pointer-events:none;display:none;z-index:4;padding-top:calc(10px + env(safe-area-inset-top));}
 #hud.on{display:block;}
 .hud-row{display:flex;justify-content:space-between;align-items:flex-start;max-width:660px;margin:0 auto;gap:10px;}
@@ -271,7 +266,6 @@ body.firebase-offline .mp-code-box::after{content:'FIREBASE OFFLINE';position:ab
 .level-card.final::before{background:linear-gradient(180deg,#ff0055,#ffcc00,#9b6bff,#ff0055);}
 .level-card.endless::before{background:linear-gradient(180deg,#3ddc97,#ffc857,#ff6b4a,#3ddc97);}
 .level-card.challenge::before{background:linear-gradient(180deg,#ff6b4a,#ff77a9,#9b6bff);}
-.level-card.vortex::before{background:linear-gradient(180deg,#9b6bff,#ff77a9,#ff6b4a,#9b6bff);}
 .level-card.nightmare{background:linear-gradient(180deg,#ffe9f0,#ffffff);}
 .level-card.impossible{background:linear-gradient(180deg,#f4e8ff,#ffffff);}
 .level-card.doom{background:linear-gradient(180deg,#2a0000,#ffffff);}
@@ -279,7 +273,6 @@ body.firebase-offline .mp-code-box::after{content:'FIREBASE OFFLINE';position:ab
 .level-card.final{background:linear-gradient(180deg,#fff0d0,#ffffff);}
 .level-card.endless{background:linear-gradient(180deg,#e8fbf1,#ffffff);}
 .level-card.challenge{background:linear-gradient(180deg,#ffe4f0,#ffffff);}
-.level-card.vortex{background:linear-gradient(180deg,#f4e8ff,#ffe4f0,#ffffff);}
 .level-card.locked{background:linear-gradient(180deg,#e0e0e6,#c8c8d0);filter:saturate(.4);}
 .level-card.locked::before{background:#8a8aa3;}
 .level-card:active{transform:translateY(3px);box-shadow:0 1px 0 #242438,0 4px 8px rgba(36,36,56,.15);}
@@ -476,9 +469,6 @@ body.firebase-offline .mp-code-box::after{content:'FIREBASE OFFLINE';position:ab
 .mp-mode-btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 0 0 #242438;}
 .mp-mode-btn.on{background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#242438;box-shadow:0 2px 0 #242438,0 0 0 2px rgba(255,200,87,.45);}
 .mp-mode-btn.locked{opacity:.55;cursor:not-allowed;}
-.mp-mode-btn.vortex{background:linear-gradient(180deg,#9b6bff,#ff77a9);color:#fff;border-color:#242438;}
-.mp-mode-btn.vortex.on{background:linear-gradient(180deg,#c86ae8,#ff85b8);color:#fff;box-shadow:0 2px 0 #242438,0 0 0 2px rgba(200,106,232,.55);}
-.mp-mode-btn.vortex:not(.locked):not(.on){background:linear-gradient(180deg,#d4beff,#c86ae8);color:#fff;}
 .emoji-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:14px;padding:10px;background:#fffaf0;border:2px solid #242438;border-radius:14px;box-shadow:0 3px 0 rgba(36,36,56,.15);}
 .emoji-btn{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;font-size:22px;background:#ffffff;border:2px solid #242438;border-radius:10px;box-shadow:0 3px 0 #242438;transition:transform .1s,box-shadow .1s;padding:0;}
 .emoji-btn:active{transform:translateY(3px);box-shadow:0 0 0 #242438;background:linear-gradient(180deg,#fff5d6,#ffe4a3);}
@@ -685,8 +675,6 @@ body.firebase-offline .mp-code-box::after{content:'FIREBASE OFFLINE';position:ab
 #mpGlobalStats .gs-item{display:flex;align-items:center;gap:4px;}
 #mpGlobalStats .gs-item svg{width:12px;height:12px;}
 #mpGlobalStats .gs-val{color:#ff6b4a;}
-.global-session-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;letter-spacing:1px;background:linear-gradient(180deg,#a8f0cd,#3ddc97);color:#053b26;border:1.5px solid #242438;border-radius:8px;padding:2px 7px;margin-left:6px;}
-.global-session-badge.waiting{background:linear-gradient(180deg,#ffe4a3,#ffc857);color:#4a3605;}
 </style>
 </head>
 <body>
@@ -696,8 +684,6 @@ body.firebase-offline .mp-code-box::after{content:'FIREBASE OFFLINE';position:ab
   <div class="lo-spinner"></div>
   <div class="lo-text">Memuat</div>
 </div>
-
-<div id="firebaseWarning">⚠ KONEKSI FIREBASE GAGAL · FITUR ONLINE DIMATIKAN</div>
 
 <div id="nameOnboardingModal">
   <div class="onboard-box">
@@ -857,21 +843,21 @@ body.firebase-offline .mp-code-box::after{content:'FIREBASE OFFLINE';position:ab
         <span class="tile-title">TOKO</span>
         <span class="tile-sub" id="shopSub">Senjata</span>
       </button>
-      <button class="menu-tile t-mp" id="navMP" data-need-net>
+      <button class="menu-tile t-mp" id="navMP">
         <span class="tile-icon">
           <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
         </span>
         <span class="tile-title">GRUP</span>
         <span class="tile-sub">MultiPlayer</span>
       </button>
-      <button class="menu-tile t-leader" id="navLeader" data-need-net>
+      <button class="menu-tile t-leader" id="navLeader">
         <span class="tile-icon">
           <svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.5l-6.3 4.3 2.3-7.2-6-4.4h7.6z"/></svg>
         </span>
         <span class="tile-title">PERINGKAT</span>
         <span class="tile-sub">Global</span>
       </button>
-      <button class="menu-tile t-friends" id="navFriends" data-need-net>
+      <button class="menu-tile t-friends" id="navFriends">
         <span class="tile-icon">
           <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
         </span>
@@ -907,7 +893,7 @@ body.firebase-offline .mp-code-box::after{content:'FIREBASE OFFLINE';position:ab
         <span class="tile-sub">Panduan</span>
       </button>
     </div>
-    <div class="menu-footer">v4.2 &middot; Tap for glory</div>
+    <div class="menu-footer">v4.1 &middot; Tap for glory</div>
   </div>
 </div>
 
@@ -986,7 +972,7 @@ body.firebase-offline .mp-code-box::after{content:'FIREBASE OFFLINE';position:ab
   <div class="topbar"><button class="icon-btn" id="leaderBack"><svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>Kembali</button><div class="kill-chip"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.5l-6.3 4.3 2.3-7.2-6-4.4h7.6z"/></svg>GLOBAL</div></div>
   <div class="scroll-area"><div class="inner">
     <div class="section-title">Peringkat Global</div>
-    <div class="shop-list" id="leaderList" data-need-net>
+    <div class="shop-list" id="leaderList">
       <div style="text-align:center;padding:40px;color:#8a8aa3;font-weight:600;font-size:12px;">Memuat peringkat...</div>
     </div>
   </div></div>
@@ -996,20 +982,20 @@ body.firebase-offline .mp-code-box::after{content:'FIREBASE OFFLINE';position:ab
   <div class="topbar"><button class="icon-btn" id="friendsBack"><svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>Kembali</button><div class="kill-chip"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span id="friendCount">0</span></div></div>
   <div class="scroll-area"><div class="inner">
     <div class="section-title">Cari Pemain</div>
-    <div class="friend-search" data-need-net>
+    <div class="friend-search">
       <input type="text" id="friendSearchInput" maxlength="10" placeholder="NAMA PEMAIN" autocomplete="off" spellcheck="false">
       <button id="friendSearchBtn">CARI</button>
     </div>
     <div class="section-title">Hasil Pencarian</div>
-    <div class="shop-list" id="friendSearchResult" data-need-net>
+    <div class="shop-list" id="friendSearchResult">
       <div style="text-align:center;padding:24px;color:#8a8aa3;font-weight:600;font-size:12px;">Cari pemain dengan nama untuk menambahkan teman</div>
     </div>
     <div class="section-title">Permintaan Teman</div>
-    <div class="shop-list" id="friendRequests" data-need-net>
+    <div class="shop-list" id="friendRequests">
       <div style="text-align:center;padding:24px;color:#8a8aa3;font-weight:600;font-size:12px;">Tidak ada permintaan</div>
     </div>
     <div class="section-title">Daftar Teman</div>
-    <div class="shop-list" id="friendList" data-need-net>
+    <div class="shop-list" id="friendList">
       <div style="text-align:center;padding:24px;color:#8a8aa3;font-weight:600;font-size:12px;">Belum ada teman</div>
     </div>
   </div></div>
@@ -1091,7 +1077,7 @@ body.firebase-offline .mp-code-box::after{content:'FIREBASE OFFLINE';position:ab
     <div class="help-block"><h3>Spin</h3><p>Ada 3 tipe spin: Normal (25 KP), Premium (500 KP), High-End (15.000 KP). Dapatkan KP, kapal, bentuk, atau senjata.</p></div>
     <div class="help-block"><h3>Level & XP</h3><p>Setiap 1 KP yang didapat setara 1 XP. Naik level untuk membuka gelar baru. Maksimum level 999.</p></div>
     <div class="help-block"><h3>Peringkat & Teman</h3><p>Lihat peringkat global pemain. Cari pemain dengan nama dan tambahkan sebagai teman. Bandingkan skor.</p></div>
-    <div class="help-block"><h3>Multiplayer</h3><p>Buat grup privat dengan kode, atau gabung grup yang sudah ada. Bisa juga cari grup aktif di menu Cari Grup. Mode Global: sesi otomatis dibuat saat pemain pertama masuk — semua pemain berikutnya masuk ke sesi yang sama. Mode VORTEX: tantangan gila dengan 20 musuh per detik!</p></div>
+    <div class="help-block"><h3>Multiplayer</h3><p>Buat grup privat dengan kode, atau gabung grup yang sudah ada. Bisa juga cari grup aktif di menu Cari Grup. Mode Global: semua pemain online ikut serta dan musuh dibagi rata.</p></div>
     <div class="help-block"><h3>Item di Layar</h3><ul><li>Gelembung hijau: tambah HP</li><li>Gelembung putih: tembakan ganda</li><li>Bintang kuning: damage 4x</li><li>Perisai biru: kurangi damage 90%</li><li>Bunga pink: tembak lebih cepat</li><li>Kristal ungu: tembus semua musuh</li><li>Bola emas x2: gandakan KP 3 detik</li><li>Bom gelap: kurangi 20 HP</li></ul></div>
   </div></div>
 </div>
@@ -1197,7 +1183,7 @@ body.firebase-offline .mp-code-box::after{content:'FIREBASE OFFLINE';position:ab
       </div>
     </div>
     <div class="section-title">Cari Grup Publik</div>
-    <div class="mp-code-box" data-need-net>
+    <div class="mp-code-box">
       <div class="friend-search" style="background:#fffaf0;padding:6px;border-width:0;">
         <input type="text" id="mpSearchInput" maxlength="6" placeholder="KODE GRUP" autocomplete="off" spellcheck="false" style="height:44px;font-size:14px;text-align:center;letter-spacing:4px;text-transform:uppercase;background:#ffffff;border:2px solid #242438;border-radius:11px;outline:none;color:#242438;min-width:0;-webkit-user-select:text;user-select:text;">
         <button id="mpSearchBtn" style="height:44px;padding:0 16px;background:linear-gradient(180deg,#ffe4a3,#ffc857);border:2px solid #242438;border-radius:11px;font-size:12px;font-weight:700;letter-spacing:1px;color:#4a3605;box-shadow:0 3px 0 #242438;flex-shrink:0;">CARI</button>
@@ -1208,23 +1194,22 @@ body.firebase-offline .mp-code-box::after{content:'FIREBASE OFFLINE';position:ab
       <button class="mp-room-refresh" id="mpRoomRefresh">REFRESH DAFTAR GRUP</button>
     </div>
     <div class="section-title">Grup Privat</div>
-    <div class="mp-code-box" data-need-net>
+    <div class="mp-code-box">
       <button class="mp-btn create" id="mpCreateBtn">BUAT GRUP BARU</button>
       <div style="font-size:11px;letter-spacing:2px;color:#4a4a63;font-weight:700;text-align:center;margin-top:6px;text-transform:uppercase;">Atau masuk dengan kode</div>
       <input type="text" class="mp-code-input" id="mpCodeInput" maxlength="6" placeholder="KODE" autocomplete="off" autocapitalize="characters">
       <button class="mp-btn join" id="mpJoinBtn">MASUK GRUP</button>
     </div>
     <div class="section-title">Mode Global</div>
-    <div class="mp-code-box" data-need-net>
+    <div class="mp-code-box">
       <div class="mp-global-hint">
         <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm6.9 6h-2.95a15.65 15.65 0 00-1.38-3.56A8.03 8.03 0 0118.9 8zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2s.06 1.34.14 2zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56A7.99 7.99 0 015.08 16zm2.95-8H5.08a7.99 7.99 0 014.33-3.56A15.65 15.65 0 008.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2s.07-1.35.16-2h4.68c.09.65.16 1.32.16 2s-.07 1.34-.16 2zm.25 5.56A15.65 15.65 0 0016 16h2.95a8.03 8.03 0 01-4.36 3.56zM19.74 14h-3.38c.08-.66.14-1.32.14-2s-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2z"/></svg>
-        <div>Main bersama <b>seluruh pemain online</b>. Sesi otomatis dibuat oleh pemain pertama. Musuh muncul & dibunuh secara global.</div>
+        <div>Main bersama <b>seluruh pemain online</b>. Musuh muncul & dibunuh secara global. Karakter pemain lain terlihat di layar.</div>
       </div>
       <button class="mp-btn global" id="mpGlobalBtn">MASUK MODE GLOBAL</button>
-      <div id="mpGlobalSessionInfo" style="font-size:10.5px;color:#8a8aa3;text-align:center;font-weight:600;"></div>
     </div>
     <div class="section-title">Info</div>
-    <div class="help-block"><p style="font-size:12px;">Grup privat maksimal 6 pemain. Mode global: sesi tanpa batas waktu, semua pemain online ikut serta. Ada chat & emoji di lobby.</p></div>
+    <div class="help-block"><p style="font-size:12px;">Grup privat maksimal 6 pemain. Mode global: semua pemain server ikut serta, musuh & kill dibagi rata. Ada chat & emoji di lobby.</p></div>
   </div></div>
 </div>
 
