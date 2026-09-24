@@ -1,0 +1,581 @@
+  DS().sfxGift();
+  DS().refreshHeaderKills();
+  DS().refreshProfile();
+  DS().updateMenuCard();
+}
+
+function kickPlayer(targetId){
+  if(!mp.isHost||!mp.roomRef)return;
+  if(targetId===mp.myId)return;
+  var tgt=PC()[targetId];
+  DS().showConfirm('Kick '+(tgt?(tgt.name||'-'):'-')+' dari grup?',function(){
+    mp.roomRef.child('players/'+targetId).remove();
+    DS().sfxClick();
+  });
+}
+
+window.MP_renderRoomList=function(){
+  var el=document.getElementById('mpRoomList');
+  if(!el)return;
+  if(!currentAuthUser()){
+    el.innerHTML='<div class="mp-room-empty">Login dulu untuk melihat grup tersedia.</div>';
+    return;
+  }
+  if(!db){el.innerHTML='<div class="mp-room-empty">Database belum siap</div>';return;}
+  if(mp.roomListLoading)return;
+  mp.roomListLoading=true;
+  el.innerHTML='<div class="mp-room-empty">Memuat grup...</div>';
+  var cutoff=nowTs()-ROOM_STALE_MS;
+  db.ref('rooms').once('value').then(function(snap){
+    mp.roomListLoading=false;
+    var rooms=[];
+    snap.forEach(function(child){
+      var d=child.val();
+      if(!d)return;
+      var players=d.players||{};
+      var pcount=0;
+      var anyAlive=false;
+      for(var k in players){
+        pcount++;
+        if(nowTs()-(players[k].lastSeen||0)<PLAYER_STALE_MS)anyAlive=true;
+      }
+      if(pcount===0)return;
+      if(d.hostId&&!players[d.hostId])return;
+      var created=d.createdAt||0;
+      if(created&&created<cutoff)return;
+      if(!anyAlive&&(nowTs()-created)>10*60*1000)return;
+      rooms.push({
+        code:child.key,
+        state:d.state||'lobby',
+        mode:d.mode||1,
+        players:pcount,
+        hostId:d.hostId||'',
+        createdAt:created
+      });
+    });
+    rooms.sort(function(a,b){return b.createdAt-a.createdAt;});
+    if(rooms.length===0){
+      el.innerHTML='<div class="mp-room-empty">Belum ada grup aktif. Buat grup baru dulu!</div>';
+      return;
+    }
+    var html='';
+    for(var i=0;i<rooms.length;i++){
+      var r=rooms[i];
+      var joinable=(r.state==='lobby'||r.state==='ended')&&r.players<MAX_PLAYERS;
+      var label='';
+      if(r.players>=MAX_PLAYERS)label='PENUH';
+      else if(r.state==='playing')label='SIBUK';
+      else label='GABUNG';
+      var disabled=joinable?'':' disabled';
+      html+='<div class="mp-room-row">';
+      html+='<div class="mp-room-code">'+esc(r.code)+'</div>';
+      html+='<div class="mp-room-info">';
+      html+='<div class="mp-room-name">'+r.players+'/'+MAX_PLAYERS+' pemain · Mode '+modeLabel(r.mode)+'</div>';
+      html+='<div class="mp-room-meta">'+(r.state==='lobby'?'Menunggu':(r.state==='playing'?'Sedang bermain':(r.state==='ended'?'Baru selesai':'Tersedia')))+'</div>';
+      html+='</div>';
+      html+='<button class="mp-room-join" data-join-room="'+esc(r.code)+'"'+disabled+'>'+label+'</button>';
+      html+='</div>';
+    }
+    el.innerHTML=html;
+    var btns=el.querySelectorAll('[data-join-room]');
+    for(var b=0;b<btns.length;b++){
+      btns[b].addEventListener('click',function(){
+        var code=this.getAttribute('data-join-room');
+        if(!code)return;
+        DS().initAudio();
+        DS().sfxClick();
+        var nameIn=document.getElementById('mpNameInput');
+        var nm=nameIn?(nameIn.value||'').trim().toUpperCase():'';
+        if(nm.length<3){DS().showToast('Isi nama dulu di kolom atas','error');return;}
+        joinGroupByCode(code,nm);
+      });
+    }
+  }).catch(function(err){
+    mp.roomListLoading=false;
+    console.error('MP_renderRoomList',err);
+    var msg=err&&err.code==='PERMISSION_DENIED'?'Akses daftar grup ditolak Firebase.':'Gagal memuat grup. Coba REFRESH DAFTAR GRUP.';
+    el.innerHTML='<div class="mp-room-empty">'+msg+'</div>';
+  });
+};
+
+function renderLeaderboard(){
+  var list=document.getElementById('leaderList');
+  if(!list)return;
+  var au=currentAuthUser();
+  if(!au){
+    list.innerHTML='<div style="text-align:center;padding:40px 22px;color:#8a8aa3;font-weight:600;font-size:12px;line-height:1.6;">HARUS LOGIN UNTUK LIHAT PERINGKAT</div>';
+    return;
+  }
+  list.innerHTML='<div style="text-align:center;padding:40px;color:#8a8aa3;font-weight:600;font-size:12px;">Memuat peringkat...</div>';
+  syncFriendSentState();
+  if(!db){
+    list.innerHTML='<div style="text-align:center;padding:40px;color:#c93a3a;font-weight:600;font-size:12px;">Database belum siap</div>';
+    return;
+  }
+  var prepare=Promise.resolve(true);
+  if(au&&DS().save.playerName&&DS().save.playerName.length>=3)prepare=syncUserProfile();
+  prepare.then(function(){return db.ref('leaderboard').once('value');}).then(function(snap){
+    var users=[];
+    snap.forEach(function(child){
+      var d=child.val();
+      if(!d)return;
+      if(!d.id)d.id=child.key;
+      if(!d.name||String(d.name).length<1)return;
+      users.push(d);
+    });
+    users.sort(function(a,b){
+      var ka=Number(a.kills)||0,kb=Number(b.kills)||0;
+      return kb-ka;
+    });
+    users=users.slice(0,100);
+    var html='';
+    var myId=DS().save.globalId;
+    for(var i=0;i<users.length;i++){
+      var u=users[i];
+      var rank=i+1;
+      var cls='leader-row';
+      if(u.id===myId)cls+=' me';
+      if(DS().save.friends[u.id])cls+=' friend';
+      var rankCls='';
+      if(rank===1)rankCls=' top1';
+      else if(rank===2)rankCls=' top2';
+      else if(rank===3)rankCls=' top3';
+      var btnHtml='';
+      if(u.id!==myId){
+        if(DS().save.friends[u.id])btnHtml='<button class="leader-friend-btn added" disabled>TEMAN</button>';
+        else if(DS().save.friendSent[u.id])btnHtml='<button class="leader-friend-btn pending" disabled>PENDING</button>';
+        else btnHtml='<button class="leader-friend-btn" data-add-friend="'+esc(u.id)+'" data-friend-name="'+esc(u.name||'')+'">+ TEMAN</button>';
+      }
+      html+='<div class="'+cls+'" data-uid="'+esc(u.id)+'">';
+      html+='<div class="leader-rank'+rankCls+'">#'+rank+'</div>';
+      html+='<div class="leader-info">';
+      html+='<div class="leader-name">'+esc((u.name||'-').toUpperCase())+'</div>';
+      html+='<div class="leader-meta">LV '+(u.level||1)+' &middot; '+fmtK(u.totalKills||0)+' total kill</div>';
+      html+='</div>';
+      html+='<div class="leader-kp">'+fmtK(u.kills||0)+'</div>';
+      html+=btnHtml;
+      html+='</div>';
+    }
+    if(users.length===0){
+      html='<div style="text-align:center;padding:40px;color:#8a8aa3;font-weight:600;font-size:12px;">Belum ada pemain terdaftar</div>';
+    }
+    list.innerHTML=html;
+    bindFriendButtons(list);
+  }).catch(function(err){
+    var msg=err&&err.code==='PERMISSION_DENIED'?'Firebase menolak pembacaan data peringkat.':(err&&err.code==='NETWORK_ERROR'?'Koneksi Firebase terputus. Coba lagi.':'Gagal memuat peringkat');
+    list.innerHTML='<div style="text-align:center;padding:40px;color:#c93a3a;font-weight:600;font-size:12px;line-height:1.6;">'+msg+'</div>';
+  });
+}
+
+function bindFriendButtons(list){
+  var btns=list.querySelectorAll('[data-add-friend]');
+  for(var b=0;b<btns.length;b++){
+    btns[b].addEventListener('click',function(ev){
+      ev.stopPropagation();
+      var uid=this.getAttribute('data-add-friend');
+      var uname=this.getAttribute('data-friend-name');
+      addFriend(uid,uname,this);
+    });
+  }
+}
+
+function addFriend(uid,uname,btn){
+  if(!db||!uid)return;
+  if(uid===DS().save.globalId){DS().showToast('Tidak bisa tambah diri sendiri','error');return;}
+  if(DS().save.friends[uid]){DS().showToast('Sudah berteman','info');return;}
+  if(DS().save.friendSent[uid]){DS().showToast('Permintaan sudah dikirim','info');return;}
+  var myId=DS().save.globalId;
+  var myName=(DS().save.playerName||'PLAYER').toUpperCase();
+  var updates={};
+  updates['friend_requests/'+uid+'/'+myId]={id:myId,name:myName,ts:nowTs()};
+  updates['friend_sent/'+myId+'/'+uid]={id:uid,name:uname||'-',ts:nowTs()};
+  db.ref().update(updates,function(err){
+    if(err){DS().showToast('Gagal kirim permintaan','error');return;}
+    DS().save.friendSent[uid]={id:uid,name:uname,ts:nowTs()};
+    DS().persist();
+    if(btn){btn.textContent='PENDING';btn.classList.add('pending');btn.disabled=true;}
+    DS().showToast('Permintaan teman dikirim ke '+uname,'success');
+    DS().sfxMP();
+  });
+}
+
+function acceptFriend(uid,uname){
+  if(!db||!uid)return;
+  var myId=DS().save.globalId;
+  var myName=(DS().save.playerName||'PLAYER').toUpperCase();
+  if(uid===myId)return;
+  var friendDataA={id:uid,name:uname||'-',ts:nowTs()};
+  var friendDataB={id:myId,name:myName,ts:nowTs()};
+  // Do the reciprocal friendship first. Keeping the request alive during this
+  // step also satisfies the Firebase rule that protects the sender's record.
+  var friends={};
+  friends['friends/'+myId+'/'+uid]=friendDataA;
+  friends['friends/'+uid+'/'+myId]=friendDataB;
+  db.ref().update(friends).then(function(){
+    var cleanup={};
+    cleanup['friend_requests/'+myId+'/'+uid]=null;
+    cleanup['friend_sent/'+uid+'/'+myId]=null;
+    return db.ref().update(cleanup);
+  }).then(function(){
+    DS().save.friends[uid]=friendDataA;
+    delete DS().save.friendRequests[uid];
+    delete DS().save.friendSent[uid];
+    DS().persist();
+    DS().checkAchievements();
+    DS().showToast('Berteman dengan '+(uname||'-')+'!','success');
+    DS().sfxMP();
+    renderFriends();
+    syncFriendSentState();
+  }).catch(function(err){
+    console.error('acceptFriend',err);
+    DS().showToast('Gagal terima teman: '+((err&&err.code)||'Firebase error'),'error');
+  });
+}
+
+function rejectFriend(uid){
+  if(!db||!uid)return;
+  var myId=DS().save.globalId;
+  var updates={};
+  updates['friend_requests/'+myId+'/'+uid]=null;
+  // Also clear the sender's pending flag so their button becomes + TEMAN.
+  updates['friend_sent/'+uid+'/'+myId]=null;
+  db.ref().update(updates).then(function(){
+    delete DS().save.friendRequests[uid];
+    DS().persist();
+    DS().sfxClick();
+    renderFriends();
+    syncFriendSentState(function(){
+      var leader=document.getElementById('leaderScreen');
+      if(leader&&leader.classList.contains('on')&&window.LB_renderLeaderboard)window.LB_renderLeaderboard();
+    });
+  }).catch(function(err){
+    console.error('rejectFriend',err);
+    DS().showToast('Gagal menolak permintaan. Coba lagi.','error');
+  });
+}
+
+function syncFriendSentState(done){
+  if(!db||!DS().save.globalId){if(done)done();return;}
+  db.ref('friend_sent/'+DS().save.globalId).once('value').then(function(snap){
+    DS().save.friendSent=snap.val()||{};
+    DS().persist();
+    if(done)done();
+  }).catch(function(){if(done)done();});
+}
+
+function bindFriendSentWatcher(){
+  if(!db||!DS().save.globalId)return;
+  var ref=db.ref('friend_sent/'+DS().save.globalId);
+  ref.off();
+  ref.on('value',function(snap){
+    DS().save.friendSent=snap.val()||{};
+    DS().persist();
+    var active=document.getElementById('friendsScreen');
+    if(active&&active.classList.contains('on'))renderFriends();
+    var leader=document.getElementById('leaderScreen');
+    if(leader&&leader.classList.contains('on')&&window.LB_renderLeaderboard)window.LB_renderLeaderboard();
+  });
+}
+
+function bindFriendsWatcher(){
+  if(!db||!DS().save.globalId)return;
+  var ref=db.ref('friends/'+DS().save.globalId);
+  ref.off();
+  ref.on('value',function(snap){
+    DS().save.friends=snap.val()||{};
+    DS().persist();
+    if(DS().checkAchievements)DS().checkAchievements();
+    var active=document.getElementById('friendsScreen');
+    if(active&&active.classList.contains('on'))renderFriends();
+    var leader=document.getElementById('leaderScreen');
+    if(leader&&leader.classList.contains('on')&&window.LB_renderLeaderboard)window.LB_renderLeaderboard();
+  });
+}
+
+function bindFriendRequestWatcher(){
+  if(!db||!DS().save.globalId)return;
+  var ref=db.ref('friend_requests/'+DS().save.globalId);
+  ref.off();
+  ref.on('value',function(snap){
+    DS().save.friendRequests=snap.val()||{};
+    DS().persist();
+    var active=document.getElementById('friendsScreen');
+    if(active&&active.classList.contains('on'))renderFriends();
+    updateRoomInviteList();
+  });
+}
+
+function sendGroupInvite(targetId,targetName){
+  if(!db||!mp.roomCode||!mp.myId||!targetId)return;
+  if(!mp.isHost){DS().showToast('Hanya host yang mengundang teman','info');return;}
+  if(targetId===mp.myId)return;
+  var pl=PC()[targetId];
+  if(pl){DS().showToast((targetName||'Teman')+' sudah ada di grup','info');return;}
+  var roomData={room:mp.roomCode,code:mp.roomCode,fromId:mp.myId,fromName:(DS().save.playerName||'HOST').toUpperCase(),ts:nowTs()};
+  db.ref('room_invites/'+targetId+'/'+mp.roomCode).set(roomData).then(function(){
+    DS().showToast('Undangan dikirim ke '+(targetName||'teman'),'success');
+    DS().sfxMP();
+    renderLobby();
+  }).catch(function(err){
+    console.error('sendGroupInvite',err);
+    DS().showToast('Gagal mengundang teman','error');
+  });
+}
+
+function renderGroupInvites(){
+  var el=document.getElementById('mpInviteList');
+  if(!el)return;
+  if(!db||!DS().save.globalId){el.innerHTML='<div class="mp-invite-empty">Login untuk melihat undangan</div>';return;}
+  db.ref('room_invites/'+DS().save.globalId).once('value').then(function(snap){
+    var data=snap.val()||{},keys=Object.keys(data),html='';
+    if(!keys.length){el.innerHTML='<div class="mp-invite-empty">Belum ada undangan grup</div>';return;}
+    keys.sort(function(a,b){return (data[b].ts||0)-(data[a].ts||0);});
+    for(var i=0;i<keys.length;i++){
+      var inv=data[keys[i]]||{};
+      html+='<div class="mp-invite-row">';
+      html+='<div class="mp-invite-info"><b>'+esc((inv.fromName||'HOST').toUpperCase())+'</b><span>Mengundang kamu ke grup <strong>'+esc(inv.code||keys[i])+'</strong></span></div>';
+      html+='<div class="mp-invite-actions"><button class="mp-invite-accept" data-accept-invite="'+esc(keys[i])+'">GABUNG</button><button class="mp-invite-reject" data-reject-invite="'+esc(keys[i])+'">TOLAK</button></div>';
+      html+='</div>';
+    }
+    el.innerHTML=html;
+    var acc=el.querySelectorAll('[data-accept-invite]');
+    for(var a=0;a<acc.length;a++)acc[a].addEventListener('click',function(){
+      var code=this.getAttribute('data-accept-invite');
+      db.ref('room_invites/'+DS().save.globalId+'/'+code).once('value').then(function(ss){
+        var inv=ss.val();
+        if(!inv){renderGroupInvites();return;}
+        var name=(DS().save.playerName||'').trim().toUpperCase();
+        if(name.length<3){DS().showToast('Isi nama multiplayer dulu','error');return;}
+        joinGroupByCode(inv.code||code,name);
+        db.ref('room_invites/'+DS().save.globalId+'/'+code).remove();
+      });
+    });
+    var rej=el.querySelectorAll('[data-reject-invite]');
+    for(var j=0;j<rej.length;j++)rej[j].addEventListener('click',function(){
+      var code=this.getAttribute('data-reject-invite');
+      db.ref('room_invites/'+DS().save.globalId+'/'+code).remove().then(renderGroupInvites);
+    });
+  }).catch(function(){el.innerHTML='<div class="mp-invite-empty">Gagal memuat undangan</div>';});
+}
+
+var roomInviteWatchRef=null;
+function bindRoomInviteWatcher(){
+  if(roomInviteWatchRef){try{roomInviteWatchRef.off();}catch(e){}roomInviteWatchRef=null;}
+  if(!db||!DS().save.globalId)return;
+  roomInviteWatchRef=db.ref('room_invites/'+DS().save.globalId);
+  roomInviteWatchRef.on('child_added',function(snap){
+    var inv=snap.val();
+    if(!inv)return;
+    DS().showToast((inv.fromName||'HOST')+' mengundangmu ke grup '+(inv.code||snap.key),'info',4500);
+    renderGroupInvites();
+  });
+  roomInviteWatchRef.on('child_removed',function(){renderGroupInvites();});
+}
+function updateRoomInviteList(){renderGroupInvites();}
+
+function renderLobbyInviteFriends(){
+  var el=document.getElementById('mpLobbyInviteList');
+  if(!el)return;
+  if(!mp.isHost){el.innerHTML='<div class="mp-invite-empty">Host yang mengundang teman.</div>';return;}
+  var friends=DS().save.friends||{},ids=Object.keys(friends),html='';
+  if(!ids.length){el.innerHTML='<div class="mp-invite-empty">Belum punya teman untuk diundang.</div>';return;}
+  for(var i=0;i<ids.length;i++){
+    var fid=ids[i],f=friends[fid]||{};
+    var already=!!PC()[fid];
+    html+='<div class="mp-lobby-friend"><div><b>'+esc((f.name||'-').toUpperCase())+'</b><span>'+(already?'Sudah di grup':'Teman')+'</span></div>';
+    html+='<button class="mp-lobby-invite-btn" data-invite-friend="'+esc(fid)+'" data-invite-name="'+esc(f.name||'-')+'"'+(already?' disabled':'')+'>'+(already?'ADA':'UNDANG')+'</button></div>';
+  }
+  el.innerHTML=html;
+  var btns=el.querySelectorAll('[data-invite-friend]');
+  for(var b=0;b<btns.length;b++)btns[b].addEventListener('click',function(){
+    sendGroupInvite(this.getAttribute('data-invite-friend'),this.getAttribute('data-invite-name'));
+  });
+}
+
+function removeFriend(uid,uname){
+  if(!db)return;
+  DS().showConfirm('Hapus '+(uname||'-')+' dari teman?',function(){
+    var myId=DS().save.globalId;
+    var updates={};
+    updates['friends/'+myId+'/'+uid]=null;
+    updates['friends/'+uid+'/'+myId]=null;
+    db.ref().update(updates);
+    delete DS().save.friends[uid];
+    DS().persist();
+    DS().sfxClick();
+    DS().showToast('Teman dihapus','info');
+    renderFriends();
+  });
+}
+
+function searchUsers(){
+  var input=document.getElementById('friendSearchInput');
+  var result=document.getElementById('friendSearchResult');
+  if(!input||!result)return;
+  var q=(input.value||'').trim().toUpperCase();
+  if(q.length<1){DS().showToast('Minimal 1 karakter','error');return;}
+  if(!db)return;
+  result.innerHTML='<div style="text-align:center;padding:24px;color:#8a8aa3;font-weight:600;font-size:12px;">Mencari...</div>';
+  db.ref('users').once('value').then(function(snap){
+    var allUsers=[];
+    snap.forEach(function(child){
+      var d=child.val();
+      if(!d)return;
+      if(!d.id)d.id=child.key;
+      allUsers.push(d);
+    });
+    var users=[];
+    for(var i=0;i<allUsers.length;i++){
+      var u=allUsers[i];
+      if(u.id===DS().save.globalId)continue;
+      var nm=(u.name||'').toUpperCase();
+      if(nm.indexOf(q)>=0)users.push(u);
+      if(users.length>=30)break;
+    }
+    users.sort(function(a,b){
+      var ka=Number(a.kills)||0,kb=Number(b.kills)||0;
+      return kb-ka;
+    });
+    var html='';
+    if(users.length===0){
+      html='<div style="text-align:center;padding:24px;color:#8a8aa3;font-weight:600;font-size:12px;">Tidak ditemukan</div>';
+    }else{
+      for(var j=0;j<users.length;j++){
+        var u2=users[j];
+        var cls='leader-row';
+        if(DS().save.friends[u2.id])cls+=' friend';
+        var btnHtml='';
+        if(DS().save.friends[u2.id])btnHtml='<button class="leader-friend-btn added" disabled>TEMAN</button>';
+        else if(DS().save.friendSent[u2.id])btnHtml='<button class="leader-friend-btn pending" disabled>PENDING</button>';
+        else btnHtml='<button class="leader-friend-btn" data-add-friend="'+esc(u2.id)+'" data-friend-name="'+esc(u2.name||'')+'">+ TEMAN</button>';
+        html+='<div class="'+cls+'" data-uid="'+esc(u2.id)+'">';
+        html+='<div class="leader-rank">-</div>';
+        html+='<div class="leader-info">';
+        html+='<div class="leader-name">'+esc((u2.name||'-').toUpperCase())+'</div>';
+        html+='<div class="leader-meta">LV '+(u2.level||1)+' &middot; '+fmtK(u2.kills||0)+' KP</div>';
+        html+='</div>';
+        html+='<div class="leader-kp">'+fmtK(u2.totalKills||0)+'</div>';
+        html+=btnHtml;
+        html+='</div>';
+      }
+    }
+    result.innerHTML=html;
+    bindFriendButtons(result);
+  }).catch(function(){
+    result.innerHTML='<div style="text-align:center;padding:24px;color:#c93a3a;font-weight:600;font-size:12px;">Gagal mencari</div>';
+  });
+}
+
+function renderFriends(){
+  syncFriendSentState();
+  var reqList=document.getElementById('friendRequests');
+  var friendList=document.getElementById('friendList');
+  if(!db)return;
+  if(reqList)reqList.innerHTML='<div style="text-align:center;padding:24px;color:#8a8aa3;font-weight:600;font-size:12px;">Memuat...</div>';
+  var myId=DS().save.globalId;
+  db.ref('friend_requests/'+myId).once('value').then(function(snap){
+    var d=snap.val()||{};
+    var reqs=[];
+    for(var k in d)reqs.push(d[k]);
+    DS().save.friendRequests={};
+    var html='';
+    if(reqs.length===0){
+      html='<div style="text-align:center;padding:24px;color:#8a8aa3;font-weight:600;font-size:12px;">Tidak ada permintaan</div>';
+    }else{
+      for(var i=0;i<reqs.length;i++){
+        var r=reqs[i];
+        DS().save.friendRequests[r.id]=r;
+        html+='<div class="leader-row">';
+        html+='<div class="leader-info">';
+        html+='<div class="leader-name">'+esc((r.name||'-').toUpperCase())+'</div>';
+        html+='<div class="leader-meta">Ingin berteman</div>';
+        html+='</div>';
+        html+='<button class="leader-friend-btn" data-accept="'+esc(r.id)+'" data-name="'+esc(r.name||'')+'" style="background:linear-gradient(180deg,#a8f0cd,#3ddc97);">TERIMA</button>';
+        html+='<button class="leader-friend-btn pending" data-reject="'+esc(r.id)+'">TOLAK</button>';
+        html+='</div>';
+      }
+    }
+    if(reqList)reqList.innerHTML=html;
+    var acc=reqList?reqList.querySelectorAll('[data-accept]'):[];
+    for(var a=0;a<acc.length;a++){
+      acc[a].addEventListener('click',function(){
+        acceptFriend(this.getAttribute('data-accept'),this.getAttribute('data-name'));
+      });
+    }
+    var rej=reqList?reqList.querySelectorAll('[data-reject]'):[];
+    for(var rj=0;rj<rej.length;rj++){
+      rej[rj].addEventListener('click',function(){
+        rejectFriend(this.getAttribute('data-reject'));
+      });
+    }
+  }).catch(function(){});
+  if(friendList)friendList.innerHTML='<div style="text-align:center;padding:24px;color:#8a8aa3;font-weight:600;font-size:12px;">Memuat...</div>';
+  db.ref('friends/'+myId).once('value').then(function(snap){
+    var d=snap.val()||{};
+    var fids=[];
+    for(var k in d)fids.push(k);
+    if(fids.length===0){
+      if(friendList)friendList.innerHTML='<div style="text-align:center;padding:24px;color:#8a8aa3;font-weight:600;font-size:12px;">Belum ada teman</div>';
+      return;
+    }
+    var loaded=0,rows=[];
+    for(var i=0;i<fids.length;i++){
+      (function(fid){
+        db.ref('users/'+fid).once('value').then(function(us){
+          var u=us.val();
+          if(!u)u={id:fid,name:'-',kills:0,level:1,lastSeen:0};
+          u.id=fid;
+          DS().save.friends[fid]={id:fid,name:u.name,ts:nowTs()};
+          rows.push(u);
+          loaded++;
+          if(loaded===fids.length)renderFriendRows(rows,friendList);
+        }).catch(function(){
+          loaded++;
+          if(loaded===fids.length)renderFriendRows(rows,friendList);
+        });
+      })(fids[i]);
+    }
+    DS().persist();
+  }).catch(function(){});
+}
+
+function renderFriendRows(rows,list){
+  if(!list)return;
+  rows.sort(function(a,b){
+    var ka=Number(a.kills)||0,kb=Number(b.kills)||0;
+    return kb-ka;
+  });
+  var html='';
+  for(var i=0;i<rows.length;i++){
+    var u=rows[i];
+    var online=(nowTs()-(u.lastSeen||0))<60000;
+    html+='<div class="leader-row friend">';
+    html+='<div class="leader-rank" style="color:'+(online?'#3ddc97':'#8a8aa3')+';font-size:20px;">&bull;</div>';
+    html+='<div class="leader-info">';
+    html+='<div class="leader-name">'+esc((u.name||'-').toUpperCase())+'</div>';
+    html+='<div class="leader-meta">LV '+(u.level||1)+' &middot; '+(online?'ONLINE':'offline')+'</div>';
+    html+='</div>';
+    html+='<div class="leader-kp">'+fmtK(u.kills||0)+'</div>';
+    html+='<button class="leader-friend-btn pending" data-remove-friend="'+esc(u.id)+'" data-name="'+esc(u.name||'')+'">HAPUS</button>';
+    html+='</div>';
+  }
+  list.innerHTML=html;
+  var btns=list.querySelectorAll('[data-remove-friend]');
+  for(var b=0;b<btns.length;b++){
+    btns[b].addEventListener('click',function(){
+      removeFriend(this.getAttribute('data-remove-friend'),this.getAttribute('data-name'));
+    });
+  }
+}
+
+function bindUI(){
+  var createBtn=document.getElementById('mpCreateBtn');
+  if(createBtn)createBtn.addEventListener('click',function(){
+    DS().initAudio();DS().sfxClick();createGroup();
+  });
+  var joinBtn=document.getElementById('mpJoinBtn');
+  if(joinBtn)joinBtn.addEventListener('click',function(){
+    DS().initAudio();DS().sfxClick();joinGroup();
+  });
+  var globalBtn=document.getElementById('mpGlobalBtn');
+  if(globalBtn)globalBtn.addEventListener('click',function(){
