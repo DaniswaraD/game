@@ -1,0 +1,151 @@
+{
+  "rules": {
+    "usernames": {
+      "$username": {
+        ".read": "auth != null",
+        ".write": "auth != null && ((!newData.exists() && data.val() === auth.uid) || (newData.isString() && (!data.exists() || data.val() === auth.uid)))"
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
+        ".validate": "!newData.exists() || newData.child('id').val() === auth.uid"
+      }
+    },
+    "friend_requests": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && (auth.uid === $uid || newData.child(auth.uid).exists() || root.child('admins').child(auth.uid).val() === true)"
+      }
+    },
+    "friend_sent": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$other": {
+          ".write": "auth != null && (auth.uid === $uid || (!newData.exists() && root.child('friend_requests').child(auth.uid).child($uid).exists()) || root.child('admins').child(auth.uid).val() === true)"
+        }
+      }
+    },
+    "friends": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$other": {
+          ".write": "auth != null && (auth.uid === $uid || root.child('friend_requests').child(auth.uid).child($uid).exists() || root.child('admins').child(auth.uid).val() === true)"
+        }
+      }
+    },
+    "rooms": {
+      ".read": "auth != null",
+      "$room": {
+        ".read": "auth != null",
+        ".write": "auth != null && !data.exists() && newData.child(\"hostId\").val() === auth.uid && newData.child(\"players\").child(auth.uid).exists()",
+        ".validate": "newData.child(\"hostId\").val() === (data.exists() ? data.child(\"hostId\").val() : auth.uid)",
+        "state": {
+          ".write": "auth != null && data.parent().child(\"hostId\").val() === auth.uid",
+          ".validate": "newData.isString() && (newData.val() === \"lobby\" || newData.val() === \"playing\" || newData.val() === \"waiting_host\" || newData.val() === \"ended\")"
+        },
+        "mode": {
+          ".write": "auth != null && data.parent().child(\"hostId\").val() === auth.uid",
+          ".validate": "newData.isNumber()"
+        },
+        "startAt": {
+          ".write": "auth != null && data.parent().child(\"hostId\").val() === auth.uid",
+          ".validate": "newData.isNumber()"
+        },
+        "endAt": {
+          ".write": "auth != null && data.parent().child(\"hostId\").val() === auth.uid",
+          ".validate": "newData.isNumber() && (!newData.parent().child(\"startAt\").exists() || newData.val() >= newData.parent().child(\"startAt\").val())"
+        },
+        "endedAt": {
+          ".write": "auth != null && data.parent().child(\"hostId\").val() === auth.uid"
+        },
+        "players": {
+          "$uid": {
+            ".read": "auth != null",
+            ".write": "auth != null && (auth.uid === $uid || data.parent().parent().child(\"hostId\").val() === auth.uid)",
+            ".validate": "!newData.exists() || (newData.child(\"id\").val() === $uid && (!data.exists() ? data.parent().parent().child(\"state\").val() !== \"playing\" : true))"
+          }
+        },
+        "stats": {
+          ".read": "auth != null",
+          ".write": "auth != null && data.parent().child(\"players\").child(auth.uid).exists()"
+        },
+        "killfeed": {
+          ".read": "auth != null",
+          ".write": "auth != null && data.parent().child(\"players\").child(auth.uid).exists()"
+        },
+        "lastEmoji": {
+          ".read": "auth != null",
+          ".write": "auth != null && data.parent().child(\"players\").child(auth.uid).exists()"
+        },
+        "chat": {
+          ".read": "auth != null",
+          "$msg": {
+            ".write": "auth != null && newData.child(\"fromId\").val() === auth.uid || auth != null && data.parent().parent().child(\"players\").child(auth.uid).exists()"
+          }
+        }
+      }
+    },
+    "global_arena": {
+      ".read": "auth != null",
+      "players": {
+        "$uid": {
+          ".read": "auth != null",
+          ".write": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)"
+        }
+      },
+      "killfeed": {
+        ".write": "auth != null"
+      },
+      "chat": {
+        ".write": "auth != null"
+      },
+      "stats": {
+        ".write": "auth != null"
+      },
+      "enemies": {
+        ".write": "auth != null"
+      },
+      "bosses": {
+        ".write": "auth != null"
+      },
+      "lastEmoji": {
+        ".write": "auth != null"
+      }
+    },
+    "leaderboard": {
+      ".read": "auth != null",
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
+        ".validate": "!newData.exists() || newData.child('id').val() === auth.uid"
+      }
+    },
+    "room_invites": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$room": {
+          ".write": "auth != null && (auth.uid === $uid || root.child('rooms').child($room).child('hostId').val() === auth.uid)",
+          ".validate": "newData.hasChildren(['room','code','fromId','fromName','ts']) && newData.child('room').val() === $room"
+        }
+      }
+    },
+    "admins": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
+    "system": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+    "account_flags": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)"
+      }
+    }
+  }
+}
