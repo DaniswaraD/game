@@ -1,0 +1,109 @@
+/* FINAL MENU REBUILD — intentionally replaces the older layered menu rules. */
+#menuScreen{
+  --mf-ink:#17243a;
+  --mf-muted:#52647b;
+  --mf-line:rgba(36,61,87,.16);
+  position:fixed!important;inset:0!important;overflow:hidden!important;
+  background:linear-gradient(135deg,#dff7ff 0%,#f7f7ff 46%,#fff0d8 100%)!important;
+  color:var(--mf-ink)!important;
+}
+#menuScreen::before{
+  content:"";position:absolute;inset:-20%;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(circle at 15% 22%,rgba(77,199,239,.22) 0 80px,transparent 210px),
+    radial-gradient(circle at 86% 25%,rgba(255,181,89,.20) 0 90px,transparent 220px),
+    radial-gradient(circle at 75% 82%,rgba(174,125,255,.18) 0 100px,transparent 240px);
+  animation:mfAmbient 14s ease-in-out infinite alternate;
+}
+#menuScreen::after{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.48;
+  background-image:radial-gradient(rgba(43,75,105,.18) 1px,transparent 1px);
+  background-size:28px 28px;
+  animation:mfDots 22s linear infinite;
+  mask-image:linear-gradient(to bottom,transparent,black 18%,black 82%,transparent);
+}
+@keyframes mfAmbient{0%{transform:translate3d(-1%,-1%,0) scale(1)}50%{transform:translate3d(1.5%,1%,0) scale(1.025)}100%{transform:translate3d(-.5%,2%,0) scale(1.04)}}
+@keyframes mfDots{to{background-position:56px 56px}}
+#menuScreen .menu-deco{position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;overflow:hidden!important;opacity:1!important}
+#menuScreen .menu-deco-item{position:absolute!important;border-radius:999px!important;filter:blur(1px)!important;opacity:.55!important;animation:mfFloat 9s ease-in-out infinite!important}
+#menuScreen .menu-deco-item.a{width:130px!important;height:130px!important;left:3%!important;top:20%!important;background:radial-gradient(circle,rgba(61,220,151,.32),transparent 70%)!important}
+#menuScreen .menu-deco-item.b{width:170px!important;height:170px!important;right:4%!important;top:10%!important;background:radial-gradient(circle,rgba(155,107,255,.25),transparent 70%)!important;animation-delay:-2s!important}
+#menuScreen .menu-deco-item.c{width:150px!important;height:150px!important;right:8%!important;bottom:8%!important;background:radial-gradient(circle,rgba(255,200,87,.32),transparent 70%)!important;animation-delay:-4s!important}
+#menuScreen .menu-deco-item.d{width:110px!important;height:110px!important;left:9%!important;bottom:8%!important;background:radial-gradient(circle,rgba(255,119,169,.22),transparent 70%)!important;animation-delay:-6s!important}
+@keyframes mfFloat{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(0,-16px,0) scale(1.08)}}
+
+#menuScreen .menu-wrap{
+  position:relative!important;z-index:2!important;
+  width:min(900px,100%)!important;height:100%!important;min-height:0!important;
+  margin:0 auto!important;box-sizing:border-box!important;
+  padding:clamp(12px,3vh,28px) clamp(12px,3vw,34px) max(12px,env(safe-area-inset-bottom) + 8px)!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  gap:clamp(7px,1.4vh,13px)!important;overflow:hidden!important;
+}
+#menuScreen .menu-brand{order:1!important;width:100%!important;margin:0!important;padding:0!important;text-align:center!important;flex:0 0 auto!important}
+#menuScreen .brand-title{font-size:clamp(34px,6.5vw,62px)!important;line-height:.94!important;letter-spacing:-1.5px!important;font-weight:950!important;color:#1b2940!important;text-shadow:0 3px 0 rgba(255,255,255,.9),0 8px 20px rgba(55,86,115,.12)!important;animation:mfTitleIn .55s cubic-bezier(.22,1,.36,1) both!important}
+#menuScreen .brand-title .dot{color:#ff6b4a!important}.brand-title .dot2{color:#3ddc97!important}
+@keyframes mfTitleIn{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:none}}
+#menuScreen .menu-header{order:2!important;width:min(760px,100%)!important;max-width:none!important;margin:0!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;align-items:center!important}
+#menuScreen .user-chip{min-height:64px!important;box-sizing:border-box!important;padding:8px 10px!important;background:rgba(255,255,255,.82)!important;border:1px solid var(--mf-line)!important;border-radius:16px!important;box-shadow:0 8px 22px rgba(46,73,100,.10)!important;backdrop-filter:blur(8px)!important}
+#menuScreen .user-avatar{width:46px!important;height:46px!important;background:#e6f6ff!important;border:1px solid #a8d8ee!important;border-radius:13px!important}
+#menuScreen .user-name{color:var(--mf-ink)!important;font-weight:900!important}
+#menuScreen .user-badge{color:#38506b!important;background:#edf7ff!important;border-color:#b9d8e8!important}
+#menuScreen .gear-btn{width:52px!important;height:52px!important;background:#e9f5ff!important;color:#28415b!important;border:1px solid #b8d8ea!important;border-radius:15px!important;box-shadow:0 6px 0 rgba(57,100,128,.12)!important}
+#menuScreen .menu-xp{background:rgba(246,251,255,.9)!important;border-color:#c4dce9!important;box-shadow:none!important;padding:6px 9px!important}
+#menuScreen .menu-xp-label{color:#26708d!important}.menu-xp-text{color:#52647b!important}.menu-xp-track{background:#dfeef5!important;border-color:#bdd5e2!important}.menu-xp-fill{background:linear-gradient(90deg,#4ec7ef,#3ddc97)!important}
+#menuScreen .global-champion{order:3!important;width:min(760px,100%)!important;max-width:none!important;margin:0!important;box-sizing:border-box!important;padding:9px 11px!important;background:linear-gradient(135deg,rgba(255,250,232,.96),rgba(255,242,207,.96))!important;border:1px solid #e5c875!important;border-radius:16px!important;box-shadow:0 8px 22px rgba(132,101,31,.10)!important}
+#menuScreen .global-champion::before{animation:mfChampionSweep 3.6s linear infinite!important;background:linear-gradient(90deg,transparent,rgba(255,255,255,.65),transparent)!important}
+@keyframes mfChampionSweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+#menuScreen .champion-kicker{color:#9b6a08!important}.champion-name{color:#27364b!important}.champion-crown{background:#ffe29a!important;color:#704d00!important;border-color:#d8ad4c!important}.champion-stats>div{background:rgba(255,255,255,.7)!important;border-color:#ead9ad!important}.champion-stats b{color:#25364d!important}.champion-stats span,.champion-score{color:#65758a!important}.champion-score b{color:#c76a23!important}
+#menuScreen .menu-cta-wrap{order:4!important;width:min(430px,82%)!important;margin:0 auto!important;padding:0!important;display:flex!important;justify-content:center!important;align-items:center!important}
+#menuScreen .menu-main{width:100%!important;min-height:56px!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;background:linear-gradient(135deg,#ffcf62,#ff9d52)!important;color:#39280a!important;border:1px solid #d88e2d!important;border-radius:17px!important;box-shadow:0 6px 0 #bd7627,0 14px 28px rgba(229,143,54,.22)!important;font-size:17px!important;font-weight:950!important;letter-spacing:2px!important;text-shadow:0 1px rgba(255,255,255,.35)!important}
+#menuScreen .menu-main:hover{transform:translateY(-2px)!important;filter:saturate(1.08)!important}.menu-main:active{transform:translateY(3px)!important;box-shadow:0 3px 0 #bd7627,0 8px 16px rgba(229,143,54,.18)!important}
+#menuScreen .menu-main::after{display:block!important;border-color:rgba(255,255,255,.65)!important;animation:mfMainPulse 2s ease-out infinite!important}
+@keyframes mfMainPulse{0%,100%{opacity:0;transform:scale(.98)}35%{opacity:.85}72%{opacity:0;transform:scale(1.035)}}
+#menuScreen .mm-play{fill:#39280a!important}
+#menuScreen .menu-grid{order:5!important;width:min(760px,100%)!important;margin:0!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-rows:46px!important;gap:8px!important;align-content:start!important;overflow:hidden!important;min-height:0!important}
+#menuScreen .menu-tile{height:46px!important;min-height:46px!important;box-sizing:border-box!important;padding:6px 11px!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;position:relative!important;background:linear-gradient(135deg,#ffffff,#f1f8fc)!important;color:#17243a!important;border:1px solid #b9cfdd!important;border-radius:13px!important;box-shadow:0 4px 0 rgba(62,94,119,.13),0 8px 18px rgba(47,76,102,.07)!important}
+#menuScreen .menu-tile:nth-child(1){background:linear-gradient(135deg,#fff1b8,#ffe5a0)!important}
+#menuScreen .menu-tile:nth-child(2){background:linear-gradient(135deg,#dff9ed,#c8f1df)!important}
+#menuScreen .menu-tile:nth-child(3){background:linear-gradient(135deg,#ffe1ee,#ffd0e2)!important}
+#menuScreen .menu-tile:nth-child(4){background:linear-gradient(135deg,#e9ddff,#d9c9ff)!important}
+#menuScreen .menu-tile:nth-child(5){background:linear-gradient(135deg,#dff5ff,#c9ebfa)!important}
+#menuScreen .menu-tile:nth-child(6){background:linear-gradient(135deg,#ffe7dc,#ffd8c7)!important}
+#menuScreen .menu-tile:nth-child(7){background:linear-gradient(135deg,#fff5cf,#ffedb0)!important}
+#menuScreen .menu-tile:nth-child(8){background:linear-gradient(135deg,#eee2ff,#dfd0ff)!important}
+#menuScreen .menu-tile:nth-child(9){background:linear-gradient(135deg,#dff5ff,#caeaff)!important}
+#menuScreen .menu-tile::before{width:4px!important;height:100%!important;left:0!important;top:0!important;right:auto!important;bottom:auto!important;border-radius:12px 0 0 12px!important;opacity:1!important}
+#menuScreen .menu-tile .tile-icon{width:23px!important;height:23px!important;padding:4px!important;flex:0 0 23px!important;box-sizing:content-box!important;background:rgba(255,255,255,.55)!important;border:1px solid rgba(36,61,87,.17)!important;border-radius:8px!important}
+#menuScreen .menu-tile .tile-icon svg{fill:#263b52!important}
+#menuScreen .tile-title{color:#17243a!important;font-size:11px!important;font-weight:950!important;letter-spacing:.9px!important;text-align:left!important}
+#menuScreen .tile-sub{color:#50657a!important}
+#menuScreen .menu-tile:hover{transform:translateY(-2px)!important;filter:saturate(1.06)!important}.menu-tile:active{transform:translateY(2px)!important;box-shadow:0 2px 0 rgba(62,94,119,.13)!important}
+
+/* Startup loading is deliberately NOT the menu theme. */
+#loadingOverlay{
+  position:fixed!important;inset:0!important;z-index:9999!important;display:flex!important;align-items:center!important;justify-content:center!important;flex-direction:column!important;gap:18px!important;
+  background:radial-gradient(circle at 50% 38%,#243c59 0,#111c2b 34%,#080d16 100%)!important;color:#eaf7ff!important;
+  transition:opacity .35s ease!important;overflow:hidden!important;
+}
+#loadingOverlay::before{content:"";position:absolute;inset:-30%;background:repeating-linear-gradient(0deg,transparent 0 5px,rgba(92,216,255,.035) 6px 7px);animation:mfLoadScan 8s linear infinite;pointer-events:none}
+#loadingOverlay::after{content:"";position:absolute;width:42vw;height:42vw;max-width:360px;max-height:360px;border-radius:50%;border:1px solid rgba(87,214,255,.15);box-shadow:0 0 80px rgba(70,202,255,.12);animation:mfLoadPulse 2.2s ease-in-out infinite;pointer-events:none}
+@keyframes mfLoadScan{to{transform:translateY(80px)}}
+@keyframes mfLoadPulse{50%{transform:scale(1.08);opacity:.5}}
+#loadingOverlay .lo-spinner{width:58px!important;height:58px!important;border:4px solid rgba(102,216,255,.18)!important;border-top-color:#66d8ff!important;border-right-color:#7df2cf!important;box-shadow:0 0 26px rgba(102,216,255,.18)!important;animation:loSpin .8s linear infinite!important;z-index:1}
+#loadingOverlay .lo-text{z-index:1;color:#dff8ff!important;font-size:11px!important;font-weight:900!important;letter-spacing:4px!important;text-shadow:0 0 16px rgba(102,216,255,.35)!important}
+#loadingOverlay.hide{opacity:0!important;pointer-events:none!important}
+
+@media(max-width:700px){
+ #menuScreen .menu-wrap{padding-inline:10px!important;gap:6px!important}
+ #menuScreen .brand-title{font-size:clamp(29px,8.4vw,43px)!important}
+ #menuScreen .menu-header{grid-template-columns:minmax(0,1fr) 46px!important}
+ #menuScreen .user-chip{min-height:55px!important;padding:6px 8px!important}.user-avatar{width:38px!important;height:38px!important}
+ #menuScreen .gear-btn{width:46px!important;height:46px!important}
+ #menuScreen .global-champion{padding:7px 9px!important}.champion-name{font-size:12px!important}.champion-stats{gap:3px!important;margin-top:4px!important}.champion-stats>div{padding:3px 2px!important}.champion-stats b{font-size:10px!important}.champion-stats span{font-size:6px!important}
+ #menuScreen .menu-cta-wrap{width:min(390px,94%)!important}.menu-main{min-height:50px!important;font-size:15px!important}
+ #menuScreen .menu-grid{grid-auto-rows:42px!important;gap:6px!important}.menu-tile{height:42px!important;min-height:42px!important;padding:5px 8px!important;gap:7px!important}.menu-tile .tile-icon{width:19px!important;height:19px!important;padding:3px!important}.tile-title{font-size:9px!important}.tile-sub{display:none!important}
+}
+@media(max-width:390px){#menuScreen .menu-wrap{padding-inline:7px!important;gap:5px!important}#menuScreen .brand-title{font-size:28px!important}#menuScreen .global-champion{padding:6px 7px!important}.champion-stats span{font-size:5.5px!important}#menuScreen .menu-grid{grid-auto-rows:39px!important;gap:5px!important}.menu-tile{height:39px!important;min-height:39px!important}.menu-tile .tile-icon{display:none!important}.tile-title{font-size:8.5px!important}}
+@media(max-height:650px){#menuScreen .menu-wrap{gap:4px!important;padding-top:7px!important}.brand-title{font-size:30px!important}#menuScreen .user-chip{min-height:50px!important}#menuScreen .global-champion{padding:5px 8px!important}#menuScreen .menu-main{min-height:44px!important}#menuScreen .menu-grid{grid-auto-rows:38px!important;gap:4px!important}.menu-tile{height:38px!important;min-height:38px!important}}
+@media(prefers-reduced-motion:reduce){#menuScreen::before,#menuScreen::after,#menuScreen .menu-deco-item,#menuScreen .menu-main::after,#menuScreen .global-champion::before,#loadingOverlay::before,#loadingOverlay::after{animation:none!important}}
