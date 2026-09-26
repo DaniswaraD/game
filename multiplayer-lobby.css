@@ -1,0 +1,37 @@
+/* Multiplayer lobby composition: chat/invites share one row; KP and match controls share the next. */
+#mpLobbyScreen .inner{max-width:1120px!important}
+#mpLobbyScreen .mp-lobby{display:grid!important;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr)!important;grid-template-areas:"code code" "field players" "mode mode" "invite chat" "gift actions" "mini end"!important;gap:10px!important;align-items:start!important}
+#mpLobbyScreen .mp-lobby-code{grid-area:code!important}
+#mpLobbyScreen .mp-playfield{grid-area:field!important;min-height:260px!important}
+#mpLobbyScreen .mp-players{grid-area:players!important}
+#mpLobbyScreen .mp-mode-picker{grid-area:mode!important}
+#mpLobbyScreen .mp-invite-box{grid-area:invite!important;margin:0!important;min-width:0!important}
+#mpLobbyScreen .mp-chat{grid-area:chat!important;margin:0!important;min-width:0!important}
+#mpLobbyScreen .gift-btn{grid-area:gift!important;margin:0!important;min-height:52px!important}
+#mpLobbyScreen .mp-actions-major{grid-area:actions!important;display:grid!important;grid-template-columns:1fr 1.15fr 1fr!important;gap:7px!important;margin:0!important;padding:0!important;position:static!important;background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important}
+#mpLobbyScreen .mp-actions-major .mp-btn{min-height:52px!important}
+#mpLobbyScreen .mp-mini-row{grid-area:mini!important}
+#mpLobbyScreen #mpEndStats{grid-area:end!important}
+#mpLobbyScreen .mp-chat-list{min-height:130px!important;max-height:190px!important}
+#mpLobbyScreen .mp-chat-input-row{display:grid!important;grid-template-columns:1fr auto!important;gap:6px!important}
+@media(max-width:760px){
+ #mpLobbyScreen .mp-lobby{grid-template-columns:1fr 1fr!important;grid-template-areas:"code code" "field field" "players players" "mode mode" "invite chat" "gift actions" "mini mini" "end end"!important;gap:7px!important}
+ #mpLobbyScreen .mp-playfield{min-height:150px!important}
+ #mpLobbyScreen .mp-chat-list{min-height:85px!important;max-height:120px!important}
+ #mpLobbyScreen .mp-actions-major{grid-template-columns:1fr 1.15fr!important}
+ #mpLobbyScreen .mp-actions-major .ready{grid-column:1}
+ #mpLobbyScreen .mp-actions-major .start{grid-column:2}
+ #mpLobbyScreen .mp-actions-major .leave{grid-column:1/-1;min-height:38px!important}
+ #mpLobbyScreen .gift-btn{min-height:46px!important;font-size:9px!important}
+}
+@media(max-width:500px){
+ #mpLobbyScreen .mp-lobby{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+ #mpLobbyScreen .mp-invite-title{font-size:10px!important}
+ #mpLobbyScreen .mp-chat{padding:8px!important}
+ #mpLobbyScreen .mp-chat-list{min-height:70px!important;max-height:96px!important}
+ #mpLobbyScreen .mp-chat-input{min-width:0!important}
+ #mpLobbyScreen .mp-actions-major .mp-btn{min-height:44px!important;font-size:9px!important}
+}
+@media(max-width:380px){
+ #mpLobbyScreen .mp-lobby{grid-template-areas:"code code" "field field" "players players" "mode mode" "invite invite" "chat chat" "gift actions" "mini mini" "end end"!important}
+}
